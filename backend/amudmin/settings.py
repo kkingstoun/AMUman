@@ -36,6 +36,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -45,7 +46,20 @@ INSTALLED_APPS = [
     "common_models",
     'corsheaders',
     'rest_framework',
+    'notification',
 ]
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'asgi_redis.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('localhost', 6379)],
+        },
+        'ROUTING': 'amudmin.routing.channel_routing',
+    }
+}
+
+ASGI_APPLICATION = "amudmin.asgi.application"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

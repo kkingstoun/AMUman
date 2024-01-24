@@ -6,6 +6,10 @@ from .functions.gpu_monitor import GPUMonitor
 from django.views.decorators.csrf import csrf_exempt
 from django.apps import apps
 
+from .singleton import CurrentJob
+from rest_framework.parsers import JSONParser
+from io import BytesIO
+
 class NodeReportView(APIView):
     def post(self, request, format=None):
         # Tutaj logika zgłaszania obecności
@@ -28,3 +32,19 @@ def get_gpu_status(request):
         return JsonResponse(gpu_status)
     else:
         return JsonResponse({'error': 'You have to use POST METHOD'}, status=400)
+    
+    
+# @require_POST
+# def receive_task(request):
+#     try:
+#         stream = BytesIO(request.body)
+#         data = JSONParser().parse(stream)
+#         serializer = TaskSerializer(data=data)
+
+#         if serializer.is_valid():
+#             task = serializer.save()  # Deserializacja do obiektu Task
+#             # Zapisz lub przetwarzaj zadanie
+#             return JsonResponse({'status': 'success', 'message': 'Task received successfully.'})
+#         return JsonResponse({'status': 'error', 'message': 'Invalid task data'}, status=400)
+#     except Exception as e:
+#         return JsonResponse({'status': 'error', 'message': str(e)})
