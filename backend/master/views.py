@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404, redirect
 
 from rest_framework import viewsets
-from .models import Task
+from common_models.models import Task
 from .serializers import TaskSerializer
 
 #Tymczasowe wyłączenie tokenów
