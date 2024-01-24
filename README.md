@@ -1,0 +1,2 @@
+# AMUdmin
+ Amumax simulation manager
