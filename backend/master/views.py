@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from .models import Task
 from django.utils import timezone
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404, redirect

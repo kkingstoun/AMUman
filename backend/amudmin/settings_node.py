@@ -26,3 +26,7 @@ DATABASES = {
     }
 }
 
+MIDDLEWARE += [
+    # ... inne middleware ...
+    'node.middleware.gpu_monitor_middleware.GPUMonitorMiddleware',
+]
