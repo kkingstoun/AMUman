@@ -17,10 +17,10 @@ urlpatterns = [
     path('tasks/edit/<int:task_id>/', edit_task, name='edit_task'),
     path('task/<int:task_id>/priority/<int:priority>/', views.update_priority, name='update_priority'),
     path('tasks/', task_list, name='task_list'),
-    
+    path('nodes/', node_list, name='node_list'),
     path('', include(router.urls)),
     # path('', views.index, name='index'),
     
-    ####ADD NEW NODES####
-    path('assign_new_node/', AssignNewNodeView.as_view(), name='assign-new-node'),
+    ####NODE-MANAGEMENT####
+    path('node-management/', NodeManagementView.as_view(), name='node_management'),
 ]

@@ -16,7 +16,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Nodes
 
-
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from .components.form import TaskForm
@@ -123,20 +122,6 @@ def edit_task(request, task_id):
     else:
         form = TaskForm(instance=task)
     return render(request, 'master/edit_task.html', {'form': form})
-
-
-class AssignNewNodeView(APIView):
-    @csrf_exempt
-    def post(self, request, format=None):
-        node, created = Node.objects.get_or_create(
-            ip=request.data.get('ip'),
-            port=request.data.get('port'),
-            defaults={'gpu_info': request.data.get('gpu_info')}
-        )
-        if created:
-            return Response({'message': 'Node zarejestrowany pomyślnie.'}, status=201)
-        return Response({'message': 'Node już istnieje.'}, status=200)
-    
     
 @csrf_exempt
 def send_command(request):
@@ -149,5 +134,55 @@ def send_command(request):
             "command": command,
         }
     )
-    print("DUPA")
     return JsonResponse({"status": "command_sent", "command": command})
+
+
+
+def node_list(request):
+    nodes = Nodes.objects.all()
+    return render(request, 'master/node_list.html', {'nodes': nodes})
+
+class NodeManagementView(APIView):
+    @csrf_exempt
+    def post(self, request, format=None):
+        action = request.data.get('action')
+
+        if action == 'assign_new_node':
+            return self.assign_new_node(request)
+        elif action == 'assign_gpus':
+            return self.assign_gpus(request)
+        elif action == 'update_node_status':
+            return self.update_node_status(request)
+        elif action == 'update_node_gpus_status':
+            return self.update_node_gpus_status(request)
+        else:
+            return Response({'message': 'Uknown action.'}, status=400)
+        
+    def assign_new_node(self, request):
+        ip = request.data.get('ip')
+        port = request.data.get('port')
+        gpu_info = request.data.get('gpu_info')
+
+        node, created = Nodes.objects.get_or_create(
+            ip=ip,
+            port=port,
+            defaults={'gpu_info': gpu_info, 'last_seen': timezone.now()}
+        )
+
+        if created:
+            return Response({'message': 'Node assigned sucessfull.'}, status=201)
+        else:
+            # Aktualizuj istniejący węzeł
+            node.gpu_info = gpu_info
+            node.last_seen = timezone.now()
+            node.save()
+            return Response({'message': 'Node status updated.'}, status=200)
+        
+    def assign_gpus(self, request):
+        pass
+    
+    def update_node_status(self, request):
+        pass
+    
+    def update_node_gpus_status(self, request):
+        pass

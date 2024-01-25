@@ -50,6 +50,12 @@ INSTALLED_APPS = [
     'widget_tweaks',
 ]
 
+CELERY_TIMEZONE = 'Europe/Warsaw'
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Przykład z użyciem Redisa jako brokera
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
