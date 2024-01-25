@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 from .settings import *
+from celery.schedules import crontab
 
 INSTALLED_APPS += [
     "master",
@@ -26,3 +27,10 @@ DATABASES = {
     }
 }
 
+
+CELERY_BEAT_SCHEDULE = {
+    'check-node-status-every-minute': {
+        'task': 'scheduler.tasks.check_node_status',
+        'schedule': crontab(minute='*/1'),
+    },
+}
