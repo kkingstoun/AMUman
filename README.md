@@ -1,8 +1,8 @@
-# AMUmax Simulation Manager
+# AMUman Simulation Manager
 
-## About AMUmax
+## About AMUman
 
-AMUmax Simulation Manager is a comprehensive tool designed to facilitate and streamline the process of managing simulations in scientific research, specifically tailored for AMUmax software, a fork of the well-known Mumax software. Developed at Adam Mickiewicz University, this manager aims to provide a user-friendly and efficient platform for handling complex simulation tasks.
+AMUman Simulation Manager is a comprehensive tool designed to facilitate and streamline the process of managing simulations in scientific research, specifically tailored for AMUmax software, a fork of the well-known Mumax software. Developed at Adam Mickiewicz University, this manager aims to provide a user-friendly and efficient platform for handling complex simulation tasks.
 
 ## Key Features
 
@@ -14,7 +14,7 @@ AMUmax Simulation Manager is a comprehensive tool designed to facilitate and str
 
 ## Technologies and Frameworks
 
-AMUmax Simulation Manager utilizes a variety of technologies and frameworks to ensure robust performance and user-friendly experience:
+AMUman Simulation Manager utilizes a variety of technologies and frameworks to ensure robust performance and user-friendly experience:
 
 - **Backend**
   - [Django](https://www.djangoproject.com/): A high-level Python Web framework that encourages rapid development and clean, pragmatic design.
@@ -31,11 +31,11 @@ AMUmax Simulation Manager utilizes a variety of technologies and frameworks to e
 
 ## Installation
 
-Provide a step-by-step guide on how to install and setup AMUmax Simulation Manager.
+Provide a step-by-step guide on how to install and setup AMUman Simulation Manager.
 
 ```bash
 # Step 1: Clone the repository
-git clone https://github.com/your-github-repo/AMUmax-sim-manager.git
+git clone https://github.com/kkingstoun/AMUman
 
 # Step 2: Install dependencies
 # ...
