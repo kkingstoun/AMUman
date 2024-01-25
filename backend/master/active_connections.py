@@ -1,1 +1,0 @@
-active_connections = set()
