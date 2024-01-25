@@ -1,10 +1,11 @@
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 
 <head>
     <title>{% block title %}{% endblock %}</title>
 
-    <!-- CSS only -->
+    <!-- CSS for Dark Mode -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css">
 
     <!-- JS, Popper.js, and jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
@@ -16,33 +17,104 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
         integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
         crossorigin="anonymous"></script>
-
+        <script>
+            $(document).ready(function(){
+                // Znajdź tabelę
+                var table = $('.table');
+            
+                // Dla każdego nagłówka kolumny
+                table.find('thead th').each(function(index){
+                    var th = $(this);
+            
+                    // Sprawdź, czy nagłówek nie jest pusty
+                    if (th.text().trim() !== '') {
+                        // Dodaj link do sortowania
+                        th.append('<a href="#" class="sort-link" data-column="'+index+'">&#x25B2;</a>');
+            
+                        // Po kliknięciu w link
+                        th.find('.sort-link').click(function(e){
+                            e.preventDefault();
+            
+                            // Pobierz indeks kolumny
+                            var column = $(this).data('column');
+            
+                            // Pobierz kierunek sortowania (rosnąco lub malejąco)
+                            var direction = th.hasClass('asc') ? 'desc' : 'asc';
+            
+                            // Usuń klasę sortowania ze wszystkich nagłówków
+                            table.find('thead th').removeClass('asc desc');
+            
+                            // Ustaw klasę sortowania dla aktualnego nagłówka
+                            th.addClass(direction);
+            
+                            // Pobierz wszystkie wiersze tabeli
+                            var rows = table.find('tbody tr');
+            
+                            // Sortuj wiersze na podstawie danych w kolumnie
+                            rows.sort(function(a, b){
+                                var aValue = $(a).find('td:eq('+column+')').text();
+                                var bValue = $(b).find('td:eq('+column+')').text();
+                                if (direction === 'asc') {
+                                    return aValue.localeCompare(bValue);
+                                } else {
+                                    return bValue.localeCompare(aValue);
+                                }
+                            });
+            
+                            // Usuń istniejące wiersze z tabeli
+                            table.find('tbody').empty();
+            
+                            // Dodaj posortowane wiersze do tabeli
+                            rows.each(function(){
+                                table.find('tbody').append($(this));
+                            });
+                        });
+                    }
+                });
+            });
+            </script>
+            
     </head>
-<body>
-
+<body class="container-fluid" data-bs-theme="dark">
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-        <a class="navbar-brand" href="#">A<sup>MU</sup>dmin</a>
+        <a class="navbar-brand" href="#">A<sup>MU</sup>man</a>
+     
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
-            aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+              aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-    
+     
         <div class="collapse navbar-collapse" id="navbarsExampleDefault">
             <ul class="navbar-nav mr-auto">
-                <li class="nav-item active">
-                    <a class="nav-link" href="/master/tasks/">Task List <span class="sr-only">(current)</span></a>
+                <li class="nav-item {% if request.path == '/master/tasks/' %}active{% endif %}">
+                    <a class="nav-link" href="/master/tasks/">Task List</a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item {% if request.path == '/master/nodes/' %}active{% endif %}">
                     <a class="nav-link" href="/master/nodes/">Node List</a>
                 </li>
             </ul>
         </div>
-    </nav>
+     </nav>
+    <main role="main" class="container relative" style="margin-top: 5rem;">
 
+        <div id="content" class="container">
     
-    <h2 class="my-4 text-center">{% block name %}{% endblock %}</h2>
-    {% block content %}
-    {% endblock %}
+            <div class="row">
+                <div class="col-md-12">
+                    <p class="page-title lead">
+                        {% block name %}{% endblock %}
+                    </p>
+                </div>
+            </div>
+    
+            <div class="row">
+                <div class="col-md-12">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    
+    </main>
 </body>
 
 </html>

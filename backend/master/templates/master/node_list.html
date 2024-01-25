@@ -8,28 +8,33 @@
         <thead class="thead-dark">
             <tr>
                 <th>ID</th>
+                <th>NAT NAME</th>
                 <th>IP</th>
                 <th>Port</th>
+                <th>GPU number</th>
                 <th>GPU Info</th>
                 <th>Status</th>
                 <th>Last seen</th>
+                <th></th>
+                <th></th>
               </tr>
         </thead>
         <tbody>
             {% for node in nodes %}
-            <>
                 <td>{{ node.id }}</td>
+                <td>{{ node.name }}</td>
                 <td>{{ node.ip }}</td>
                 <td>{{ node.port }}</td>
-                <td>{{ node.gpu_info }}</td>
+                <td>{{ node.number_of_gpus}}</td>
+                <td>{{ node.gpu_info}}</td>
                 <td>{{ node.status }}</td>
                 <td>{{ node.last_seen }}</td>
-                {% comment %} <td>
-                    <a href="{% url 'delete_task' task.id %}" class="btn btn-danger btn-sm">Remove</a>
+                <td>
+                    <a href="{% url 'manage_node' node.id %}?action=manage" class="btn btn-primary">Manage node</a>
                 </td>
                 <td>
-                    <a href="{% url 'edit_task' task.id %}" class="btn btn-info btn-sm">Edit</a>
-                </td> {% endcomment %}
+                    <a href="{% url 'manage_node' node.id %}?action=remove" class="btn btn-danger">Remove node</a>
+                </td> 
             </tr>
             {% empty %}
             <tr>

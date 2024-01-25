@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404, redirect
 
 from rest_framework import viewsets
-from common_models.models import Task
+from common_models.models import *
 from .serializers import TaskSerializer
 
 #Tymczasowe wyłączenie tokenów
@@ -14,7 +14,7 @@ from django.utils.decorators import method_decorator
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Nodes
+# from .s import Nodes
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -138,9 +138,38 @@ def send_command(request):
 
 
 
-def node_list(request):
-    nodes = Nodes.objects.all()
-    return render(request, 'master/node_list.html', {'nodes': nodes})
+class NodeListView(APIView):
+    def get(self, request, *args, **kwargs):
+        node_id = kwargs.get('node_id')
+        action = request.query_params.get('action')
+
+        if node_id and action == 'delete':
+            return self.delete_node(request, node_id)
+        elif node_id and action == 'manage':
+            return self.manage_node(request, node_id)
+        else:
+            # Logika dla wyświetlania listy węzłów, jeśli nie ma node_id lub akcji
+            nodes = Nodes.objects.all()
+            return render(request, 'master/node_list.html', {'nodes': nodes})
+    
+    def delete_node(self, request, node_id):
+        # Logika do usunięcia węzła i zakończenia połączenia
+        node = get_object_or_404(Nodes, id=node_id)
+        node.delete()  # Usunięcie węzła z bazy danych
+        # Dodatkowa logika do zakończenia połączenia (np. przez WebSocket)
+        return Response({'message': f'Node {node_id} usunięty.'}, status=200)
+
+    def assign_gpus(self, request, node_id):
+        # Logika do przypisania węzłów GPU
+        node = get_object_or_404(Nodes, id=node_id)
+        # Zaktualizuj informacje o GPU dla węzła, jeśli potrzeba
+        return Response({'message': f'GPU przypisane do Node {node_id}.'}, status=200)
+
+
+    def manage_node(self, request, node_id):
+        # Logika do wyświetlenia szczegółów i zarządzania konkretnym węzłem
+        node = Nodes.objects.get(id=node_id)
+        return render(request, 'master/node_manage.html', {'node': node})
 
 class NodeManagementView(APIView):
     @csrf_exempt

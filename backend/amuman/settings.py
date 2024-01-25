@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'notification',
     'widget_tweaks',
+    'bootstrap5',
 ]
 
 CELERY_TIMEZONE = 'Europe/Warsaw'
@@ -95,6 +96,10 @@ TEMPLATES = [
         },
     },
 ]
+
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / "amuman" / "static"]
 
 WSGI_APPLICATION = "amuman.wsgi.application"
 
