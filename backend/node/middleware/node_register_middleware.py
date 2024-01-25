@@ -21,3 +21,5 @@ class NodeStartupMiddleware:
         # Logika zgłoszenia do mastera
         run_node_command = RunNodeCommand()
         run_node_command.handle()
+        
+    

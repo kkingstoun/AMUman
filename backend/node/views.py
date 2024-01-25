@@ -5,6 +5,8 @@ from django.http import JsonResponse
 from .functions.gpu_monitor import GPUMonitor
 from django.views.decorators.csrf import csrf_exempt
 from django.apps import apps
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 # from .singleton import CurrentJob
 from rest_framework.parsers import JSONParser
@@ -32,7 +34,12 @@ def get_gpu_status(request):
         return JsonResponse(gpu_status)
     else:
         return JsonResponse({'error': 'You have to use POST METHOD'}, status=400)
-    
+ 
+class NodeMessageReceiver(APIView):
+    def post(self, request, *args, **kwargs):
+        message = request.data.get("message")
+        print(f"Message received from master: {message}")
+        return Response({"status": "received"})   
     
 # @require_POST
 # def receive_task(request):
@@ -48,3 +55,27 @@ def get_gpu_status(request):
 #         return JsonResponse({'status': 'error', 'message': 'Invalid task data'}, status=400)
 #     except Exception as e:
 #         return JsonResponse({'status': 'error', 'message': str(e)})
+# async def send_message(request):
+#     # Pobierz wiadomość od klienta
+#     message = request.POST.get("message", "")
+
+#     # Prześlij wiadomość do głównego serwera
+#     channel_layer = get_channel_layer()
+#     async_to_sync(channel_layer.group_send)(
+#         "nodes_group",
+#         {
+#             "type": "node.command",
+#             "command": message,
+#         }
+#     )
+#     import websockets
+#     uri = "ws://localhost:8001/ws/node/"  # Adres serwera WebSocket
+#     async with websockets.connect(uri) as websocket:
+#         # Możesz tutaj wysłać jakieś dane lub po prostu nasłuchiwać
+#         await websocket.send(json.dumps({"message": "Hello from Node!"}))
+#         while True:
+#             message = await websocket.recv()
+#             print(f"Otrzymano wiadomość: {message}")
+         
+    
+    return JsonResponse({"status": "success"})

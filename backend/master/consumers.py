@@ -14,8 +14,13 @@ class MasterConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_discard("nodes_group", self.channel_name)
 
     async def receive(self, text_data):
-        # Obsługa wiadomości przychodzących od węzła `node`
-        pass
+        # Rozłóż wiadomość na dane
+        data = json.loads(text_data)
+
+        # Wykonaj jakąś logikę w oparciu o dane
+        if data["message"] == "Hello from Node!":
+            # Wysłaj odpowiedź
+            await self.send(text_data=json.dumps({"message": "Witaj, node!"}))
 
     async def send_test_message(self, message):
         await self.channel_layer.group_send(

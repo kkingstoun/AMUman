@@ -140,18 +140,29 @@ def edit_task(request, task_id):
     return render(request, "master/edit_task.html", {"form": form})
 
 
-@csrf_exempt
-def send_command(request):
-    command = request.POST.get("command", "default_command")
+# @csrf_exempt
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+import json
+import websockets
+
+from channels.layers import get_channel_layer
+import json
+import websockets
+
+async def send_command(request):
+    # Pobierz wiadomość od klienta
+    # Prześlij wiadomość do głównego serwera
     channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
+    await channel_layer.group_send(
         "nodes_group",
         {
             "type": "node.command",
-            "command": command,
-        },
+            "command": "DUPA",
+        }
     )
-    return JsonResponse({"status": "command_sent", "command": command})
+    return JsonResponse({"message": "Uknown action."})
+
 
 
 class NodeListView(APIView):
@@ -238,7 +249,7 @@ class NodeManagementView(APIView):
             node.last_seen = timezone.now()
             node.save()
             return Response(
-                {"message": "Node status updated.", "id": node.id}, status=200
+                {"message": "Node status updated.", "id": node.id}, status=201
             )
 
     def get_gpu_performance_category(self,gpu_model):

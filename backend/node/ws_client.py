@@ -7,12 +7,12 @@ import json
 async def connect_to_master():
     print("dziala")
     uri = "ws://localhost:8000/ws/node/"  # Adres serwera WebSocket
-    async with websockets.connect(uri) as websocket:
-        # Możesz tutaj wysłać jakieś dane lub po prostu nasłuchiwać
-        await websocket.send(json.dumps({"message": "Hello from Node!"}))
-        while True:
-            message = await websocket.recv()
-            print(f"Otrzymano wiadomość: {message}")
+    # async with websockets.connect(uri) as websocket:
+    #     # Możesz tutaj wysłać jakieś dane lub po prostu nasłuchiwać
+    #     await websocket.send(json.dumps({"message": "Hello from Node!"}))
+    #     while True:
+    #         message = await websocket.recv()
+    #         print(f"Otrzymano wiadomość: {message}")
             
     async with websockets.connect(uri) as websocket:
         while True:

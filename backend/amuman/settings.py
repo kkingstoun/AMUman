@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'notification',
     'widget_tweaks',
     'bootstrap5',
-    'node',
+    'channels',
 ]
 
 CELERY_TIMEZONE = 'Europe/Warsaw'
@@ -149,3 +149,5 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOW_ALL_ORIGINS = True
+
+RUN_WEBSOCKET_CLIENT = True  # Ustaw na False, aby nie uruchamiać klienta WebSocket
