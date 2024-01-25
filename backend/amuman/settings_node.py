@@ -13,9 +13,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 from .settings import *
 
-INSTALLED_APPS += [
-    "node",
-]
+# INSTALLED_APPS += [
+#     "node",
+# ]
 
 URL_MODE_PREFIX = 'node'  # Prefiks URL dla trybu klienta
 
@@ -29,4 +29,5 @@ DATABASES = {
 MIDDLEWARE += [
     # ... inne middleware ...
     'node.middleware.gpu_monitor_middleware.GPUMonitorMiddleware',
+    'node.middleware.node_register_middleware.NodeStartupMiddleware',
 ]

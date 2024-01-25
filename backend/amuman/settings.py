@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'notification',
     'widget_tweaks',
     'bootstrap5',
+    'node',
 ]
 
 CELERY_TIMEZONE = 'Europe/Warsaw'

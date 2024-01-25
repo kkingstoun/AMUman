@@ -1,21 +1,21 @@
-# # node/singleton.py
+# node/singleton.py
 
-# class SingletonMeta(type):
-#     _instances = {}
+class SingletonMeta(type):
+    _instances = {}
 
-#     def __call__(cls, *args, **kwargs):
-#         if cls not in cls._instances:
-#             instance = super().__call__(*args, **kwargs)
-#             cls._instances[cls] = instance
-#         return cls._instances[cls]
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            instance = super().__call__(*args, **kwargs)
+            cls._instances[cls] = instance
+        return cls._instances[cls]
 
-# class CurrentJob(metaclass=SingletonMeta):
-#     def __init__(self):
-#         self.current_task = None
+class CurrentJob(metaclass=SingletonMeta):
+    def __init__(self):
+        self.current_task = None
 
-#     self.current_task = Task()
-#     for key, value in task_data.items():
-#         setattr(self.current_task, key, value)
+    self.current_task = Task()
+    for key, value in task_data.items():
+        setattr(self.current_task, key, value)
 
-#     def get_task(self):
-#         return self.current_task
+    def get_task(self):
+        return self.current_task

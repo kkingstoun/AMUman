@@ -142,9 +142,8 @@ class NodeListView(APIView):
     def get(self, request, *args, **kwargs):
         node_id = kwargs.get('node_id')
         action = request.query_params.get('action')
-
-        if node_id and action == 'delete':
-            return self.delete_node(request, node_id)
+        if node_id and action == 'remove':
+            return self.remove_node(request, node_id)
         elif node_id and action == 'manage':
             return self.manage_node(request, node_id)
         else:
@@ -152,12 +151,12 @@ class NodeListView(APIView):
             nodes = Nodes.objects.all()
             return render(request, 'master/node_list.html', {'nodes': nodes})
     
-    def delete_node(self, request, node_id):
+    def remove_node(self, request, node_id):
         # Logika do usunięcia węzła i zakończenia połączenia
         node = get_object_or_404(Nodes, id=node_id)
-        node.delete()  # Usunięcie węzła z bazy danych
-        # Dodatkowa logika do zakończenia połączenia (np. przez WebSocket)
-        return Response({'message': f'Node {node_id} usunięty.'}, status=200)
+        node.delete()  
+        nodes = Nodes.objects.all()
+        return render(request, 'master/node_list.html', {'nodes': nodes})
 
     def assign_gpus(self, request, node_id):
         # Logika do przypisania węzłów GPU
@@ -168,8 +167,8 @@ class NodeListView(APIView):
 
     def manage_node(self, request, node_id):
         # Logika do wyświetlenia szczegółów i zarządzania konkretnym węzłem
-        node = Nodes.objects.get(id=node_id)
-        return render(request, 'master/node_manage.html', {'node': node})
+        gpus = Gpus.objects.all()
+        return render(request, 'master/node_manage.html', {'gpus': gpus})
 
 class NodeManagementView(APIView):
     @csrf_exempt
@@ -178,8 +177,8 @@ class NodeManagementView(APIView):
 
         if action == 'assign_new_node':
             return self.assign_new_node(request)
-        elif action == 'assign_gpus':
-            return self.assign_gpus(request)
+        elif action == 'assign_gpu':
+            return self.assign_gpu(request)
         elif action == 'update_node_status':
             return self.update_node_status(request)
         elif action == 'update_node_gpus_status':
@@ -199,17 +198,42 @@ class NodeManagementView(APIView):
         )
 
         if created:
-            return Response({'message': 'Node assigned sucessfull.'}, status=201)
+            return Response({'message': 'Node assigned sucessfull.','id':node.id}, status=201)
         else:
             # Aktualizuj istniejący węzeł
             node.gpu_info = gpu_info
             node.last_seen = timezone.now()
             node.save()
-            return Response({'message': 'Node status updated.'}, status=200)
+            return Response({'message': 'Node status updated.','id':node.id}, status=200)
         
-    def assign_gpus(self, request):
-        pass
-    
+    def assign_gpu(self, request):
+        node_id = request.data.get('nodeid')
+        brand_name = request.data.get('brand_name')
+        gpu_speed = request.data.get('gpu_speed')
+        gpu_info = request.data.get('gpu_info')
+        status = request.data.get('status')
+        gpu_id = request.data.get('gpu_id')
+        
+        gpu, created = Gpus.objects.get_or_create(
+            nodeid=Nodes.objects.get(pk=node_id),
+            gpu_id=gpu_id,
+            brand_name=brand_name,
+            gpu_speed=gpu_speed,
+            gpu_info=gpu_info,
+            status=status,
+            defaults={'last_update': timezone.now()}
+        )
+
+        if created:
+            return Response({'message': 'Node assigned sucessfull.','id':gpu.id}, status=201)
+        else:
+            # Aktualizuj istniejący węzeł
+            gpu.gpu_info = gpu_info
+            gpu.last_seen = timezone.now()
+            gpu.save()
+            return Response({'message': 'Node status updated.','id':gpu.id}, status=200)
+
+
     def update_node_status(self, request):
         pass
     

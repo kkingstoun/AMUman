@@ -8,22 +8,40 @@
         <thead class="thead-light">
             <tr>
                 <th>ID</th>
-                <th>IP</th>
-                <th>Port</th> 
-              </tr>
+                <th>GPU ID</th>
+                <th>Node ID</th>
+                <th>Brand Name</th>
+                <th>GPU Speed</th>
+                <th>GPU Util</th>
+                <th>Is Running Amumax</th>
+                <th>GPU Info</th>
+                <th>Status</th>
+                <th>Last Update</th>
+            </tr>
         </thead>
         <tbody>
-            {% for node in nodes %}
-                <td>{{ node.id }}</td>
-                <td>{{ node.ip }}</td>
-                <td>{{ node.port }}</td>
+            {% for gpu in gpus %}
+            <tr>
+                <td>{{ gpu.id }}</td>
+                <td>{{ gpu.gpu_id }}</td>
+                <td>{{ gpu.nodeid.id }}</td>  {# Assuming you want to display the Node ID #}
+                <td>{{ gpu.brand_name }}</td>
+                <td>{{ gpu.gpu_speed }}</td>
+                <td>{{ gpu.gpu_util }}</td>
+                <td>{{ gpu.is_running_amumax }}</td>
+                <td>{{ gpu.gpu_info }}</td>
+                <td>{{ gpu.status }}</td>
+                <td>{{ gpu.last_update }}</td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6">There is no active gpus.</td>
+                <td colspan="10">There are no active GPUs.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    <a class="btn btn-primary" href="/master/nodes/">Back</a>
+
+    
 </div>
 {% endblock %}
