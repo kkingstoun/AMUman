@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "backend"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "5.0"
+django-cors-headers = "4.3.1"
+django-debug-toolbar = "1.8"
+django-environ = "0.4.4"
+django-widget-tweaks = "1.4.1"
+djangorestframework = "3.14.0"
+celery = "5.3.6"
+channels = "4.0.0"
+websocat = "1.12.0"
+websocket-client = "1.6.2"
+websockets = "12.0"
+notification = "0.2.1"
+daphne = "4.0.0"
+python-dotenv = "1.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

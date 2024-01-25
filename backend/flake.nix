@@ -1,35 +1,34 @@
 {
-  description = "A flake for the amuman project";
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    poetry2nix = {
+      url = "github:nix-community/poetry2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
+
   outputs = {
     self,
     nixpkgs,
     flake-utils,
+    poetry2nix,
   }:
-    flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
-      # mypkg = pkgs.python3Packages.buildPythonPackage {
-      #   pname = "mx3expend";
-      #   version = "0.0.1";
-      #   src = self;
-      #   format = "pyproject";
-      #   nativeBuildInputs = [pkgs.python3Packages.setuptools];
-      #   propagatedBuildInputs = with pkgs.python3Packages; [numpy];
-      # };
-    in {
-      # packages.mx3expend = mypkg;
-      # defaultPackage = mypkg;
-      devShells.default = pkgs.mkShell {
-        packages = with pkgs; [
-          (python3.withPackages (ps: [
-            # mypkg
-            # ps.autopep8
-            # ps.flake8
-          ]))
-        ];
-      };
-    });
+    flake-utils.lib.eachDefaultSystem (
+      system: let
+        pkgs = import nixpkgs {inherit system;};
+        # inherit (poetry2nix.lib.mkPoetry2Nix {inherit pkgs;}) mkPoetryApplication;
+      in {
+        # packages = {
+        #   flameshow = mkPoetryApplication {projectDir = self;};
+        #   default = self.packages.${system}.flameshow;
+        # };
+
+        devShells.default = pkgs.mkShell {
+          packages =
+            (with pkgs; [nil python3 mypy ruff poetry])
+            ++ (with pkgs.python311Packages; [pip python-lsp-server pylsp-mypy python-lsp-ruff]);
+        };
+      }
+    );
 }
