@@ -167,7 +167,7 @@ class NodeListView(APIView):
 
     def manage_node(self, request, node_id):
         # Logika do wyświetlenia szczegółów i zarządzania konkretnym węzłem
-        gpus = Gpus.objects.all()
+        gpus = Gpus.objects.filter(nodeid=node_id)
         return render(request, 'master/node_manage.html', {'gpus': gpus})
 
 class NodeManagementView(APIView):

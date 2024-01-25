@@ -9,9 +9,9 @@ class NodeStartupMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
         self.run_once = False
-        if not settings.DEBUG:  # Opcjonalnie: uruchom tylko w środowisku produkcyjnym
-            self.run_node_startup()
-            raise MiddlewareNotUsed("NodeStartupMiddleware is only used once.")
+        # if not settings.DEBUG:  # Opcjonalnie: uruchom tylko w środowisku produkcyjnym
+        self.run_node_startup()
+        raise MiddlewareNotUsed("NodeStartupMiddleware is only used once.")
 
     def __call__(self, request):
         response = self.get_response(request)

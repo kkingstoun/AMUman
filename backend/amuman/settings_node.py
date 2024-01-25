@@ -31,3 +31,4 @@ MIDDLEWARE += [
     'node.middleware.gpu_monitor_middleware.GPUMonitorMiddleware',
     'node.middleware.node_register_middleware.NodeStartupMiddleware',
 ]
+PORT=8001
