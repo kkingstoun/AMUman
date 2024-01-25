@@ -28,7 +28,7 @@ class Nodes(models.Model):
 class Gpus(models.Model):
     id = models.AutoField(primary_key=True)  
     gpu_id = models.CharField(max_length=2,unique=True,default=0)
-    nodeid = models.ForeignKey(Nodes, on_delete=models.CASCADE)  
+    node_id = models.ForeignKey(Nodes, on_delete=models.CASCADE)  
     brand_name = models.TextField(null=True, blank=True)
     gpu_speed = models.TextField(null=True, blank=True)
     gpu_util = models.TextField(null=True, blank=True)
@@ -38,4 +38,4 @@ class Gpus(models.Model):
     last_update = models.DateTimeField(default=timezone.now,null=True, blank=True)
 
     def __str__(self):
-        return f"GPU-{self.id} in {self.nodes.ip}"
+        return f"GPU-{self.id}, {self.node_id}/{self.gpu_id}"
