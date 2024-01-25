@@ -2,9 +2,11 @@ from django.db import models
 
 # Create your models here.
 class Task(models.Model):
+    user = models.CharField(max_length=100, null=True, blank=True)
     path = models.CharField(max_length=500)
     node_name = models.CharField(max_length=100, null=True, blank=True)
     port = models.IntegerField(null=True, blank=True)
+    submit_time = models.DateTimeField(null=True, blank=True)
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     error_time = models.DateTimeField(null=True, blank=True)

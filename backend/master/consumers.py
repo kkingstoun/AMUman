@@ -1,0 +1,43 @@
+# master/consumers.py
+
+from channels.generic.websocket import AsyncWebsocketConsumer
+import json
+
+class MasterConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        await self.channel_layer.group_add("nodes_group", self.channel_name)
+        await self.accept()
+        # Wysyłanie testowej wiadomości po nawiązaniu połączenia
+        await self.send_test_message("Testowa wiadomość z serwera Master.")
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard("nodes_group", self.channel_name)
+
+    async def receive(self, text_data):
+        # Obsługa wiadomości przychodzących od węzła `node`
+        pass
+
+    async def send_test_message(self, message):
+        await self.channel_layer.group_send(
+            "nodes_group",
+            {
+                "type": "send_message_to_group",
+                "message": message,
+            }
+        )
+
+    async def send_message_to_group(self, event):
+        message = event["message"]
+        await self.send(text_data=json.dumps({"message": message}))
+  
+    async def node_command(self, event):
+        # Logika do obsługi komunikatu typu 'node.command'
+        command = event['command']
+
+        # Przetwarzanie komendy i wysyłanie odpowiedzi do klienta 'node'
+        # Na przykład, możesz tutaj wykonać pewne operacje w zależności od komendy
+        print(f"Otrzymano komendę: {command}")
+
+        # Przykładowa odpowiedź wysyłana z powrotem do klienta
+        response_message = f"Komenda '{command}' została otrzymana i przetworzona."
+        await self.send(text_data=json.dumps({"response": response_message}))

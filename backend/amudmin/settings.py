@@ -47,16 +47,13 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'notification',
+    'widget_tweaks',
 ]
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'asgi_redis.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [('localhost', 6379)],
-        },
-        'ROUTING': 'amudmin.routing.channel_routing',
-    }
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
 }
 
 ASGI_APPLICATION = "amudmin.asgi.application"
@@ -78,7 +75,9 @@ ROOT_URLCONF = "amudmin.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [
+            os.path.join(BASE_DIR,"master",'templates'),
+            ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

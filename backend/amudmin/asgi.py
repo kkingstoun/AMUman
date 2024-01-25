@@ -11,11 +11,11 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "amudmin.settings")
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.urls import path
-from node.consumers import NodeConsumer
+from master.consumers import MasterConsumer
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),  # Obsługa HTTP
     "websocket": URLRouter([
-        path("ws/node/", NodeConsumer.as_asgi()),
+        path("ws/node/", MasterConsumer.as_asgi()),
     ]),
 })

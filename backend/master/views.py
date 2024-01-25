@@ -16,6 +16,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Nodes
 
+
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from .components.form import TaskForm
+
+
 @csrf_exempt
 def add_task(request):
     # Logika dodawania nowego zadania
@@ -86,9 +92,10 @@ def resume_task(request, task_id):
 
 @csrf_exempt
 def delete_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
+    task = get_object_or_404(Task, pk=task_id)
     task.delete()
-    return redirect('index')
+    return redirect('task_list')  
+
 
 def update_priority(request, task_id, priority):
     task = get_object_or_404(Task, id=task_id)
@@ -100,6 +107,22 @@ def update_priority(request, task_id, priority):
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
+    
+    
+def task_list(request):
+    tasks = Task.objects.all()
+    return render(request, 'master/task_list.html', {'tasks': tasks})
+
+def edit_task(request, task_id):
+    task = get_object_or_404(Task, pk=task_id)
+    if request.method == 'POST':
+        form = TaskForm(request.POST, instance=task)
+        if form.is_valid():
+            form.save()
+            return redirect('task_list')
+    else:
+        form = TaskForm(instance=task)
+    return render(request, 'master/edit_task.html', {'form': form})
 
 
 class AssignNewNodeView(APIView):
@@ -113,3 +136,18 @@ class AssignNewNodeView(APIView):
         if created:
             return Response({'message': 'Node zarejestrowany pomyślnie.'}, status=201)
         return Response({'message': 'Node już istnieje.'}, status=200)
+    
+    
+@csrf_exempt
+def send_command(request):
+    command = request.POST.get('command', 'default_command')
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        "nodes_group",
+        {
+            "type": "node.command",
+            "command": command,
+        }
+    )
+    print("DUPA")
+    return JsonResponse({"status": "command_sent", "command": command})

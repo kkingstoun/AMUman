@@ -6,7 +6,7 @@ from .functions.gpu_monitor import GPUMonitor
 from django.views.decorators.csrf import csrf_exempt
 from django.apps import apps
 
-from .singleton import CurrentJob
+# from .singleton import CurrentJob
 from rest_framework.parsers import JSONParser
 from io import BytesIO
 
