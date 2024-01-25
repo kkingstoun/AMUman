@@ -17,10 +17,15 @@ urlpatterns = [
     path('tasks/edit/<int:task_id>/', edit_task, name='edit_task'),
     path('task/<int:task_id>/priority/<int:priority>/', views.update_priority, name='update_priority'),
     path('tasks/', task_list, name='task_list'),
-    path('nodes/', node_list, name='node_list'),
     path('', include(router.urls)),
     # path('', views.index, name='index'),
     
+    ####NODE-LIST####
+    path('nodes/', NodeListView.as_view(), name='node_list'),  # Lista wszystkich węzłów
+    path('nodes/<int:node_id>/', NodeListView.as_view(), name='manage_node'),  # Zarządzanie konkretnym węzłem
+
+
+
     ####NODE-MANAGEMENT####
     path('node-management/', NodeManagementView.as_view(), name='node_management'),
 ]

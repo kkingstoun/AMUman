@@ -7,6 +7,7 @@
     <table class="table table-striped table-bordered">
         <thead class="thead-dark">
             <tr>
+                <th>ID</th>
                 <th>User</th>
                 <th>Path</th>
                 <th>Node Name</th>
@@ -24,6 +25,7 @@
         <tbody>
             {% for task in tasks %}
             <tr>
+                <td>{{ forloop.counter }}</td>
                 <td>{{ task.user }}</td>
                 <td>{{ task.path }}</td>
                 <td>{{ task.node_name }}</td>
