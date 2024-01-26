@@ -1,9 +1,9 @@
-docker_build:
+build:
 	podman build . -t amuman
 
-docker_build_db:
-	podman run --rm -it -v .:/app -p 8000:8000 amuman poetry run python manage.py makemigrations 
-	podman run --rm -it -v .:/app -p 8000:8000 amuman poetry run python manage.py migrate --settings=amuman.settings_manager
+build_db:
+	podman run --rm -it -v .:/app amuman poetry run python manage.py makemigrations 
+	podman run --rm -it -v .:/app amuman poetry run python manage.py migrate --settings=amuman.settings_manager
 
-docker_run:
+run: 
 	podman run --rm -it -v .:/app -p 8000:8000 amuman

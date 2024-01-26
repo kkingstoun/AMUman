@@ -24,7 +24,6 @@ ENV PATH="/localbin:${PATH}"
 RUN pip install poetry 
 WORKDIR /app
 ADD pyproject.toml poetry.lock /app/
-RUN ls
 RUN poetry install --no-root 
 COPY . /app
 
