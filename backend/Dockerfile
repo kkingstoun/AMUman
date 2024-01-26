@@ -19,9 +19,14 @@ RUN mkdir /localbin && cd /localbin && \
     curl -Ls https://github.com/mathieumoalic/amumax/releases/latest/download/libcufft.so.10 > libcufft.so.10 && \
     curl -Ls https://github.com/mathieumoalic/amumax/releases/latest/download/libcurand.so.10 > libcurand.so.10 && \
     chmod +x amumax
-ENV PATH="/localbin:${PATH}"
 
-RUN pip install poetry 
+RUN useradd -m -u 1000 -s /bin/bash amuman_user
+USER amuman_user
+ENV PATH="/localbin:${PATH}"
+ENV PATH="/usr/local/bin:${PATH}"
+ENV PATH="/home/amuman_user/.local/bin:${PATH}"
+
+RUN pip install --user poetry 
 WORKDIR /app
 ADD pyproject.toml poetry.lock /app/
 RUN poetry install --no-root 
