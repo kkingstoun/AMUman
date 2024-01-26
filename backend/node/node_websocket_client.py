@@ -1,12 +1,13 @@
 import asyncio
 import websockets
 import json
+from asgiref.sync import sync_to_async
 
 async def get_node_id():
     from node.models import Local
     local_list = Local.objects.all()
     # print("LOCAL LIST:", local_list )
-    for local in local_list:
+    for local in local_list: 
         pass
         # print("NODE ID:", local.node_id)
 
@@ -33,6 +34,7 @@ async def connect_to_master():
                     print(data)
                     if data.get("command") == "update_gpus":
                         print(f"Aktualizacja GPU od {node_id}")
+                        await sync_to_async(test)(node_id)
                     else:
                         print("Otrzymane dane:", data)
                 except websockets.ConnectionClosed:
@@ -40,7 +42,11 @@ async def connect_to_master():
                     break  # Zakończ pętlę, jeśli połączenie jest zamknięte
     except Exception as e:
         print(f"Błąd połączenia WebSocket: {e}")
-
+        
+def test(node_id):
+    from node.functions.gpu_monitor import GPUMonitor
+    GPUMonitor().update_gpu_status(node_id)
+    
 def start_client():
     # print("asdasdas")
     asyncio.run(connect_to_master())

@@ -38,6 +38,7 @@ class Command(BaseCommand):
             
             local_setting, created = Local.objects.get_or_create(id=1)
             local_setting.node_id = response_data.get('id')
+            local_setting.url = url
             local_setting.save()
             
             self.stdout.write(self.style.SUCCESS(f'Successfull found node_id: {local_setting.node_id}'))
@@ -45,31 +46,8 @@ class Command(BaseCommand):
             if response.status_code == 201:
                 
                 response_data = response.json()
-                node_id = response_data.get('id')
-                
-                for gpu_key, gpu in gpm.gpus_status.items():
-                    data = {
-                        'action': "assign_gpu",
-                        'brand_name': gpu['name'],
-                        'gpu_speed': None,  # Tutaj należy przypisać odpowiednią wartość
-                        'gpu_util': gpu['gpu_util'],
-                        'status': gpu['status'],
-                        'node_id': node_id,
-                        'is_running_amumax': gpu['is_running_amumax'],
-                        'gpu_id': gpu_key,
-                        'gpu_info':None,
-                    }
-
-                    try:
-                        response = requests.post(url, data=data)
-                        if response.status_code == 200:
-                            response_data = response.json()
-                            self.stdout.write(self.style.SUCCESS('Successfull gpu assign or update. Response: ' + str(response_data)))
-                        else:
-                            self.stdout.write(self.style.ERROR('Error: ' + response.text))
-                    except requests.exceptions.RequestException as e:
-                        self.stdout.write(self.style.ERROR(f'Error: {e}'))
-               
+                node_id =  local_setting.node_id 
+                gpm.update_gpu_status(node_id)       
         except requests.exceptions.RequestException as e:
             self.stdout.write(self.style.ERROR(f'Błąd: {e}'))
             

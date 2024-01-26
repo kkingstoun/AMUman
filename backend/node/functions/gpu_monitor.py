@@ -1,13 +1,18 @@
 import subprocess
 import time
 from datetime import datetime
+import requests
+from django.core.management.base import BaseCommand
+from node.models import Local
 
-class GPUMonitor:
+class GPUMonitor(BaseCommand):
 
-    def __init__(self):
+    def __init__(self,*args, **kwargs):
+        super(GPUMonitor, self).__init__(*args, **kwargs)
         self.gpus = self.get_gpu_count()
         self.gpus_status = {i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)}
         self.number_of_gpus = len(self.gpus_status)
+        self.ls = Local.objects.get(id=1)
         
     def get_gpu_count(self):
         """Returns the number of available graphics cards."""
@@ -78,9 +83,29 @@ class GPUMonitor:
             return None
 
 
+    def update_gpu_status(self,node_id):
+        for gpu_key, gpu in self.gpus_status.items():
+            data = {
+                'action': "assign_gpu",
+                'brand_name': gpu['name'],
+                'gpu_speed': None,  # Tutaj należy przypisać odpowiednią wartość
+                'gpu_util': gpu['gpu_util'],
+                'status': gpu['status'],
+                'node_id': node_id,
+                'is_running_amumax': gpu['is_running_amumax'],
+                'gpu_id': gpu_key,
+                'gpu_info':None,
+            }
 
-# gpm = GPUMonitor()
-# # print(gpm.check_for_amumax2(0))
-# # print(gpm.check_gpu_load(gpu_index=1))
-
-# gpm.check_gpu_status(index=0)
+            try:
+                self.stdout.write(self.style.SUCCESS(self.ls.url))
+                self.stdout.write(self.style.SUCCESS(data))
+                response = requests.post(self.ls.url, data=data)
+                self.stdout.write(self.style.SUCCESS(response))
+                if response.status_code == 200:
+                    response_data = response.json()
+                    self.stdout.write(self.style.SUCCESS('Successfull gpu assign or update. Response: ' + str(response_data)))
+                else:
+                    self.stdout.write(self.style.ERROR('Error1: ' + response.text))
+            except requests.exceptions.RequestException as e:
+                self.stdout.write(self.style.ERROR(f'Error2: {e}'))

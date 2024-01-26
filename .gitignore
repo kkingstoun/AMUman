@@ -10,7 +10,7 @@ lerna-debug.log*
 # Cypress #
 /cypress/videos/
 /cypress/screenshots/
-
+backend/master
 # Build outputs #
 dist/
 dist-ssr/
