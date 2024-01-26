@@ -23,7 +23,8 @@ urlpatterns = [
     ####NODE-LIST####
     path('nodes/', NodeListView.as_view(), name='node_list'),  # Lista wszystkich węzłów
     path('nodes/<int:node_id>/', NodeListView.as_view(), name='manage_node'),  # Zarządzanie konkretnym węzłem
-
+    path('nodes/<int:node_id>/refresh_gpus/', NodeListView.as_view(), name='refresh_gpus'),
+  
 
 
     ####NODE-MANAGEMENT####

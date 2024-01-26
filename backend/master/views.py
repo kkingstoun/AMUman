@@ -21,6 +21,7 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from .components.form import TaskForm
 
+from django.urls import reverse
 
 @csrf_exempt
 def add_task(request):
@@ -158,7 +159,7 @@ async def send_command(request):
         "nodes_group",
         {
             "type": "node.command",
-            "command": "DUPA",
+            "command": "update_gpus",
         }
     )
     return JsonResponse({"message": "Uknown action."})
@@ -172,6 +173,8 @@ class NodeListView(APIView):
         if node_id and action == "remove":
             return self.remove_node(request, node_id)
         elif node_id and action == "manage":
+            return self.manage_node(request, node_id)
+        elif node_id and action == "refresh_gpus":
             return self.manage_node(request, node_id)
         else:
             # Logika dla wyświetlania listy węzłów, jeśli nie ma node_id lub akcji
@@ -210,6 +213,27 @@ class NodeListView(APIView):
         gpus = Gpus.objects.filter(node_id=node_id)
 
         return render(request, "master/node_manage.html", {"gpus": gpus})
+
+        
+    def refresh_gpus(self,request, node_id):
+        # Tutaj umieść logikę odświeżania GPU dla danego node_id
+        # ...
+        gpu_list = Gpus.objects.all()
+        for gpu in gpu_list:
+            print(f"ID: {gpu.id}")
+            print(f"GPU ID: {gpu.gpu_id}")
+            print(f"Brand Name: {gpu.brand_name}")
+            print(f"GPU Speed: {gpu.gpu_speed}")
+            print(f"GPU Util: {gpu.gpu_util}")
+            print(f"Is Running Amumax: {gpu.is_running_amumax}")
+            print(f"GPU Info: {gpu.gpu_info}")
+            print(f"Status: {gpu.status}")
+            print(f"Last Update: {gpu.last_update}")
+            print("\n")  # Dodaj pusty wiersz między rekordami
+
+        gpus = Gpus.objects.filter(node_id=node_id)
+        # Przekierowanie z powrotem do strony zarządzania nodem
+        return redirect(reverse('manage_node', kwargs={'node_id': node_id}))
 
 
 class NodeManagementView(APIView):

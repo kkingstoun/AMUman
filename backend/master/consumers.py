@@ -44,5 +44,5 @@ class MasterConsumer(AsyncWebsocketConsumer):
         print(f"Otrzymano komendę: {command}")
 
         # Przykładowa odpowiedź wysyłana z powrotem do klienta
-        response_message = f"Komenda '{command}' została otrzymana i przetworzona."
-        await self.send(text_data=json.dumps({"response": response_message}))
+        response_message = {'command':command}
+        await self.send(text_data=json.dumps(response_message))

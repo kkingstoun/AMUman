@@ -7,6 +7,8 @@ from django.db import models
 from common_models.models import Nodes
 from node.functions.gpu_monitor import GPUMonitor
 import json
+from django.core.cache import cache
+from node.models import Local
 
 class Command(BaseCommand):
     
@@ -30,6 +32,19 @@ class Command(BaseCommand):
             if response.status_code == 200:
                 response_data = response.json()
                 node_id = response_data.get('id')
+                
+                ###Save local variable###
+                local_setting, created = Local.objects.get_or_create(id=1)
+                local_setting.node_id = node_id
+                local_setting.save()
+    
+                local_list = Local.objects.all()
+                print("LOCAL LIST:", local_list )
+                for local in local_list:
+                    print("NODE ID:", local.node_id)
+    
+                cache.set('key_id', node_id, timeout=None)  # timeout=None oznacza, że wartość nie wygasa
+
                 self.stdout.write(self.style.SUCCESS('Pomyślnie zgłoszono node do mastera. Response: ' + str(response_data)))
             
                 gpm = GPUMonitor()
@@ -58,6 +73,7 @@ class Command(BaseCommand):
                     else:
                         self.stdout.write(self.style.ERROR('Niepowodzenie: ' + response.text))
         except requests.exceptions.RequestException as e:
+            print("PROOOOOOBLEEEEEMM")
             self.stdout.write(self.style.ERROR(f'Błąd: {e}'))
             
        

@@ -78,4 +78,4 @@ class NodeMessageReceiver(APIView):
 #             print(f"Otrzymano wiadomość: {message}")
          
     
-    return JsonResponse({"status": "success"})
+    # return JsonResponse({"status": "success"})
