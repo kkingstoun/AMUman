@@ -6,7 +6,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("master", "0003_delete_task"),
+        ("manager", "0003_delete_task"),
     ]
 
     operations = [

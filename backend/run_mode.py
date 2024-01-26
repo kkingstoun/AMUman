@@ -6,13 +6,13 @@ if __name__ == "__main__":
     # Sprawdzenie, czy drugi argument (tryb) jest podany
     if len(sys.argv) > 2:
         mode = sys.argv[1]
-        if mode in ["client", "node", "master"]:
+        if mode in ["client", "node", "manager"]:
             # Ustawienie odpowiedniego pliku ustawień
             settings_module = f"amuman.settings_{mode}"
             os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
             sys.argv.pop(1)  # Usunięcie argumentu trybu z argv
         else:
-            raise ValueError("Nieznany tryb: wybierz 'client', 'node' lub 'master'")
+            raise ValueError("Nieznany tryb: wybierz 'client', 'node' lub 'manager'")
     else:
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "amuman.settings")
 

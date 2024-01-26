@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("master", "0004_remove_nodes_is_active_nodes_last_seen_nodes_status_and_more"),
+        ("manager", "0004_remove_nodes_is_active_nodes_last_seen_nodes_status_and_more"),
     ]
 
     operations = [

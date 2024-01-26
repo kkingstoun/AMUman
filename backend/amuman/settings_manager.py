@@ -15,15 +15,15 @@ from .settings import *
 from celery.schedules import crontab
 
 INSTALLED_APPS += [
-    "master",
+    "manager",
 ]
 
-URL_MODE_PREFIX = 'master'  # Prefiks URL dla trybu klienta
+URL_MODE_PREFIX = 'manager'  # Prefiks URL dla trybu klienta
 
 DATABASES = {
     'default': {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "masterdb.sqlite3", 
+        "NAME": BASE_DIR / "managerdb.sqlite3", 
     }
 }
 

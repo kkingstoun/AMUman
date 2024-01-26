@@ -13,14 +13,14 @@ from node.models import Local
 class Command(BaseCommand):
     
     def add_arguments(self, parser):
-        parser.add_argument('--ip', type=str, help='Adres IP mastera')
-        parser.add_argument('--port', type=str, help='Port mastera')
+        parser.add_argument('--ip', type=str, help='Adres IP managera')
+        parser.add_argument('--port', type=str, help='Port managera')
 
     def handle(self, *args, **options):
         ip = options.get('ip', 'localhost')  # Użyj 'localhost' jako wartości domyślnej, jeśli 'ip' nie istnieje
         port = options.get('port', '8000')  # Użyj '8000' jako wartości domyślnej, jeśli 'port' nie istnieje
         local_port = settings.PORT #NEED TO BE TESTED!!!!!!!
-        url = f'http://localhost:8000/master/node-management/'
+        url = f'http://localhost:8000/manager/node-management/'
         data = {
             'action':"assign_new_node",
             'ip': self.get_own_ip(),

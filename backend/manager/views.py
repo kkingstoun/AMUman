@@ -126,7 +126,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
 def task_list(request):
     tasks = Task.objects.all()
-    return render(request, "master/task_list.html", {"tasks": tasks})
+    return render(request, "manager/task_list.html", {"tasks": tasks})
 
 
 def edit_task(request, task_id):
@@ -138,7 +138,7 @@ def edit_task(request, task_id):
             return redirect("task_list")
     else:
         form = TaskForm(instance=task)
-    return render(request, "master/edit_task.html", {"form": form})
+    return render(request, "manager/edit_task.html", {"form": form})
 
 
 # @csrf_exempt
@@ -179,14 +179,14 @@ class NodeListView(APIView):
         else:
             # Logika dla wyświetlania listy węzłów, jeśli nie ma node_id lub akcji
             nodes = Nodes.objects.all()
-            return render(request, "master/node_list.html", {"nodes": nodes})
+            return render(request, "manager/node_list.html", {"nodes": nodes})
 
     def remove_node(self, request, node_id):
         # Logika do usunięcia węzła i zakończenia połączenia
         node = get_object_or_404(Nodes, id=node_id)
         node.delete()
         nodes = Nodes.objects.all()
-        return render(request, "master/node_list.html", {"nodes": nodes})
+        return render(request, "manager/node_list.html", {"nodes": nodes})
 
     def assign_gpus(self, request, node_id):
         # Logika do przypisania węzłów GPU
@@ -212,7 +212,7 @@ class NodeListView(APIView):
 
         gpus = Gpus.objects.filter(node_id=node_id)
 
-        return render(request, "master/node_manage.html", {"gpus": gpus})
+        return render(request, "manager/node_manage.html", {"gpus": gpus})
 
         
     def refresh_gpus(self,request, node_id):

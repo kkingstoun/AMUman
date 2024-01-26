@@ -38,7 +38,7 @@ def get_gpu_status(request):
 class NodeMessageReceiver(APIView):
     def post(self, request, *args, **kwargs):
         message = request.data.get("message")
-        print(f"Message received from master: {message}")
+        print(f"Message received from manager: {message}")
         return Response({"status": "received"})   
     
 # @require_POST

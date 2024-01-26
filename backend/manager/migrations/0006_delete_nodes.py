@@ -5,7 +5,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("master", "0005_nodes_name"),
+        ("manager", "0005_nodes_name"),
     ]
 
     operations = [
