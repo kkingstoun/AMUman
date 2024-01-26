@@ -1,9 +1,19 @@
+network:
+	sudo docker network create amuman
+
 build:
-	podman build . -t amuman
+	sudo docker build . -t amuman
 
 build_db:
-	podman run --rm -it -v .:/app amuman poetry run python manage.py makemigrations 
-	podman run --rm -it -v .:/app amuman poetry run python manage.py migrate --settings=amuman.settings_manager
+	sudo docker run --rm -it -v .:/app amuman poetry run python manage.py makemigrations 
+	sudo docker run --rm -it -v .:/app amuman poetry run python manage.py migrate --settings=amuman.settings_manager
+	sudo docker run --rm -it -v .:/app amuman poetry run python manage.py migrate --settings=amuman.settings_node
+	sudo docker run --rm -it -v .:/app amuman poetry run python manage.py migrate --settings=amuman.settings_client
 
 run: 
-	podman run --rm -it -v .:/app -p 8000:8000 amuman
+	sudo docker run --network amuman --rm -it -v .:/app --name manager -p 8000:8000 amuman
+
+node:
+	sudo docker run --network amuman --gpus all --rm -it -v .:/app --name node amuman poetry run python manage.py runserver --settings=amuman.settings_node
+it:
+	sudo docker run --network amuman --gpus all --rm -it -v .:/app amuman bash
