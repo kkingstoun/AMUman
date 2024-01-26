@@ -33,11 +33,11 @@ elif mode_prefix == 'node':
     urlpatterns += [
         path('node/', include('node.urls')),
     ]
-elif mode_prefix == 'master':
-    from master.api import urlpatterns as master_urls
+elif mode_prefix == 'manager':
+    from manager.api import urlpatterns as manager_urls
     urlpatterns += [
-        path('master/api/', include(master_urls)),
-        path('master/', include('master.urls')),
+        path('manager/api/', include(manager_urls)),
+        path('manager/', include('manager.urls')),
     ]
 else:
     urlpatterns += [

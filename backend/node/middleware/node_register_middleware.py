@@ -18,7 +18,7 @@ class NodeStartupMiddleware:
         return response
 
     def run_node_startup(self):
-        # Logika zgłoszenia do mastera
+        # Logika zgłoszenia do managera
         run_node_command = RunNodeCommand()
         run_node_command.handle()
         

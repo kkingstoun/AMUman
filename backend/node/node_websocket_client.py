@@ -2,7 +2,7 @@ import asyncio
 import websockets
 import json
 
-async def connect_to_master():
+async def connect_to_manager():
     print("CONNECT")
     uri = "ws://localhost:8000/ws/node/"
     try:
@@ -20,4 +20,4 @@ async def connect_to_master():
 
 def start_client():
     print("asdasdas")
-    asyncio.run(connect_to_master())
+    asyncio.run(connect_to_manager())

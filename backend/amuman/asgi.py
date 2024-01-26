@@ -11,7 +11,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "amuman.settings")
 from django.core.asgi import get_asgi_application
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.urls import path
-from master.consumers import MasterConsumer
+from manager.consumers import MasterConsumer
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),  # Obsługa HTTP
