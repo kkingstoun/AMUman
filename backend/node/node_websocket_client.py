@@ -5,9 +5,10 @@ import json
 async def get_node_id():
     from node.models import Local
     local_list = Local.objects.all()
-    print("LOCAL LIST:", local_list )
+    # print("LOCAL LIST:", local_list )
     for local in local_list:
-        print("NODE ID:", local.node_id)
+        pass
+        # print("NODE ID:", local.node_id)
 
     node_setting = Local.objects.get(id=1)
     return node_setting.node_id

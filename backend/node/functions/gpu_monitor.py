@@ -7,7 +7,8 @@ class GPUMonitor:
     def __init__(self):
         self.gpus = self.get_gpu_count()
         self.gpus_status = {i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)}
-
+        self.number_of_gpus = len(self.gpus_status)
+        
     def get_gpu_count(self):
         """Returns the number of available graphics cards."""
         try:

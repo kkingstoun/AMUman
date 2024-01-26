@@ -175,7 +175,7 @@ class NodeListView(APIView):
         elif node_id and action == "manage":
             return self.manage_node(request, node_id)
         elif node_id and action == "refresh_gpus":
-            return self.manage_node(request, node_id)
+            return self.refresh_gpus(request, node_id)
         else:
             # Logika dla wyświetlania listy węzłów, jeśli nie ma node_id lub akcji
             nodes = Nodes.objects.all()
@@ -211,8 +211,7 @@ class NodeListView(APIView):
             print("\n")  # Dodaj pusty wiersz między rekordami
 
         gpus = Gpus.objects.filter(node_id=node_id)
-
-        return render(request, "manager/node_manage.html", {"gpus": gpus})
+        return render(request, "manager/node_manage.html", {"gpus": gpus,"node_id":1})
 
         
     def refresh_gpus(self,request, node_id):
@@ -336,7 +335,7 @@ class NodeManagementView(APIView):
 
         else:
             gpu.brand_name = brand_name
-            gpu.gpu_speed = str(self.get_gpu_performance_category(brand_name)),
+            gpu.gpu_speed = str(self.get_gpu_performance_category(brand_name))
             gpu.gpu_util = gpu_util
             gpu.gpu_info = gpu_info
             gpu.status = status

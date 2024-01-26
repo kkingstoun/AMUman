@@ -10,10 +10,8 @@ class NodeConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "node"
     whoim=""
-    print("DUPA")
     
     def ready(self):
-        print("DUPA")
         threading.Thread(target=start_client, daemon=True).start()
 
 
