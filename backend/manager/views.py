@@ -19,9 +19,19 @@ from rest_framework.response import Response
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from .components.form import TaskForm
+from .components.form import TaskForm, AddTaskForm
 
 from django.urls import reverse
+# @csrf_exempt
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+import json
+import websockets
+
+from channels.layers import get_channel_layer
+import json
+import websockets
+from datetime import timedelta
 
 @csrf_exempt
 def add_task(request):
@@ -126,7 +136,16 @@ class TaskViewSet(viewsets.ModelViewSet):
 
 def task_list(request):
     tasks = Task.objects.all()
+    for task in tasks:
+        task.est = format_timedelta(task.est) if task.est else None
     return render(request, "manager/task_list.html", {"tasks": tasks})
+
+def format_timedelta(td):
+    total_seconds = int(td.total_seconds())
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 
 def edit_task(request, task_id):
@@ -139,17 +158,6 @@ def edit_task(request, task_id):
     else:
         form = TaskForm(instance=task)
     return render(request, "manager/edit_task.html", {"form": form})
-
-
-# @csrf_exempt
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-import json
-import websockets
-
-from channels.layers import get_channel_layer
-import json
-import websockets
 
 async def send_command(request):
     # Pobierz wiadomość od klienta
@@ -164,7 +172,17 @@ async def send_command(request):
     )
     return JsonResponse({"message": "Uknown action."})
 
+def add_task_form(request):
+    if request.method == 'POST':
+        form = AddTaskForm(request.POST)
+        if form.is_valid():
+            form.save()
+            tasks = Task.objects.all()
+            return render(request, "manager/task_list.html", {"tasks": tasks})
+    else:
+        form = AddTaskForm()
 
+    return render(request, 'manager/task_form.html', {'form': form})
 
 class NodeListView(APIView):
     def get(self, request, *args, **kwargs):

@@ -7,7 +7,7 @@ router = DefaultRouter()
 router.register(r'tasks', TaskViewSet)
 
 urlpatterns = [
-    path('add_task/', views.add_task, name='add_task'),
+    path('add_task_form/', views.add_task_form, name='add_task_form'),
     path('get_task/', views.get_task, name='get_task'),
     path('finish_task/', views.finish_task, name='finish_task'),
     path('send_command/', views.send_command, name='send_command'),

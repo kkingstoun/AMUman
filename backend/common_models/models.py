@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 class Task(models.Model):
+    id = models.AutoField(primary_key=True)  # Auto-generowany unikalny klucz
     user = models.CharField(max_length=100, null=True, blank=True)
     path = models.CharField(max_length=500)
     node_name = models.CharField(max_length=100, null=True, blank=True)
@@ -10,8 +11,13 @@ class Task(models.Model):
     end_time = models.DateTimeField(null=True, blank=True)
     error_time = models.DateTimeField(null=True, blank=True)
     priority = models.IntegerField(default=0)  
+    gpu_partition = models.CharField(max_length=15, unique=True, null=True, blank=True, default='normal')
+    est = models.DurationField(null=True, blank=True)
     status = models.CharField(max_length=50, default='waiting')  # ['waiting', 'running', 'finished']
+    assigned_node= models.CharField(max_length=10, null=True,blank=True)
+    assigned_gpu= models.CharField(max_length=10,null=True, blank=True)
 
+    
 class Nodes(models.Model):
     id = models.AutoField(primary_key=True)  # Auto-generowany unikalny klucz
     ip = models.CharField(max_length=15, unique=True)  # Przykładowy format IPv4
