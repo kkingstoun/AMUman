@@ -23,6 +23,7 @@
                 <th>Assigned gpu</th>
                 <th></th>
                 <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -47,6 +48,9 @@
                 </td>
                 <td>
                     <a href="{% url 'edit_task' task.id %}" class="btn btn-info btn-sm">Edit</a>
+                </td>
+                <td>
+                    <a href="{% url 'task_action' task.id 'run' %}" class="btn btn-success">Run</a>
                 </td>
             </tr>
             {% endfor %}
@@ -82,6 +86,7 @@
                         <th>Assigned gpu</th>
                         <th></th>
                         <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -105,6 +110,9 @@
                         </td>
                         <td>
                             <a href="{% url 'edit_task' task.id %}" class="btn btn-info btn-sm">Edit</a>
+                        </td>
+                        <td>
+                            <a href="{% url 'task_action' task.id 'run' %}" class="btn btn-success">Run</a>
                         </td>
                     </tr>
                     {% endfor %}

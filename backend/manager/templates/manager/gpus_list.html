@@ -8,7 +8,6 @@
         <thead class="thead-light">
             <tr>
                 <th>ID</th>
-                <th>GPU ID</th>
                 <th>Node ID</th>
                 <th>Brand Name</th>
                 <th>GPU Speed</th>
@@ -21,7 +20,7 @@
         <tbody>
             {% for gpu in gpus %}
             <tr>
-                <td>{{ gpu.id }}</td>
+                <td>{{ forloop.counter }}</td>
                 <td>{{ gpu.node_id.id }}</td>  {# Assuming you want to display the Node ID #}
                 <td>{{ gpu.brand_name }}</td>
                 <td>{{ gpu.gpu_speed }}</td>

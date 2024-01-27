@@ -31,4 +31,9 @@ urlpatterns = [
    
     ####NODE-MANAGEMENT####
     path('node-management/', NodeManagementView.as_view(), name='node_management'),
+
+    ####TASK-RUN####
+    path('task/<int:task_id>/<str:action>', TaskRunView.as_view(), name='task_action'),
+
+
 ]

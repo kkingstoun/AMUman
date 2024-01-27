@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404, redirect
+from django.http import HttpResponse
 
 from rest_framework import viewsets
 from common_models.models import *
@@ -128,10 +129,16 @@ class TaskViewSet(viewsets.ModelViewSet):
 
 
 def task_list(request):
+    
+    waiting_tasks = Task.objects.filter(status='waiting')
+    active_tasks = Task.objects.filter(status='running')
+    finished_tasks = Task.objects.filter(status='finished')
+    
     tasks = Task.objects.all()
     for task in tasks:
         task.est = format_timedelta(task.est) if task.est else None
-    return render(request, "manager/task_list.html", {"tasks": tasks})
+
+    return render(request, "manager/task_list.html", {"tasks": waiting_tasks,"active_tasks": active_tasks})
 
 def format_timedelta(td):
     total_seconds = int(td.total_seconds())
@@ -414,3 +421,55 @@ class GpusListView(APIView):
         action = request.data.get("action")
         gpus = Gpus.objects.all()
         return render(request, "manager/gpus_list.html", {"gpus": gpus})
+    
+class TaskRunView(APIView):
+    def get(self, request, task_id,action):
+        # Wybór odpowiedniej akcji na podstawie ścieżki
+        if action == 'run':
+            return self.run_task(task_id)
+        elif action == 'stop':
+            return self.stop_task(task_id)
+        elif action == 'redo':
+            return self.redo_task(task_id)
+        else:
+            return HttpResponse("Invalid action", status=400)
+
+    def select_gpu_for_task(self):
+        # Przykładowa funkcja do wyboru GPU na podstawie wymagań zadania
+        # Tutaj można dodać bardziej złożoną logikę dopasowania GPU do zadania
+        return Gpus.objects.filter(status=0).first()
+    
+    def get_priority_task(self):
+    # Przykładowa funkcja do wyboru najwyższego priorytetu zadania
+        return Task.objects.filter(status='waiting').order_by('-priority').first()
+
+    def run_task(self, task_id):
+        task = self.get_priority_task() if task_id is None else Task.objects.get(id=task_id)
+        if not task:
+            return HttpResponse("No task available or specified task does not exist.", status=404)
+
+        gpu = self.select_gpu_for_task()
+        if not gpu:
+            return HttpResponse("No available GPUs.", status=503)
+
+        # Przydzielenie GPU do zadania i aktualizacja statusów
+        task.assigned_gpu = str(gpu.id)
+        task.assigned_node = str(gpu.node_id)  # Convert gpu.node_id to a string
+        task.status = 'running'
+        task.save()
+
+        gpu.status = 'Bussy'
+        gpu.task_id = str(task.id)  # Convert task.id to a string
+        gpu.save()
+
+        # Logika uruchomienia zadania na GPU
+
+        return HttpResponse(f"Task {task.id} is running on GPU {gpu.id}")
+
+    def stop_task(self, task_id):
+        # Logika zatrzymywania zadania
+        return HttpResponse(f"Task {task_id} stopped.")
+
+    def redo_task(self, task_id):
+        # Logika ponownego uruchamiania zadania
+        return HttpResponse(f"Task {task_id} redo initiated.")
