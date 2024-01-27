@@ -83,10 +83,12 @@ class GPUMonitor(BaseCommand):
             return None
 
 
-    def update_gpu_status(self,node_id):
+
+    def assign_gpus(self,node_id):
+        self.gpu_status={i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)}
         for gpu_key, gpu in self.gpus_status.items():
             data = {
-                'action': "assign_gpu",
+                'action': "assign_node_gpu",
                 'brand_name': gpu['name'],
                 'gpu_speed': None,  # Tutaj należy przypisać odpowiednią wartość
                 'gpu_util': gpu['gpu_util'],
@@ -98,14 +100,39 @@ class GPUMonitor(BaseCommand):
             }
 
             try:
-                self.stdout.write(self.style.SUCCESS(self.ls.url))
-                self.stdout.write(self.style.SUCCESS(data))
-                response = requests.post(self.ls.url, data=data)
-                self.stdout.write(self.style.SUCCESS(response))
+                response = requests.post(self.ls.managerNmUrl, data=data)
                 if response.status_code == 200:
                     response_data = response.json()
-                    self.stdout.write(self.style.SUCCESS('Successfull gpu assign or update. Response: ' + str(response_data)))
+                    self.stdout.write(self.style.SUCCESS(f'Successfull new gpu {gpu_key} assign.'))
+                elif response.status_code == 201:
+                    response_data = response.json()
+                    self.stdout.write(self.style.SUCCESS(f'Successfull update of gpu {gpu_key}.'))
                 else:
-                    self.stdout.write(self.style.ERROR('Error1: ' + response.text))
+                    self.stdout.write(self.style.ERROR(f'Error !!: {response.text}, Status Code: {response.status_code}'))
+            except requests.exceptions.RequestException as e:
+                self.stdout.write(self.style.ERROR(f'Error2: {e}'))
+                
+    def submit_update_gpu_status(self,node_id):
+        self.gpu_status={i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)}
+        for gpu_key, gpu in self.gpus_status.items():
+            data = {
+                'action': "update_node_gpu_status",
+                'brand_name': gpu['name'],
+                'gpu_speed': None,  # Tutaj należy przypisać odpowiednią wartość
+                'gpu_util': gpu['gpu_util'],
+                'status': gpu['status'],
+                'node_id': self.ls.node_id,
+                'is_running_amumax': gpu['is_running_amumax'],
+                'gpu_id': gpu_key,
+                'gpu_info':None,
+            }
+
+            try:
+                response = requests.post(self.ls.managerNmUrl, data=data)
+                if response.status_code == 200:
+                    response_data = response.json()
+                    self.stdout.write(self.style.SUCCESS(f'Successfull gpu {gpu_key} update.'))
+                else:
+                    self.stdout.write(self.style.ERROR(f'Error !!: {response.text}, Status Code: {response.status_code}'))
             except requests.exceptions.RequestException as e:
                 self.stdout.write(self.style.ERROR(f'Error2: {e}'))

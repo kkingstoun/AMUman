@@ -5,11 +5,11 @@
 {% block content %}
 <div class="container">
     <div class="mb-3">
-        <a href="{% url 'refresh_gpus' node_id=node_id %}" class="btn btn-success">
+        <a href="#" id="refresh-button" class="btn btn-success">
             <i class="fas fa-sync-alt"></i> Refresh
         </a>
     </div>
-    <table class="table table-striped table-bordered" data-bs-theme="dark">
+    <table id="gpu-table" class="table table-striped table-bordered" data-bs-theme="dark">
         <thead class="thead-light">
             <tr>
                 <th>ID</th>
@@ -17,9 +17,8 @@
                 <th>Node ID</th>
                 <th>Brand Name</th>
                 <th>GPU Speed</th>
-                <th>GPU Util</th>
+                <th>GPU Utilization</th>
                 <th>Is Running Amumax</th>
-                <th>GPU Info</th>
                 <th>Status</th>
                 <th>Last Update</th>
             </tr>
@@ -34,7 +33,6 @@
                 <td>{{ gpu.gpu_speed }}</td>
                 <td>{{ gpu.gpu_util}}</td>
                 <td>{{ gpu.is_running_amumax }}</td>
-                <td>{{ gpu.gpu_info }}</td>
                 <td>{{ gpu.status }}</td>
                 <td>{{ gpu.last_update }}</td>
             </tr>
@@ -49,4 +47,37 @@
 
     
 </div>
+{% endblock %}
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('refresh-button').addEventListener('click', function(e) {
+        e.preventDefault();
+        fetch("{% url 'refresh_gpus_ajax' node_id=node_id %}?action=refresh_gpus_ajax")
+            .then(response => response.json())
+            .then(data => {
+                updateGPUs(data.gpus);
+            })
+            .catch(error => console.error('Error:', error));
+    });
+});
+
+function updateGPUs(gpus) {
+    const tableBody = document.getElementById('gpu-table').getElementsByTagName('tbody')[0];
+    tableBody.innerHTML = ''; // Wyczyść obecną zawartość tabeli
+
+    gpus.forEach(gpu => {
+        let row = tableBody.insertRow();
+        row.insertCell(0).innerHTML = gpu.id;
+        row.insertCell(1).innerHTML = gpu.gpu_id;
+        row.insertCell(2).innerHTML = gpu.node_id;
+        row.insertCell(3).innerHTML = gpu.brand_name;
+        row.insertCell(4).innerHTML = gpu.gpu_speed;
+        row.insertCell(5).innerHTML = gpu.gpu_util;
+        row.insertCell(6).innerHTML = gpu.is_running_amumax;
+        row.insertCell(7).innerHTML = gpu.status;
+        row.insertCell(8).innerHTML = gpu.last_update;
+    });
+}
+</script>
 {% endblock %}

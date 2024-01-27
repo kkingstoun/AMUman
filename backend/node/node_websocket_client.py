@@ -18,34 +18,36 @@ async def get_node_id():
 async def connect_to_master():
     # print("CONNECT")
     uri = "ws://localhost:8000/ws/node/"
-    try:
-        async with websockets.connect(uri) as websocket:
-            await websocket.send(json.dumps({"message": "Hello from Node!"}))
-            while True:
-                try:
+    while True:
+        try:
+            async with websockets.connect(uri) as websocket:
+                await websocket.send(json.dumps({"message": "Hello from Node!"}))
+                while True:
                     try:
-                        node_id = await get_node_id()
-                    except:
-                        node_id = None
-                    message = await websocket.recv()
-                    print(message)
-                    print(type(message))
-                    data = json.loads(message)  
-                    print(data)
-                    if data.get("command") == "update_gpus":
-                        print(f"Aktualizacja GPU od {node_id}")
-                        await sync_to_async(test)(node_id)
-                    else:
-                        print("Otrzymane dane:", data)
-                except websockets.ConnectionClosed:
-                    print("Połączenie z serwerem WebSocket zostało zamknięte.")
-                    break  # Zakończ pętlę, jeśli połączenie jest zamknięte
-    except Exception as e:
-        print(f"Błąd połączenia WebSocket: {e}")
-        
-def test(node_id):
+                        try:
+                            node_id = await get_node_id()
+                        except:
+                            node_id = None
+                        message = await websocket.recv()
+                        data = json.loads(message)  
+                        if data.get("command") == "update_gpus":
+                            await sync_to_async(execute_update_gpus)(node_id)
+                        else:
+                            pass
+                            # print("Otrzymane dane:", data)
+                    except websockets.ConnectionClosed:
+                        print("\033[91mConnection to the WebSocket server closed.\033[0m")
+                        for i in range(10, 0, -1):
+                            print(f"\033[93mReconnecting in {i}...\033[0m", end=" ", flush=True)
+                            await asyncio.sleep(1)
+                        
+                        break  # Zakończ pętlę, jeśli połączenie jest zamknięte
+        except Exception as e:
+            print(f"\033[91mWebSocket connection error: {e}\033[0m")
+            
+def execute_update_gpus(node_id):
     from node.functions.gpu_monitor import GPUMonitor
-    GPUMonitor().update_gpu_status(node_id)
+    GPUMonitor().submit_update_gpu_status(node_id)
     
 def start_client():
     # print("asdasdas")

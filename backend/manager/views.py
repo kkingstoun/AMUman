@@ -177,7 +177,6 @@ class NodeListView(APIView):
         elif node_id and action == "refresh_gpus":
             return self.refresh_gpus(request, node_id)
         else:
-            # Logika dla wyświetlania listy węzłów, jeśli nie ma node_id lub akcji
             nodes = Nodes.objects.all()
             return render(request, "manager/node_list.html", {"nodes": nodes})
 
@@ -198,42 +197,52 @@ class NodeListView(APIView):
     def manage_node(self, request, node_id):
         # Logika do wyświetlenia szczegółów i zarządzania konkretnym węzłem
         gpu_list = Gpus.objects.all()
-        for gpu in gpu_list:
-            print(f"ID: {gpu.id}")
-            print(f"GPU ID: {gpu.gpu_id}")
-            print(f"Brand Name: {gpu.brand_name}")
-            print(f"GPU Speed: {gpu.gpu_speed}")
-            print(f"GPU Util: {gpu.gpu_util}")
-            print(f"Is Running Amumax: {gpu.is_running_amumax}")
-            print(f"GPU Info: {gpu.gpu_info}")
-            print(f"Status: {gpu.status}")
-            print(f"Last Update: {gpu.last_update}")
-            print("\n")  # Dodaj pusty wiersz między rekordami
-
         gpus = Gpus.objects.filter(node_id=node_id)
         return render(request, "manager/node_manage.html", {"gpus": gpus,"node_id":1})
 
         
     def refresh_gpus(self,request, node_id):
-        # Tutaj umieść logikę odświeżania GPU dla danego node_id
-        # ...
-        gpu_list = Gpus.objects.all()
-        for gpu in gpu_list:
-            print(f"ID: {gpu.id}")
-            print(f"GPU ID: {gpu.gpu_id}")
-            print(f"Brand Name: {gpu.brand_name}")
-            print(f"GPU Speed: {gpu.gpu_speed}")
-            print(f"GPU Util: {gpu.gpu_util}")
-            print(f"Is Running Amumax: {gpu.is_running_amumax}")
-            print(f"GPU Info: {gpu.gpu_info}")
-            print(f"Status: {gpu.status}")
-            print(f"Last Update: {gpu.last_update}")
-            print("\n")  # Dodaj pusty wiersz między rekordami
-
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "nodes_group",
+            {
+                "type": "node.command",
+                "command": "update_gpus",
+            }
+        )
         gpus = Gpus.objects.filter(node_id=node_id)
         # Przekierowanie z powrotem do strony zarządzania nodem
         return redirect(reverse('manage_node', kwargs={'node_id': node_id}))
 
+    def refresh_gpus_ajax(request, node_id):
+        
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "nodes_group",
+            {
+                "type": "node.command",
+                "command": "update_gpus",
+            }
+        )
+        
+        gpus = Gpus.objects.filter(node_id=node_id)
+        gpus_data = [
+            {
+                'id': gpu.id,
+                'gpu_id': gpu.gpu_id,
+                'brand_name': gpu.brand_name,
+                'gpu_speed': gpu.gpu_speed,
+                'gpu_util': gpu.gpu_util,
+                'is_running_amumax': gpu.is_running_amumax,
+                'gpu_info': gpu.gpu_info,
+                'status': gpu.status,
+                'node_id':node_id,
+                'last_update': gpu.last_update.strftime('%Y-%m-%d %H:%M:%S') if gpu.last_update else None
+            }
+            for gpu in gpus
+        ]
+        
+        return JsonResponse({'gpus': gpus_data})
 
 class NodeManagementView(APIView):
     @csrf_exempt
@@ -242,12 +251,12 @@ class NodeManagementView(APIView):
 
         if action == "assign_new_node":
             return self.assign_new_node(request)
-        elif action == "assign_gpu":
-            return self.assign_gpu(request)
         elif action == "update_node_status":
             return self.update_node_status(request)
-        elif action == "update_node_gpus_status":
-            return self.update_node_gpus_status(request)
+        elif action == "assign_node_gpu":
+            return self.assign_node_gpu(request)
+        elif action == "update_node_gpu_status":
+            return self.update_node_gpu_status(request)
         else:
             return Response({"message": "Uknown action."}, status=400)
 
@@ -305,7 +314,7 @@ class NodeManagementView(APIView):
         }
         return gpu_performance.get(gpu_model, "Unknown")
 
-    def assign_gpu(self, request):
+    def assign_node_gpu(self, request):
         temp_node_id = request.data.get("node_id")
         node_id = get_object_or_404(Nodes, id=temp_node_id)
         brand_name = request.data.get("brand_name")
@@ -330,7 +339,7 @@ class NodeManagementView(APIView):
 
         if created:
             return Response(
-                {"message": "Node assigned sucessfull.", "id": gpu_id}, status=201
+                {"message": "Gpu assigned sucessfull.", "id": gpu_id}, status=200
             )
 
         else:
@@ -342,11 +351,31 @@ class NodeManagementView(APIView):
             gpu.last_update = timezone.now()
             gpu.save()
             return Response(
-                {"message": "Node status updated.", "id": gpu.id}, status=200
+                {"message": "Gpu status updated.", "id": gpu.id}, status=201
             )
 
     def update_node_status(self, request):
         pass
 
-    def update_node_gpus_status(self, request):
-        pass
+    def update_node_gpu_status(self, request):
+        try:
+            gpu_id = request.data.get("gpu_id")
+            node_id = request.data.get("node_id")
+
+            gpu = Gpus.objects.get(node_id=node_id, gpu_id=gpu_id)
+            gpu.brand_name = request.data.get("brand_name")
+            gpu.gpu_speed = str(self.get_gpu_performance_category(request.data.get("brand_name")))
+            gpu.gpu_util = request.data.get("gpu_util")
+            gpu.gpu_info = request.data.get("gpu_info")
+            gpu.status =  request.data.get("status")
+            gpu.last_update = timezone.now()
+            gpu.save()
+            return Response(
+                {"message": "Gpu status updated.", "id": gpu.id}, status=200
+            )
+        except Gpus.DoesNotExist:
+            # Tutaj możesz obsłużyć sytuację, gdy rekord GPU nie istnieje.
+            # Możesz zwrócić błąd lub po prostu nie robić nic.
+            return Response(
+                {"message": "Gpu not found."}, status=404
+            )
