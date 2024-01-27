@@ -22,7 +22,6 @@
             {% for gpu in gpus %}
             <tr>
                 <td>{{ gpu.id }}</td>
-                <td>{{ gpu.gpu_id }}</td>
                 <td>{{ gpu.node_id.id }}</td>  {# Assuming you want to display the Node ID #}
                 <td>{{ gpu.brand_name }}</td>
                 <td>{{ gpu.gpu_speed }}</td>

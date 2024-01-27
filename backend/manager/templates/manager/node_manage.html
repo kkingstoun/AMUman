@@ -13,7 +13,6 @@
         <thead class="thead-light">
             <tr>
                 <th>ID</th>
-                <th>GPU ID</th>
                 <th>Node ID</th>
                 <th>Brand Name</th>
                 <th>GPU Speed</th>
@@ -27,7 +26,6 @@
             {% for gpu in gpus %}
             <tr>
                 <td>{{ gpu.id }}</td>
-                <td>{{ gpu.gpu_id }}</td>
                 <td>{{ gpu.node_id.id }}</td>  {# Assuming you want to display the Node ID #}
                 <td>{{ gpu.brand_name }}</td>
                 <td>{{ gpu.gpu_speed }}</td>
@@ -66,18 +64,16 @@ function updateGPUs(gpus) {
     const tableBody = document.getElementById('gpu-table').getElementsByTagName('tbody')[0];
     tableBody.innerHTML = ''; // Wyczyść obecną zawartość tabeli
 
+    const keysToShow = ['id', 'node_id', 'brand_name', 'gpu_speed', 'gpu_util', 'is_running_amumax', 'status', 'last_update'];
+
     gpus.forEach(gpu => {
         let row = tableBody.insertRow();
-        row.insertCell(0).innerHTML = gpu.id;
-        row.insertCell(1).innerHTML = gpu.gpu_id;
-        row.insertCell(2).innerHTML = gpu.node_id;
-        row.insertCell(3).innerHTML = gpu.brand_name;
-        row.insertCell(4).innerHTML = gpu.gpu_speed;
-        row.insertCell(5).innerHTML = gpu.gpu_util;
-        row.insertCell(6).innerHTML = gpu.is_running_amumax;
-        row.insertCell(7).innerHTML = gpu.status;
-        row.insertCell(8).innerHTML = gpu.last_update;
+        keysToShow.forEach((key, index) => {
+            let cell = row.insertCell(index);
+            cell.innerHTML = gpu[key] || ''; // Wstawia pusty string, jeśli klucz nie istnieje
+        });
     });
 }
+
 </script>
 {% endblock %}

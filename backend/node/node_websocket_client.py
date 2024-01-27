@@ -5,15 +5,10 @@ from asgiref.sync import sync_to_async
 
 async def get_node_id():
     from node.models import Local
-    local_list = Local.objects.all()
-    # print("LOCAL LIST:", local_list )
-    for local in local_list: 
-        pass
-        # print("NODE ID:", local.node_id)
-
-    node_setting = Local.objects.get(id=1)
-    return node_setting.node_id
-
+    from asgiref.sync import sync_to_async
+    # Pobranie rekordów w sposób asynchroniczny
+    node_id = await sync_to_async(Local.objects.get, thread_sensitive=True)(id=1)
+    return node_id.id
     
 async def connect_to_master():
     # print("CONNECT")
@@ -21,17 +16,20 @@ async def connect_to_master():
     while True:
         try:
             async with websockets.connect(uri) as websocket:
-                await websocket.send(json.dumps({"message": "Hello from Node!"}))
-                while True:
+               while True:
                     try:
                         try:
                             node_id = await get_node_id()
                         except:
-                            node_id = None
+                            break
                         message = await websocket.recv()
                         data = json.loads(message)  
-                        if data.get("command") == "update_gpus":
-                            await sync_to_async(execute_update_gpus)(node_id)
+                        command = data.get("command")
+                        r_node_id = data.get("node_id")
+                        
+                        if command == "update_gpus":
+                            if r_node_id == node_id:
+                                await sync_to_async(execute_update_gpus)(node_id)
                         else:
                             pass
                             # print("Otrzymane dane:", data)

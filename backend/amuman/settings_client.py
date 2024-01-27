@@ -19,10 +19,9 @@ INSTALLED_APPS += [
 
 URL_MODE_PREFIX = 'client'  # Prefiks URL dla trybu klienta
 
-DATABASES = {
+DATABASES.update({
     'default': {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "clientdb.sqlite3", 
     }
-}
-
+})

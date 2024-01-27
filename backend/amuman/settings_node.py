@@ -20,12 +20,12 @@ INSTALLED_APPS += [
 
 URL_MODE_PREFIX = 'node'  # Prefiks URL dla trybu klienta
 
-DATABASES = {
+DATABASES.update({
     'default': {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "nodedb.sqlite3",
     }
-}
+})
 
 MIDDLEWARE += [
     # ... inne middleware ...

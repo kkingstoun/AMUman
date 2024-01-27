@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, redirect
 from rest_framework import viewsets
 from common_models.models import *
 from .serializers import TaskSerializer
-
+from .components.nodes_monitor import NodesMonitor
 # Tymczasowe wyłączenie tokenów
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -23,14 +23,7 @@ from .components.form import TaskForm, AddTaskForm
 
 from django.urls import reverse
 # @csrf_exempt
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-import json
-import websockets
 
-from channels.layers import get_channel_layer
-import json
-import websockets
 from datetime import timedelta
 
 @csrf_exempt
@@ -159,18 +152,19 @@ def edit_task(request, task_id):
         form = TaskForm(instance=task)
     return render(request, "manager/edit_task.html", {"form": form})
 
-async def send_command(request):
-    # Pobierz wiadomość od klienta
-    # Prześlij wiadomość do głównego serwera
-    channel_layer = get_channel_layer()
-    await channel_layer.group_send(
-        "nodes_group",
-        {
-            "type": "node.command",
-            "command": "update_gpus",
-        }
-    )
-    return JsonResponse({"message": "Uknown action."})
+# @csrf_exempt
+# async def send_command(request):
+#     # Pobierz wiadomość od klienta
+#     # Prześlij wiadomość do głównego serwera
+#     channel_layer = get_channel_layer()
+#     await channel_layer.group_send(
+#         "nodes_group",
+#         {
+#             "type": "node.command",
+#             "command": "update_gpus",
+#         }
+#     )
+#     return JsonResponse({"message": "Uknown action."})
 
 def add_task_form(request):
     if request.method == 'POST':
@@ -186,17 +180,26 @@ def add_task_form(request):
 
 class NodeListView(APIView):
     def get(self, request, *args, **kwargs):
-        node_id = kwargs.get("node_id")
-        action = request.query_params.get("action")
-        if node_id and action == "remove":
-            return self.remove_node(request, node_id)
-        elif node_id and action == "manage":
-            return self.manage_node(request, node_id)
-        elif node_id and action == "refresh_gpus":
-            return self.refresh_gpus(request, node_id)
-        else:
+        path = request.path_info.split("/")[-2]
+        print(path)
+        if path =="refresh_all_nodes":
+            n_monitor = NodesMonitor()
+            n_monitor.send_update_command()
             nodes = Nodes.objects.all()
-            return render(request, "manager/node_list.html", {"nodes": nodes})
+            return Response({"message": f"GPU przypisane do Node."}, status=200)
+
+        else:
+            node_id = kwargs.get("node_id")
+            action = request.query_params.get("action")
+            if node_id and action == "remove":
+                return self.remove_node(request, node_id)
+            elif node_id and action == "manage":
+                return self.manage_node(request, node_id)
+            elif node_id and action == "refresh_gpus":
+                return self.refresh_gpus(request, node_id)
+            else:
+                nodes = Nodes.objects.all()
+                return render(request, "manager/node_list.html", {"nodes": nodes})
 
     def remove_node(self, request, node_id):
         # Logika do usunięcia węzła i zakończenia połączenia
@@ -219,18 +222,19 @@ class NodeListView(APIView):
         return render(request, "manager/node_manage.html", {"gpus": gpus,"node_id":1})
 
         
-    def refresh_gpus(self,request, node_id):
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            "nodes_group",
-            {
-                "type": "node.command",
-                "command": "update_gpus",
-            }
-        )
-        gpus = Gpus.objects.filter(node_id=node_id)
-        # Przekierowanie z powrotem do strony zarządzania nodem
-        return redirect(reverse('manage_node', kwargs={'node_id': node_id}))
+    # def refresh_gpus(self,request, node_id):
+    #     channel_layer = get_channel_layer()
+    #     async_to_sync(channel_layer.group_send)(
+    #         "nodes_group",
+    #         {
+    #             "type": "node.command",
+    #             "command": "update_gpus",
+    #             "node_id":node_id,
+    #         }
+    #     )
+    #     gpus = Gpus.objects.filter(node_id=node_id)
+    #     # Przekierowanie z powrotem do strony zarządzania nodem
+    #     return redirect(reverse('manage_node', kwargs={'node_id': node_id}))
 
     def refresh_gpus_ajax(request, node_id):
         
@@ -240,6 +244,7 @@ class NodeListView(APIView):
             {
                 "type": "node.command",
                 "command": "update_gpus",
+                "node_id":node_id,
             }
         )
         
@@ -247,7 +252,6 @@ class NodeListView(APIView):
         gpus_data = [
             {
                 'id': gpu.id,
-                'gpu_id': gpu.gpu_id,
                 'brand_name': gpu.brand_name,
                 'gpu_speed': gpu.gpu_speed,
                 'gpu_util': gpu.gpu_util,
@@ -333,6 +337,8 @@ class NodeManagementView(APIView):
         return gpu_performance.get(gpu_model, "Unknown")
 
     def assign_node_gpu(self, request):
+        
+
         temp_node_id = request.data.get("node_id")
         node_id = get_object_or_404(Nodes, id=temp_node_id)
         brand_name = request.data.get("brand_name")
@@ -340,16 +346,19 @@ class NodeManagementView(APIView):
         gpu_util = request.data.get("gpu_util")
         gpu_info = request.data.get("gpu_info")
         status = request.data.get("status")
-        gpu_id = request.data.get("gpu_id")
+        is_running_amumax = request.data.get("is_running_amumax")  
+        gpu_uuid = request.data.get("gpu_uuid")
 
         gpu, created = Gpus.objects.get_or_create(
             node_id=node_id,
-            gpu_id=gpu_id,
+            gpu_uuid=gpu_uuid,
             defaults={
-                "gpu_id": gpu_id,
                 "brand_name": brand_name,
                 "gpu_speed": self.get_gpu_performance_category(brand_name),
                 "gpu_info": gpu_info,
+                "gpu_util": gpu_util,
+                "is_running_amumax":    is_running_amumax,
+                "gpu_speed": str(self.get_gpu_performance_category(brand_name)),
                 "status": status,
                 "last_update": timezone.now(),
             },
@@ -357,7 +366,7 @@ class NodeManagementView(APIView):
 
         if created:
             return Response(
-                {"message": "Gpu assigned sucessfull.", "id": gpu_id}, status=200
+                {"message": "Gpu assigned sucessfull.", "gpu_uudid": gpu_uuid}, status=200
             )
 
         else:
@@ -366,10 +375,11 @@ class NodeManagementView(APIView):
             gpu.gpu_util = gpu_util
             gpu.gpu_info = gpu_info
             gpu.status = status
+            gpu.is_running_amumax = is_running_amumax
             gpu.last_update = timezone.now()
             gpu.save()
             return Response(
-                {"message": "Gpu status updated.", "id": gpu.id}, status=201
+                {"message": "Gpu status updated.", "gpu_uudid": gpu_uuid}, status=201
             )
 
     def update_node_status(self, request):
@@ -377,13 +387,14 @@ class NodeManagementView(APIView):
 
     def update_node_gpu_status(self, request):
         try:
-            gpu_id = request.data.get("gpu_id")
+            gpu_uuid = request.data.get("gpu_uuid")
             node_id = request.data.get("node_id")
 
-            gpu = Gpus.objects.get(node_id=node_id, gpu_id=gpu_id)
+            gpu = Gpus.objects.get(node_id=node_id, gpu_uuid=gpu_uuid)
             gpu.brand_name = request.data.get("brand_name")
             gpu.gpu_speed = str(self.get_gpu_performance_category(request.data.get("brand_name")))
             gpu.gpu_util = request.data.get("gpu_util")
+            gpu.is_running_amumax = request.data.get("is_running_amumax")
             gpu.gpu_info = request.data.get("gpu_info")
             gpu.status =  request.data.get("status")
             gpu.last_update = timezone.now()
