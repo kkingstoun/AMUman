@@ -379,3 +379,9 @@ class NodeManagementView(APIView):
             return Response(
                 {"message": "Gpu not found."}, status=404
             )
+
+class GpusListView(APIView):
+    def get(self, request, *args, **kwargs):
+        action = request.data.get("action")
+        gpus = Gpus.objects.all()
+        return render(request, "manager/gpus_list.html", {"gpus": gpus})

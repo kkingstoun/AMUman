@@ -26,7 +26,8 @@ urlpatterns = [
     path('nodes/<int:node_id>/refresh_gpus/', NodeListView.as_view(), name='refresh_gpus'),
     path('nodes/<int:node_id>/refresh_gpus_ajax/', NodeListView.refresh_gpus_ajax, name='refresh_gpus_ajax'),
 
-
+    path('gpus/', GpusListView.as_view(), name='gpus_list'),  # Lista wszystkich węzłów
+   
     ####NODE-MANAGEMENT####
     path('node-management/', NodeManagementView.as_view(), name='node_management'),
 ]
