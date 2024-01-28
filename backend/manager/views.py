@@ -119,7 +119,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 def task_list(request):
     
     waiting_tasks = Task.objects.filter(status='waiting')
-    active_tasks = Task.objects.filter(status='running')
+    active_tasks = Task.objects.filter(status='pending')
     finished_tasks = Task.objects.filter(status='finished')
     
     tasks = Task.objects.all()
@@ -485,8 +485,8 @@ class TaskRunView(APIView):
         gpu.save()
 
         # Logika uruchomienia zadania na GPU
-
-        return self.get_task_list(request)
+        redirect("task_list")
+        # return self.get_task_list(request)
 
     def cancel_task(self,task_id, request=None):
         task = Task.objects.get(id=task_id)
