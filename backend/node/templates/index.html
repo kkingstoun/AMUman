@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Kolejkowania Zadań</title>
+</head>
+<body>
+    <h1>Dodaj Zadanie</h1>
+    <form method="post" action="/scheduler/add_task/">
+        {% csrf_token %}
+        <label for="path">Ścieżka do pliku:</label><br>
+        <label for="priority">Priorytet:</label><br>
+        <input type="number" id="priority" name="priority" min="0"><br>
+        <input type="text" id="path" name="path"><br>
+        <input type="submit" value="Dodaj Zadanie">
+    </form>
+    <h2>Zadania</h2>
+    <ul>
+        {% for task in tasks %}
+        <li>ID: {{ task.id }}, Ścieżka: {{ task.path }}, Status: {{ task.status }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

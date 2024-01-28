@@ -9,4 +9,6 @@ urlpatterns = [
     # path("send_message/", views.send_message, name="send_message"),
 
     # path('receive_task/', views.receive_task, name='receive_task'),
+    path('tasks/<int:task_id>/<str:action>', views.TaskRunView.as_view(), name='task_action'),
+    path('', views.TaskRunView.as_view(), name='task_list'),
 ]

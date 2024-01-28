@@ -1,9 +1,11 @@
+from typing import Any
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.utils import timezone
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404, redirect
 from django.http import HttpResponse
+from django.db.models import Q
 
 from rest_framework import viewsets
 from common_models.models import *
@@ -20,7 +22,7 @@ from rest_framework.response import Response
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from .components.form import TaskForm, AddTaskForm
+from .components.forms import EditTaskForm, AddTaskForm
 
 from django.urls import reverse
 # @csrf_exempt
@@ -148,16 +150,7 @@ def format_timedelta(td):
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 
-def edit_task(request, task_id):
-    task = get_object_or_404(Task, pk=task_id)
-    if request.method == "POST":
-        form = TaskForm(request.POST, instance=task)
-        if form.is_valid():
-            form.save()
-            return redirect("task_list")
-    else:
-        form = TaskForm(instance=task)
-    return render(request, "manager/edit_task.html", {"form": form})
+
 
 # @csrf_exempt
 # async def send_command(request):
@@ -173,22 +166,9 @@ def edit_task(request, task_id):
 #     )
 #     return JsonResponse({"message": "Uknown action."})
 
-def add_task_form(request):
-    if request.method == 'POST':
-        form = AddTaskForm(request.POST)
-        if form.is_valid():
-            form.save()
-            tasks = Task.objects.all()
-            return render(request, "manager/task_list.html", {"tasks": tasks})
-    else:
-        form = AddTaskForm()
-
-    return render(request, 'manager/task_form.html', {'form': form})
-
 class NodeListView(APIView):
     def get(self, request, *args, **kwargs):
         path = request.path_info.split("/")[-2]
-        print(path)
         if path =="refresh_all_nodes":
             n_monitor = NodesMonitor()
             n_monitor.send_update_command()
@@ -423,6 +403,39 @@ class GpusListView(APIView):
         return render(request, "manager/gpus_list.html", {"gpus": gpus})
     
 
+class TaskManagerView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        path = request.path_info.split("/")[-3]
+        task_id = kwargs.get("task_id")
+        if path == "edit":
+            # Return the response from the edit_task method
+            return self.edit_task(request, task_id=task_id)
+        else:
+            form = AddTaskForm()
+            return render(request, 'manager/task_form.html', {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = AddTaskForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect("task_list")
+        else:
+            return render(request, 'manager/task_form.html', {'form': form})
+    
+    def edit_task(self, request, task_id):
+        task = get_object_or_404(Task, pk=task_id)
+        if request.method == "POST":
+            form = EditTaskForm(request.POST, instance=task)
+            if form.is_valid():
+                form.save()
+                return redirect("task_list")
+        else:
+            form = EditTaskForm(instance=task)
+        
+        return render(request, "manager/edit_task.html", {"form": form})
+
+
 class TaskRunView(APIView):
     def get(self, request, task_id,action):
         # Wybór odpowiedniej akcji na podstawie ścieżki
@@ -436,14 +449,16 @@ class TaskRunView(APIView):
             return HttpResponse("Invalid action", status=400)
     def get_task_list(self,request):
         waiting_tasks = Task.objects.filter(status='waiting')
-        active_tasks = Task.objects.filter(status='running')
+        pending_tasks = Task.objects.filter(
+                            Q(status='pending') | Q(status='running')
+                        )
         # finished_tasks = Task.objects.filter(status='finished')
         
         tasks = Task.objects.all()
         for task in tasks:
             task.est = format_timedelta(task.est) if task.est else None
 
-        return render(request, "manager/task_list.html", {"tasks": waiting_tasks,"active_tasks": active_tasks})
+        return render(request, "manager/task_list.html", {"tasks": waiting_tasks,"active_tasks": pending_tasks})
 
     def select_gpu_for_task(self):
         # Przykładowa funkcja do wyboru GPU na podstawie wymagań zadania
@@ -466,7 +481,7 @@ class TaskRunView(APIView):
         # Przydzielenie GPU do zadania i aktualizacja statusów
         task.assigned_gpu = f"N{gpu.node_id.id}/G{gpu.id}"
         task.assigned_node = f"{gpu.node_id.ip}"  # Convert gpu.node_id to a string
-        task.status = 'running'
+        task.status = 'pending'
         task.save()
 
         gpu.status = 'Bussy'

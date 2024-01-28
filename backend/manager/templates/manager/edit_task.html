@@ -1,29 +1,15 @@
-<!-- templates/tasks/edit_task.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>System Kolejkowania Zadań</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-</head>
-<body>
-    <!-- templates/tasks/task_list.html -->
+{% extends "manager/base.html" %}
 
-<!-- Reszta szablonu -->
-
-<!-- edit_task.html -->
-
+{% block title %}Tasks list{% endblock %}
+{% block name %}Tasks list{% endblock %}
+{% block content %}
 <div class="container mt-3">
-    <h2>Edytuj Zadanie</h2>
-    <form method="post" class="form">
+    <form method="post">
         {% csrf_token %}
         {{ form.as_p }} <!-- Renderuje każde pole formularza w paragrafie -->
-        <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
-        <a href="{% url 'task_list' %}" class="btn btn-secondary">Anuluj</a>
-    </form>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <a href="{% url 'task_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>    
 </div>
+{% endblock %}
 
-
-
-</body>
-</html>

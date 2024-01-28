@@ -7,16 +7,34 @@ class Task(models.Model):
         primary_key=True, unique=True
     )  # Auto-generowany unikalny klucz
     user = models.CharField(max_length=100, null=True, blank=True)
-    path = models.CharField(max_length=500)
+    path = models.TextField(null=False, blank=False)
     node_name = models.CharField(max_length=100, null=True, blank=True)
     port = models.IntegerField(null=True, blank=True)
     submit_time = models.DateTimeField(null=True, blank=True)
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     error_time = models.DateTimeField(null=True, blank=True)
-    priority = models.IntegerField(default=0)
+    
+    PRIORITY_CHOICES = [
+        ('slow', 'Slow'),
+        ('normal', 'Normal'),
+        ('fast', 'Fast')
+    ]
+    priority = models.CharField(
+        max_length=6,
+        choices=PRIORITY_CHOICES,
+        default='normal'
+    )
+    
+    GPU_PARTITION_CHOICES = [
+        ('slow', 'Slow'),
+        ('normal', 'Normal'),
+        ('fast', 'Fast')
+    ]
     gpu_partition = models.CharField(
-        max_length=15, unique=True, null=True, blank=True, default="normal"
+        max_length=6,
+        choices=GPU_PARTITION_CHOICES,
+        default='normal'
     )
     est = models.DurationField(null=True, blank=True)
     status = models.CharField(

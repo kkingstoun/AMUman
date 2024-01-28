@@ -7,17 +7,26 @@ router = DefaultRouter()
 router.register(r'tasks', TaskViewSet)
 
 urlpatterns = [
-    path('add_task_form/', views.add_task_form, name='add_task_form'),
+    
+    #OLD LINK TO FIX:
     path('get_task/', views.get_task, name='get_task'),
     path('finish_task/', views.finish_task, name='finish_task'),
     # path('send_command/', views.send_command, name='send_command'),
+    
+    path('tasks/', task_list, name='task_list'),
+    path('task/add_new_task/', TaskManagerView.as_view(), name='add_task_form'),
+    path('task/edit/<int:task_id>/', TaskManagerView.as_view(), name='edit_task'),
+    path('task/delete/<int:task_id>/', TaskManagerView.as_view(), name='delete_task'),
+    
+    
     path('task/<int:task_id>/pause/', views.pause_task, name='pause_task'),
     path('task/<int:task_id>/resume/', views.resume_task, name='resume_task'),
-    path('tasks/delete/<int:task_id>/', delete_task, name='delete_task'),
-    path('tasks/edit/<int:task_id>/', edit_task, name='edit_task'),
     path('task/<int:task_id>/priority/<int:priority>/', views.update_priority, name='update_priority'),
-    path('tasks/', task_list, name='task_list'),
-    path('', include(router.urls)),
+    
+    
+    
+    
+    # path('', include(router.urls)),
     # path('', views.index, name='index'),
     
     ####NODE-LIST####
