@@ -17,7 +17,7 @@ async def get_node_id():
     
 async def connect_to_master():
     # print("CONNECT")
-    uri = "ws://localhost:8000/ws/node/"
+    uri = "ws://manager:8000/ws/node/"
     try:
         async with websockets.connect(uri) as websocket:
             await websocket.send(json.dumps({"message": "Hello from Node!"}))

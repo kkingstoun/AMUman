@@ -20,13 +20,11 @@ class Command(BaseCommand):
         ip = options.get('ip', 'localhost')  # Użyj 'localhost' jako wartości domyślnej, jeśli 'ip' nie istnieje
         port = options.get('port', '8000')  # Użyj '8000' jako wartości domyślnej, jeśli 'port' nie istnieje
         local_port = settings.PORT #NEED TO BE TESTED!!!!!!!
-        url = f'http://localhost:8000/manager/node-management/'
-        gpm = GPUMonitor()
+        url = f'http://manager:8000/manager/node-management/'
         data = {
             'action':"assign_new_node",
             'ip': self.get_own_ip(),
             'port': None,
-            'number_of_gpus': gpm.number_of_gpus,
         }
         try:
             response = requests.post(url, data=data)
@@ -41,6 +39,7 @@ class Command(BaseCommand):
             local_setting.url = url
             local_setting.save()
             
+            gpm = GPUMonitor()
             self.stdout.write(self.style.SUCCESS(f'Successfull found node_id: {local_setting.node_id}'))
 
             if response.status_code == 201:
