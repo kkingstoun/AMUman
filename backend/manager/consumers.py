@@ -8,7 +8,6 @@ class MasterConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_add("nodes_group", self.channel_name)
         await self.accept()
         # Wysyłanie testowej wiadomości po nawiązaniu połączenia
-        await self.send_test_message("Testowa wiadomość z serwera Master.")
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard("nodes_group", self.channel_name)
@@ -38,11 +37,12 @@ class MasterConsumer(AsyncWebsocketConsumer):
     async def node_command(self, event):
         # Logika do obsługi komunikatu typu 'node.command'
         command = event['command']
+        node_id = event['node_id']
 
         # Przetwarzanie komendy i wysyłanie odpowiedzi do klienta 'node'
         # Na przykład, możesz tutaj wykonać pewne operacje w zależności od komendy
         print(f"Otrzymano komendę: {command}")
 
         # Przykładowa odpowiedź wysyłana z powrotem do klienta
-        response_message = {'command':command}
+        response_message = {'command':command,'node_id':node_id}
         await self.send(text_data=json.dumps(response_message))

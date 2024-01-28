@@ -9,28 +9,24 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 from .settings import *
-from celery.schedules import crontab
 
 INSTALLED_APPS += [
     "manager",
 ]
 
 URL_MODE_PREFIX = 'manager'  # Prefiks URL dla trybu klienta
-
-DATABASES = {
+DATABASES.update({
     'default': {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "managerdb.sqlite3", 
     }
-}
+})
 
+STATIC_URL = '/static/'
 
-CELERY_BEAT_SCHEDULE = {
-    'check-node-status-every-minute': {
-        'task': 'scheduler.tasks.check_node_status',
-        'schedule': crontab(minute='*/1'),
-    },
-}
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'manager/static'),
+]

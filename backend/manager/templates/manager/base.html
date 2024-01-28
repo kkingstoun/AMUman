@@ -1,12 +1,14 @@
+{% load static %}
+<!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
-
 <head>
     <title>{% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- CSS for Dark Mode -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css">
-
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <!-- JS, Popper.js, and jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
         integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
@@ -74,7 +76,14 @@
                 });
             });
             </script>
-            
+        <style>
+            .table {
+                max-width: 100%;
+            }
+            .container {
+                max-width: 100%; /* Ustawić odpowiednią szerokość kontenera */
+            }
+        </style>
     </head>
 <body class="container-fluid" data-bs-theme="dark">
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
@@ -90,8 +99,14 @@
                 <li class="nav-item {% if request.path == '/manager/tasks/' %}active{% endif %}">
                     <a class="nav-link" href="/manager/tasks/">Task List</a>
                 </li>
+                <li class="nav-item {% if request.path == '/manager/gpus/' %}active{% endif %}">
+                    <a class="nav-link" href="/manager/add_task_form/">Add Task</a>
+                </li>
                 <li class="nav-item {% if request.path == '/manager/nodes/' %}active{% endif %}">
                     <a class="nav-link" href="/manager/nodes/">Node List</a>
+                </li>
+                <li class="nav-item {% if request.path == '/manager/gpus/' %}active{% endif %}">
+                    <a class="nav-link" href="/manager/gpus/">GPUs List</a>
                 </li>
             </ul>
         </div>
@@ -101,7 +116,7 @@
         <div id="content" class="container">
     
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-lg-12">
                     <p class="page-title lead">
                         {% block name %}{% endblock %}
                     </p>
@@ -109,13 +124,14 @@
             </div>
     
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-lg-12">
                     {% block content %}{% endblock %}
                 </div>
             </div>
         </div>
     
     </main>
+    {% block javascript %}{% endblock %}
 </body>
 
 </html>

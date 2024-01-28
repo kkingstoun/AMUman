@@ -3,11 +3,12 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404, redirect
+from django.http import HttpResponse
 
 from rest_framework import viewsets
 from common_models.models import *
 from .serializers import TaskSerializer
-
+from .components.nodes_monitor import NodesMonitor
 # Tymczasowe wyłączenie tokenów
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -19,9 +20,12 @@ from rest_framework.response import Response
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from .components.form import TaskForm
+from .components.form import TaskForm, AddTaskForm
 
 from django.urls import reverse
+# @csrf_exempt
+
+from datetime import timedelta
 
 @csrf_exempt
 def add_task(request):
@@ -125,8 +129,23 @@ class TaskViewSet(viewsets.ModelViewSet):
 
 
 def task_list(request):
+    
+    waiting_tasks = Task.objects.filter(status='waiting')
+    active_tasks = Task.objects.filter(status='running')
+    finished_tasks = Task.objects.filter(status='finished')
+    
     tasks = Task.objects.all()
-    return render(request, "manager/task_list.html", {"tasks": tasks})
+    for task in tasks:
+        task.est = format_timedelta(task.est) if task.est else None
+
+    return render(request, "manager/task_list.html", {"tasks": waiting_tasks,"active_tasks": active_tasks})
+
+def format_timedelta(td):
+    total_seconds = int(td.total_seconds())
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    seconds = total_seconds % 60
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 
 def edit_task(request, task_id):
@@ -140,46 +159,54 @@ def edit_task(request, task_id):
         form = TaskForm(instance=task)
     return render(request, "manager/edit_task.html", {"form": form})
 
-
 # @csrf_exempt
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-import json
-import websockets
+# async def send_command(request):
+#     # Pobierz wiadomość od klienta
+#     # Prześlij wiadomość do głównego serwera
+#     channel_layer = get_channel_layer()
+#     await channel_layer.group_send(
+#         "nodes_group",
+#         {
+#             "type": "node.command",
+#             "command": "update_gpus",
+#         }
+#     )
+#     return JsonResponse({"message": "Uknown action."})
 
-from channels.layers import get_channel_layer
-import json
-import websockets
+def add_task_form(request):
+    if request.method == 'POST':
+        form = AddTaskForm(request.POST)
+        if form.is_valid():
+            form.save()
+            tasks = Task.objects.all()
+            return render(request, "manager/task_list.html", {"tasks": tasks})
+    else:
+        form = AddTaskForm()
 
-async def send_command(request):
-    # Pobierz wiadomość od klienta
-    # Prześlij wiadomość do głównego serwera
-    channel_layer = get_channel_layer()
-    await channel_layer.group_send(
-        "nodes_group",
-        {
-            "type": "node.command",
-            "command": "update_gpus",
-        }
-    )
-    return JsonResponse({"message": "Uknown action."})
-
-
+    return render(request, 'manager/task_form.html', {'form': form})
 
 class NodeListView(APIView):
     def get(self, request, *args, **kwargs):
-        node_id = kwargs.get("node_id")
-        action = request.query_params.get("action")
-        if node_id and action == "remove":
-            return self.remove_node(request, node_id)
-        elif node_id and action == "manage":
-            return self.manage_node(request, node_id)
-        elif node_id and action == "refresh_gpus":
-            return self.refresh_gpus(request, node_id)
-        else:
-            # Logika dla wyświetlania listy węzłów, jeśli nie ma node_id lub akcji
+        path = request.path_info.split("/")[-2]
+        print(path)
+        if path =="refresh_all_nodes":
+            n_monitor = NodesMonitor()
+            n_monitor.send_update_command()
             nodes = Nodes.objects.all()
-            return render(request, "manager/node_list.html", {"nodes": nodes})
+            return Response({"message": f"GPU przypisane do Node."}, status=200)
+
+        else:
+            node_id = kwargs.get("node_id")
+            action = request.query_params.get("action")
+            if node_id and action == "remove":
+                return self.remove_node(request, node_id)
+            elif node_id and action == "manage":
+                return self.manage_node(request, node_id)
+            elif node_id and action == "refresh_gpus":
+                return self.refresh_gpus(request, node_id)
+            else:
+                nodes = Nodes.objects.all()
+                return render(request, "manager/node_list.html", {"nodes": nodes})
 
     def remove_node(self, request, node_id):
         # Logika do usunięcia węzła i zakończenia połączenia
@@ -198,42 +225,53 @@ class NodeListView(APIView):
     def manage_node(self, request, node_id):
         # Logika do wyświetlenia szczegółów i zarządzania konkretnym węzłem
         gpu_list = Gpus.objects.all()
-        for gpu in gpu_list:
-            print(f"ID: {gpu.id}")
-            print(f"GPU ID: {gpu.gpu_id}")
-            print(f"Brand Name: {gpu.brand_name}")
-            print(f"GPU Speed: {gpu.gpu_speed}")
-            print(f"GPU Util: {gpu.gpu_util}")
-            print(f"Is Running Amumax: {gpu.is_running_amumax}")
-            print(f"GPU Info: {gpu.gpu_info}")
-            print(f"Status: {gpu.status}")
-            print(f"Last Update: {gpu.last_update}")
-            print("\n")  # Dodaj pusty wiersz między rekordami
-
         gpus = Gpus.objects.filter(node_id=node_id)
         return render(request, "manager/node_manage.html", {"gpus": gpus,"node_id":1})
 
         
-    def refresh_gpus(self,request, node_id):
-        # Tutaj umieść logikę odświeżania GPU dla danego node_id
-        # ...
-        gpu_list = Gpus.objects.all()
-        for gpu in gpu_list:
-            print(f"ID: {gpu.id}")
-            print(f"GPU ID: {gpu.gpu_id}")
-            print(f"Brand Name: {gpu.brand_name}")
-            print(f"GPU Speed: {gpu.gpu_speed}")
-            print(f"GPU Util: {gpu.gpu_util}")
-            print(f"Is Running Amumax: {gpu.is_running_amumax}")
-            print(f"GPU Info: {gpu.gpu_info}")
-            print(f"Status: {gpu.status}")
-            print(f"Last Update: {gpu.last_update}")
-            print("\n")  # Dodaj pusty wiersz między rekordami
+    # def refresh_gpus(self,request, node_id):
+    #     channel_layer = get_channel_layer()
+    #     async_to_sync(channel_layer.group_send)(
+    #         "nodes_group",
+    #         {
+    #             "type": "node.command",
+    #             "command": "update_gpus",
+    #             "node_id":node_id,
+    #         }
+    #     )
+    #     gpus = Gpus.objects.filter(node_id=node_id)
+    #     # Przekierowanie z powrotem do strony zarządzania nodem
+    #     return redirect(reverse('manage_node', kwargs={'node_id': node_id}))
 
+    def refresh_gpus_ajax(request, node_id):
+        
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "nodes_group",
+            {
+                "type": "node.command",
+                "command": "update_gpus",
+                "node_id":node_id,
+            }
+        )
+        
         gpus = Gpus.objects.filter(node_id=node_id)
-        # Przekierowanie z powrotem do strony zarządzania nodem
-        return redirect(reverse('manage_node', kwargs={'node_id': node_id}))
-
+        gpus_data = [
+            {
+                'id': gpu.id,
+                'brand_name': gpu.brand_name,
+                'gpu_speed': gpu.gpu_speed,
+                'gpu_util': gpu.gpu_util,
+                'is_running_amumax': gpu.is_running_amumax,
+                'gpu_info': gpu.gpu_info,
+                'status': gpu.status,
+                'node_id':node_id,
+                'last_update': gpu.last_update.strftime('%Y-%m-%d %H:%M:%S') if gpu.last_update else None
+            }
+            for gpu in gpus
+        ]
+        
+        return JsonResponse({'gpus': gpus_data})
 
 class NodeManagementView(APIView):
     @csrf_exempt
@@ -242,12 +280,12 @@ class NodeManagementView(APIView):
 
         if action == "assign_new_node":
             return self.assign_new_node(request)
-        elif action == "assign_gpu":
-            return self.assign_gpu(request)
         elif action == "update_node_status":
             return self.update_node_status(request)
-        elif action == "update_node_gpus_status":
-            return self.update_node_gpus_status(request)
+        elif action == "assign_node_gpu":
+            return self.assign_node_gpu(request)
+        elif action == "update_node_gpu_status":
+            return self.update_node_gpu_status(request)
         else:
             return Response({"message": "Uknown action."}, status=400)
 
@@ -305,7 +343,9 @@ class NodeManagementView(APIView):
         }
         return gpu_performance.get(gpu_model, "Unknown")
 
-    def assign_gpu(self, request):
+    def assign_node_gpu(self, request):
+        
+
         temp_node_id = request.data.get("node_id")
         node_id = get_object_or_404(Nodes, id=temp_node_id)
         brand_name = request.data.get("brand_name")
@@ -313,16 +353,19 @@ class NodeManagementView(APIView):
         gpu_util = request.data.get("gpu_util")
         gpu_info = request.data.get("gpu_info")
         status = request.data.get("status")
-        gpu_id = request.data.get("gpu_id")
+        is_running_amumax = request.data.get("is_running_amumax")  
+        gpu_uuid = request.data.get("gpu_uuid")
 
         gpu, created = Gpus.objects.get_or_create(
             node_id=node_id,
-            gpu_id=gpu_id,
+            gpu_uuid=gpu_uuid,
             defaults={
-                "gpu_id": gpu_id,
                 "brand_name": brand_name,
                 "gpu_speed": self.get_gpu_performance_category(brand_name),
                 "gpu_info": gpu_info,
+                "gpu_util": gpu_util,
+                "is_running_amumax":    is_running_amumax,
+                "gpu_speed": str(self.get_gpu_performance_category(brand_name)),
                 "status": status,
                 "last_update": timezone.now(),
             },
@@ -330,7 +373,7 @@ class NodeManagementView(APIView):
 
         if created:
             return Response(
-                {"message": "Node assigned sucessfull.", "id": gpu_id}, status=201
+                {"message": "Gpu assigned sucessfull.", "gpu_uudid": gpu_uuid}, status=200
             )
 
         else:
@@ -339,14 +382,119 @@ class NodeManagementView(APIView):
             gpu.gpu_util = gpu_util
             gpu.gpu_info = gpu_info
             gpu.status = status
+            gpu.is_running_amumax = is_running_amumax
             gpu.last_update = timezone.now()
             gpu.save()
             return Response(
-                {"message": "Node status updated.", "id": gpu.id}, status=200
+                {"message": "Gpu status updated.", "gpu_uudid": gpu_uuid}, status=201
             )
 
     def update_node_status(self, request):
         pass
 
-    def update_node_gpus_status(self, request):
-        pass
+    def update_node_gpu_status(self, request):
+        try:
+            gpu_uuid = request.data.get("gpu_uuid")
+            node_id = request.data.get("node_id")
+
+            gpu = Gpus.objects.get(node_id=node_id, gpu_uuid=gpu_uuid)
+            gpu.brand_name = request.data.get("brand_name")
+            gpu.gpu_speed = str(self.get_gpu_performance_category(request.data.get("brand_name")))
+            gpu.gpu_util = request.data.get("gpu_util")
+            gpu.is_running_amumax = request.data.get("is_running_amumax")
+            gpu.gpu_info = request.data.get("gpu_info")
+            gpu.status =  request.data.get("status")
+            gpu.last_update = timezone.now()
+            gpu.save()
+            return Response(
+                {"message": "Gpu status updated.", "id": gpu.id}, status=200
+            )
+        except Gpus.DoesNotExist:
+            # Tutaj możesz obsłużyć sytuację, gdy rekord GPU nie istnieje.
+            # Możesz zwrócić błąd lub po prostu nie robić nic.
+            return Response(
+                {"message": "Gpu not found."}, status=404
+            )
+
+class GpusListView(APIView):
+    def get(self, request, *args, **kwargs):
+        action = request.data.get("action")
+        gpus = Gpus.objects.all()
+        return render(request, "manager/gpus_list.html", {"gpus": gpus})
+    
+
+class TaskRunView(APIView):
+    def get(self, request, task_id,action):
+        # Wybór odpowiedniej akcji na podstawie ścieżki
+        if action == 'run':
+            return self.run_task(task_id,request)
+        elif action == 'cancel':
+            return self.cancel_task(task_id,request)
+        elif action == 'redo':
+            return self.redo_task(task_id,request)
+        else:
+            return HttpResponse("Invalid action", status=400)
+    def get_task_list(self,request):
+        waiting_tasks = Task.objects.filter(status='waiting')
+        active_tasks = Task.objects.filter(status='running')
+        # finished_tasks = Task.objects.filter(status='finished')
+        
+        tasks = Task.objects.all()
+        for task in tasks:
+            task.est = format_timedelta(task.est) if task.est else None
+
+        return render(request, "manager/task_list.html", {"tasks": waiting_tasks,"active_tasks": active_tasks})
+
+    def select_gpu_for_task(self):
+        # Przykładowa funkcja do wyboru GPU na podstawie wymagań zadania
+        # Tutaj można dodać bardziej złożoną logikę dopasowania GPU do zadania
+        return Gpus.objects.filter(status=0).first()
+    
+    def get_priority_task(self):
+    # Przykładowa funkcja do wyboru najwyższego priorytetu zadania
+        return Task.objects.filter(status='waiting').order_by('-priority').first()
+
+    def run_task(self, task_id, request = None):
+        task = self.get_priority_task() if task_id is None else Task.objects.get(id=task_id)
+        if not task:
+            return HttpResponse("No task available or specified task does not exist.", status=404)
+
+        gpu = self.select_gpu_for_task()
+        if not gpu:
+            return HttpResponse("No available GPUs.", status=503)
+
+        # Przydzielenie GPU do zadania i aktualizacja statusów
+        task.assigned_gpu = f"N{gpu.node_id.id}/G{gpu.id}"
+        task.assigned_node = f"{gpu.node_id.ip}"  # Convert gpu.node_id to a string
+        task.status = 'running'
+        task.save()
+
+        gpu.status = 'Bussy'
+        gpu.task_id = str(task.id)  # Convert task.id to a string
+        gpu.save()
+
+        # Logika uruchomienia zadania na GPU
+
+        return self.get_task_list(request)
+
+    def cancel_task(self,task_id, request=None):
+        task = Task.objects.get(id=task_id)
+        task.assigned_gpu = None
+        task.assigned_node = None
+        task.status = 'waiting'
+        task.save()
+
+        gpu = Gpus.objects.get(id=task_id)
+        gpu.status = 0
+        gpu.task_id = None
+        gpu.save()
+        
+        if request:
+            return self.get_task_list(request)
+        else:        
+            return HttpResponse(f"Task {task_id} canceled.")
+
+
+    def redo_task(self, task_id,request=None):
+        # Logika ponownego uruchamiania zadania
+        return HttpResponse(f"Task {task_id} redo initiated.")
