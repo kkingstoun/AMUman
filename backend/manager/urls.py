@@ -21,7 +21,7 @@ urlpatterns = [
     
     path('task/<int:task_id>/pause/', views.pause_task, name='pause_task'),
     path('task/<int:task_id>/resume/', views.resume_task, name='resume_task'),
-    path('task/<int:task_id>/priority/<int:priority>/', views.update_priority, name='update_priority'),
+    # path('task/<int:task_id>/priority/<int:priority>/', views.update_priority, name='update_priority'),
     
     
     

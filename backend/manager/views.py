@@ -111,20 +111,6 @@ def resume_task(request, task_id):
     return redirect("index")
 
 
-@csrf_exempt
-def delete_task(request, task_id):
-    task = get_object_or_404(Task, pk=task_id)
-    task.delete()
-    return redirect("task_list")
-
-
-def update_priority(request, task_id, priority):
-    task = get_object_or_404(Task, id=task_id)
-    task.priority = priority
-    task.save()
-    return redirect("index")
-
-
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
@@ -411,6 +397,9 @@ class TaskManagerView(APIView):
         if path == "edit":
             # Return the response from the edit_task method
             return self.edit_task(request, task_id=task_id)
+        elif path == "delete":
+            # Return the response from the edit_task method
+            return self.delete_task(request, task_id=task_id)
         else:
             form = AddTaskForm()
             return render(request, 'manager/task_form.html', {'form': form})
@@ -422,7 +411,8 @@ class TaskManagerView(APIView):
             return redirect("task_list")
         else:
             return render(request, 'manager/task_form.html', {'form': form})
-    
+        
+    @csrf_exempt
     def edit_task(self, request, task_id):
         task = get_object_or_404(Task, pk=task_id)
         if request.method == "POST":
@@ -434,6 +424,12 @@ class TaskManagerView(APIView):
             form = EditTaskForm(instance=task)
         
         return render(request, "manager/edit_task.html", {"form": form})
+
+    @csrf_exempt
+    def delete_task(self, request, task_id):
+        task = get_object_or_404(Task, pk=task_id)
+        task.delete()
+        return redirect("task_list")
 
 
 class TaskRunView(APIView):
