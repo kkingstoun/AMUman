@@ -422,17 +422,28 @@ class GpusListView(APIView):
         gpus = Gpus.objects.all()
         return render(request, "manager/gpus_list.html", {"gpus": gpus})
     
+
 class TaskRunView(APIView):
     def get(self, request, task_id,action):
         # Wybór odpowiedniej akcji na podstawie ścieżki
         if action == 'run':
-            return self.run_task(task_id)
-        elif action == 'stop':
-            return self.stop_task(task_id)
+            return self.run_task(task_id,request)
+        elif action == 'cancel':
+            return self.cancel_task(task_id,request)
         elif action == 'redo':
-            return self.redo_task(task_id)
+            return self.redo_task(task_id,request)
         else:
             return HttpResponse("Invalid action", status=400)
+    def get_task_list(self,request):
+        waiting_tasks = Task.objects.filter(status='waiting')
+        active_tasks = Task.objects.filter(status='running')
+        # finished_tasks = Task.objects.filter(status='finished')
+        
+        tasks = Task.objects.all()
+        for task in tasks:
+            task.est = format_timedelta(task.est) if task.est else None
+
+        return render(request, "manager/task_list.html", {"tasks": waiting_tasks,"active_tasks": active_tasks})
 
     def select_gpu_for_task(self):
         # Przykładowa funkcja do wyboru GPU na podstawie wymagań zadania
@@ -443,7 +454,7 @@ class TaskRunView(APIView):
     # Przykładowa funkcja do wyboru najwyższego priorytetu zadania
         return Task.objects.filter(status='waiting').order_by('-priority').first()
 
-    def run_task(self, task_id):
+    def run_task(self, task_id, request = None):
         task = self.get_priority_task() if task_id is None else Task.objects.get(id=task_id)
         if not task:
             return HttpResponse("No task available or specified task does not exist.", status=404)
@@ -453,8 +464,8 @@ class TaskRunView(APIView):
             return HttpResponse("No available GPUs.", status=503)
 
         # Przydzielenie GPU do zadania i aktualizacja statusów
-        task.assigned_gpu = str(gpu.id)
-        task.assigned_node = str(gpu.node_id)  # Convert gpu.node_id to a string
+        task.assigned_gpu = f"N{gpu.node_id.id}/G{gpu.id}"
+        task.assigned_node = f"{gpu.node_id.ip}"  # Convert gpu.node_id to a string
         task.status = 'running'
         task.save()
 
@@ -464,12 +475,26 @@ class TaskRunView(APIView):
 
         # Logika uruchomienia zadania na GPU
 
-        return HttpResponse(f"Task {task.id} is running on GPU {gpu.id}")
+        return self.get_task_list(request)
 
-    def stop_task(self, task_id):
-        # Logika zatrzymywania zadania
-        return HttpResponse(f"Task {task_id} stopped.")
+    def cancel_task(self,task_id, request=None):
+        task = Task.objects.get(id=task_id)
+        task.assigned_gpu = None
+        task.assigned_node = None
+        task.status = 'waiting'
+        task.save()
 
-    def redo_task(self, task_id):
+        gpu = Gpus.objects.get(id=task_id)
+        gpu.status = 0
+        gpu.task_id = None
+        gpu.save()
+        
+        if request:
+            return self.get_task_list(request)
+        else:        
+            return HttpResponse(f"Task {task_id} canceled.")
+
+
+    def redo_task(self, task_id,request=None):
         # Logika ponownego uruchamiania zadania
         return HttpResponse(f"Task {task_id} redo initiated.")
