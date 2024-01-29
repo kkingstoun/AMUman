@@ -464,7 +464,7 @@ class TaskManagerView(APIView):
                         "task_list"
                     )  ############ PROPABLY IT"s the same as above
 
-            task.assigned_gpu_id = f"N{gpu.node_id.id}/G{gpu.no}"
+            task.assigned_gpu_id = gpu.no
             task.assigned_node_id = f"{gpu.node_id.ip}"
             task.status = "Pending"
             task.submit_time = timezone.now()

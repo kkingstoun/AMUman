@@ -68,6 +68,7 @@ class TaskManager:
                     est=task_data['est'],
                     status=task_data['status'],
                     assigned_node_id=task_data['assigned_node_id'],
+                    assigned_gpu_id=task_data['assigned_gpu_id'],
                 )
                 await sync_to_async(self.task.save)()
                 print("Successfully fetched task")
