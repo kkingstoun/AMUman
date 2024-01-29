@@ -34,7 +34,8 @@ class TaskManager:
         task = await self.get_task(task_id)
         print(task)
         edit = await self.update_task_data()
-        simulation = await self.run_simulation(task)
+        self.task = await self.run_simulation(task)
+        edit = await self.update_task_data()
         # await self.start_simulation(task, gpu)
 
         # # Wyślij aktualizację do głównego hosta
@@ -79,12 +80,21 @@ class TaskManager:
         except Exception as e:
             print(e)
             self.task = None
-    async def update_task_data(self):
+    async def update_task_data(self,task=None):
+        if task!= None:
+            self.task=task
+            status="Finished"
+            output=task.output
+        else:
+            status="Running"
+            output=None
+            
         url = f"{self.url}edit_task/{self.task_id}/"
         data = {
-            "status": "Running",
+            "status": status,
             "start_time": datetime.now().isoformat(),
-            "port": "35367"
+            "port": "35367",
+            "output": output,
         }
         async with httpx.AsyncClient() as client:
             response = await client.post(url, json=data)

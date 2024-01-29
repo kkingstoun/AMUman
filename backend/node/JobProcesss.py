@@ -37,14 +37,8 @@ class JobProcess:
                 *args, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
 
-            stdout, stderr = await self.process.communicate()
-            if stdout is not None:
-                print(f"[STDOUT]\n{stdout.decode()}")
-            if stderr is not None:
-                print(f"[STDERR]\n{stderr.decode()}")
-
-            return_code = self.process.returncode
-            await self.update_task_status(return_code, stdout, stderr, self.task)
+            logger.info(f"Started amumax (PID: {self.process.pid})")
+            await self.monitor_process(self.process)
 
         except Exception as e:
             print(f"Error in running subprocess: {e}")
@@ -54,19 +48,20 @@ class JobProcess:
     async def monitor_process(self, process):
         while True:
             if process.returncode is not None:
-                logger.info("Process finished")
+                print("Process finished")
                 stdout, stderr = await process.communicate()
                 await self.update_task_status(process.returncode, stdout, stderr, self.task)
                 break
             else:
                 await asyncio.sleep(0.1)  # Check process status every 0.1 seconds
-
+        return self.task
     async def update_task_status(self, return_code, stdout, stderr, task):
         task = await asyncio.to_thread(Task.objects.get, id=self.task.id)
         task.status = 'Finished' if return_code == 0 else 'Error'
         task.output = stdout.decode() if stdout else ''
         task.error = stderr.decode() if stderr else ''
         await asyncio.to_thread(task.save)
+        
 
 
     def stop_process(self):
