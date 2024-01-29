@@ -4,6 +4,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 
 class MasterConsumer(AsyncWebsocketConsumer):
+    
     async def connect(self):
         await self.channel_layer.group_add("nodes_group", self.channel_name)
         await self.accept()
@@ -38,11 +39,14 @@ class MasterConsumer(AsyncWebsocketConsumer):
         # Logika do obsługi komunikatu typu 'node.command'
         command = event['command']
         node_id = event['node_id']
-
+        if event['task_id'] is not None:
+            task_id = event['task_id']
+        else:
+            task_id = None
         # Przetwarzanie komendy i wysyłanie odpowiedzi do klienta 'node'
         # Na przykład, możesz tutaj wykonać pewne operacje w zależności od komendy
         print(f"Otrzymano komendę: {command}")
 
         # Przykładowa odpowiedź wysyłana z powrotem do klienta
-        response_message = {'command':command,'node_id':node_id}
+        response_message = {'command':command,'node_id':node_id,'task_id':task_id}
         await self.send(text_data=json.dumps(response_message))

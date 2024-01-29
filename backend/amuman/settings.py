@@ -152,3 +152,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOW_ALL_ORIGINS = True
 
 RUN_WEBSOCKET_CLIENT = True  # Ustaw na False, aby nie uruchamiać klienta WebSocket
+
+MANAGER_HOST="localhost"
+MANAGER_PORT=8000
+
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'manager/static'),
+]
+URL_MODE_PREFIX = "manager"
+APPEND_SLASH = False

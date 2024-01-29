@@ -19,7 +19,7 @@ lib/
 lib64/
 *.egg-info/
 *.whl
-
+*local*.py
 # Logs #
 *.log
 logs/

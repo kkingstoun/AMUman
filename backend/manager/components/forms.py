@@ -8,7 +8,7 @@ class EditTaskForm(forms.ModelForm):
     pass
     class Meta:
         model = Task
-        fields = ['path', 'node_name', 'port', 'priority', 'status']
+        fields = ['path', 'priority', 'status']
         widgets = {
             'path': forms.TextInput(attrs={'class': 'form-control'}),
             'node_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -23,8 +23,6 @@ class EditTaskForm(forms.ModelForm):
         super(EditTaskForm, self).__init__(*args, **kwargs)
         for field in self.fields:
             self.fields[field].required = False
-        self.fields['node_name'].disabled = True
-        self.fields['port'].disabled = True
         
 class AddTaskForm(forms.ModelForm):
     class Meta:

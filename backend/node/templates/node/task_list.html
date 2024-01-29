@@ -25,7 +25,6 @@
     <table class="table table-striped table-dark table-bordered table-fit table-hover table-sm">
         <thead class="thead-dark align-middle">
             <tr>
-                <th>no.</th>
                 <th>ID</th>
                 <th>User</th>
                 <th>Path</th>
@@ -49,9 +48,8 @@
             {% for task in tasks %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td>{{ task.id }}</td>
                 <td>{{ task.user }}</td>
-                <td style="width:250px">{{ task.path }}</td>
+                <td>{{ task.path }}</td>
                 <td>{{ task.node_name }}</td>
                 <td>{{ task.port }}</td>
                 <td>{{ task.submit_time }}</td>
@@ -91,7 +89,6 @@
             <table class="table table-striped table-dark table-bordered table-fit table-hover table-sm">
                 <thead class="thead-dark">
                     <tr>
-                        <th>no.</th>
                         <th>ID</th>
                         <th>Path</th>
                         <th>Node Name</th>
@@ -114,8 +111,7 @@
                     {% for task in active_tasks %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
-                        <td>{{ task.id }}</td>
-                        <td style="width:250px">{{ task.path }}</td>
+                        <td>{{ task.path }}</td>
                         <td>{{ task.node_name }}</td>
                         <td>{{ task.port }}</td>
                         <td>{{ task.submit_time }}</td>

@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.utils import timezone
 
@@ -8,7 +7,7 @@ class Task(models.Model):
         primary_key=True, unique=True
     )  # Auto-generowany unikalny klucz
     user = models.CharField(max_length=100, null=True, blank=True)
-    path = models.TextField(null=False, blank=False)
+    path = models.CharField(max_length=500, null=True, blank=True)
     node_name = models.CharField(max_length=100, null=True, blank=True)
     port = models.IntegerField(null=True, blank=True)
     submit_time = models.DateTimeField(null=True, blank=True)
@@ -36,7 +35,10 @@ class Task(models.Model):
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Waiting")
     assigned_node_id = models.CharField(max_length=10, null=True, blank=True)
     assigned_gpu_id = models.CharField(max_length=10, null=True, blank=True)
-
+    output = models.TextField(null=True, blank=True)
+    error = models.TextField(null=True, blank=True)
+    flags = models.TextField(null=True, blank=True)
+    
 
 class Nodes(models.Model):
     id = models.AutoField(primary_key=True)  # Auto-generowany unikalny klucz
@@ -79,11 +81,12 @@ class Gpus(models.Model):
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Waiting")
     last_update = models.DateTimeField(default=timezone.now, null=True, blank=True)
     task_id = models.ForeignKey(
-        Task, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        related_name="gpu_tasks"  # Changed related_name to avoid conflict
+        Task,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="gpu_tasks",  # Changed related_name to avoid conflict
     )
+
     def __str__(self):
         return f"GPU-{self.id}, {self.node_id}/{self.id}"

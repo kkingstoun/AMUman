@@ -10,5 +10,5 @@ urlpatterns = [
 
     # path('receive_task/', views.receive_task, name='receive_task'),
     path('tasks/<int:task_id>/<str:action>', views.TaskRunView.as_view(), name='task_action'),
-    path('', views.TaskRunView.as_view(), name='task_list'),
+    path('', views.TaskListView.as_view(), name='task_list'),
 ]

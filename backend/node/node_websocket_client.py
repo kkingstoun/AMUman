@@ -4,6 +4,7 @@ import json
 import logging
 from django.shortcuts import get_object_or_404
 from asgiref.sync import sync_to_async
+from node.TaskManager import TaskManager
 
 async def get_node_id():
     from node.models import Local
@@ -13,6 +14,7 @@ async def get_node_id():
 async def connect_to_manager():
     uri = "ws://localhost:8000/ws/node/"
     node_id = await get_node_id()
+    tm = TaskManager(node_id)
     while True:
         try:
             async with websockets.connect(uri) as websocket:
@@ -27,13 +29,12 @@ async def connect_to_manager():
                         print(message)
                         command = data.get("command")
                         r_node_id = data.get("node_id")
-                        
+                        gpu_id = data.get("gpu_id",None)
 
                         if command == "update_gpus" and r_node_id == node_id:
                             await sync_to_async(execute_update_gpus)(node_id)
-                        else:
-                            pass  # Placeholder for other commands
-
+                        elif command is not None and r_node_id == node_id:
+                            await tm.execute_command(command,data.get("task_id"))
                     except websockets.ConnectionClosed:
                         logging.warning("Connection to the WebSocket server closed.")
                         break
