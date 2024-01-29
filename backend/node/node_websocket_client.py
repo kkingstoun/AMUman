@@ -1,17 +1,18 @@
 import asyncio
 import websockets
 import json
-from asgiref.sync import sync_to_async
 import logging
+from django.shortcuts import get_object_or_404
+from asgiref.sync import sync_to_async
 
 async def get_node_id():
     from node.models import Local
-    from asgiref.sync import sync_to_async
-    node_id = await sync_to_async(Local.objects.get, thread_sensitive=True)(id=1)
-    return node_id.id
+    local = await sync_to_async(get_object_or_404)(Local, pk=1)
+    return int(local.node_id)
     
 async def connect_to_manager():
     uri = "ws://localhost:8000/ws/node/"
+    node_id = await get_node_id()
     while True:
         try:
             async with websockets.connect(uri) as websocket:
@@ -23,9 +24,10 @@ async def connect_to_manager():
                     try:
                         message = await websocket.recv()
                         data = json.loads(message)
+                        print(message)
                         command = data.get("command")
                         r_node_id = data.get("node_id")
-                        node_id = await get_node_id()
+                        
 
                         if command == "update_gpus" and r_node_id == node_id:
                             await sync_to_async(execute_update_gpus)(node_id)

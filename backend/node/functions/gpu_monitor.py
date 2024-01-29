@@ -47,7 +47,7 @@ class GPUMonitor(BaseCommand):
 
                 # Return 'free' if the GPU is less loaded than the threshold
                 if gpu_util < threshold and mem_util < threshold:
-                    return 0, gpu_util
+                    return "Waiting", gpu_util
             except subprocess.CalledProcessError as e:
                 print(f"Error running nvidia-smi: {e}")
                 return "error"
@@ -178,7 +178,6 @@ class GPUMonitor(BaseCommand):
         for gpu_key, gpu in self.gpus_status.items():
             data = {
                 "action": "update_node_gpu_status",
-                "no": gpu_key,
                 "brand_name": gpu["name"],
                 "gpu_util": gpu["gpu_util"],
                 "status": gpu["status"],
@@ -188,6 +187,8 @@ class GPUMonitor(BaseCommand):
             }
 
             try:
+                # import json
+                # print(json.dumps(data))
                 response = requests.post(self.ls.managerNmUrl, data=data)
                 if response.status_code == 200:
                     self.stdout.write(
