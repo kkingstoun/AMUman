@@ -31,9 +31,9 @@ def assign_tasks_to_gpus():
     
     # for gpu in free_gpus:
     #     for task in waiting_tasks:
-    #         task.assigned_gpu = gpu.id
+    #         task.assigned_gpu_id = gpu.id
     #         task.status = "running"
-    #         task.assigned_node = gpu.node_id
+    #         task.assigned_node_id = gpu.node_id
     #         task.save()
 
     #         gpu.task_id = task.id

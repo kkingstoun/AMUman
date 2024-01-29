@@ -6,27 +6,24 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404, redirect
 from django.http import HttpResponse
 from django.db.models import Q
-
-from rest_framework import viewsets
-from common_models.models import *
-from .serializers import TaskSerializer
-from .components.nodes_monitor import NodesMonitor
-# Tymczasowe wyłączenie tokenów
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.contrib import messages
+from django.urls import reverse
 
+from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
+from rest_framework.parsers import JSONParser
+from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
-# from .s import Nodes
+from common_models.models import *
+from .components.forms import EditTaskForm, AddTaskForm
+from .serializers import TaskSerializer
+from .components.nodes_monitor import NodesMonitor
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from .components.forms import EditTaskForm, AddTaskForm
-
-from django.urls import reverse
-# @csrf_exempt
-
 from datetime import timedelta
 
 @csrf_exempt
@@ -50,9 +47,9 @@ def add_task(request):
 @csrf_exempt
 def get_task(request):
     if request.method == "GET":
-        task = Task.objects.filter(status="waiting").order_by("id").first()
+        task = Task.objects.filter(status="Waiting").order_by("id").first()
         if task:
-            task.status = "running"
+            task.status = "Running"
             task.start_time = timezone.now()  # Ustaw czas rozpoczęcia zadania
             task.save()
             return JsonResponse(
@@ -72,8 +69,8 @@ def finish_task(request):
         task_id = request.POST.get("task_id")
         if task_id:
             try:
-                task = Task.objects.get(id=task_id, status="running")
-                task.status = "finished"
+                task = Task.objects.get(id=task_id, status="Running")
+                task.status = "Finished"
                 task.end_time = timezone.now()  # Ustaw czas zakończenia zadania
                 task.save()
                 return JsonResponse({"status": "success", "message": "Task finished"})
@@ -87,54 +84,9 @@ def finish_task(request):
         return JsonResponse(
             {"status": "error", "message": "Only POST method is allowed"}
         )
-
-
-def index(request):
-    tasks = Task.objects.all()
-    return render(request, "scheduler/index.html", {"tasks": tasks})
-
-
-@csrf_exempt
-def pause_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
-    task.status = "paused"
-    task.save()
-    return redirect("index")  # Powrót do strony głównej
-
-
-@csrf_exempt
-def resume_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
-    if task.status == "paused":
-        task.status = "waiting"
-        task.save()
-    return redirect("index")
-
-
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
-
-
-def task_list(request):
-    
-    waiting_tasks = Task.objects.filter(status='waiting')
-    active_tasks = Task.objects.filter(status='pending')
-    finished_tasks = Task.objects.filter(status='finished')
-    
-    tasks = Task.objects.all()
-    for task in tasks:
-        task.est = format_timedelta(task.est) if task.est else None
-
-    return render(request, "manager/task_list.html", {"tasks": waiting_tasks,"active_tasks": active_tasks})
-
-def format_timedelta(td):
-    total_seconds = int(td.total_seconds())
-    hours = total_seconds // 3600
-    minutes = (total_seconds % 3600) // 60
-    seconds = total_seconds % 60
-    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-
 
 
 
@@ -388,124 +340,185 @@ class GpusListView(APIView):
         gpus = Gpus.objects.all()
         return render(request, "manager/gpus_list.html", {"gpus": gpus})
     
-
 class TaskManagerView(APIView):
+    renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
 
-    def get(self, request, *args, **kwargs):
-        path = request.path_info.split("/")[-3]
+    def get(self, request, action, *args, **kwargs):
         task_id = kwargs.get("task_id")
-        if path == "edit":
-            # Return the response from the edit_task method
-            return self.edit_task(request, task_id=task_id)
-        elif path == "delete":
-            # Return the response from the edit_task method
-            return self.delete_task(request, task_id=task_id)
+        methods = {
+            "edit": self.edit_task,
+            "delete": self.delete_task,
+            "run": self.run_task,
+            "cancel": self.cancel_task,
+            "redo": self.redo_task,
+            "add_task": self.add_task_form
+        }
+
+        if action in methods:
+            return methods[action](request, task_id=task_id)
         else:
-            form = AddTaskForm()
-            return render(request, 'manager/task_form.html', {'form': form})
+            # Redirect or return JSON response for invalid action
+            if request.accepted_renderer.format == 'json':
+                return Response({"error": "Invalid action"}, status=400)
+            else:
+                return redirect("task_list")
+
 
     def post(self, request, *args, **kwargs):
-        form = AddTaskForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("task_list")
+        action = kwargs.get("action")
+        if action == "add_task":
+            return self.add_task_form(request)
+        elif action == "edit_task":
+            return self.edit_task(request, task_id=kwargs.get("task_id"))
         else:
-            return render(request, 'manager/task_form.html', {'form': form})
+            if request.accepted_renderer.format == 'json':
+                return Response({"error": "Invalid action"}, status=400)
+            else:
+                return redirect("task_list")
         
     @csrf_exempt
-    def edit_task(self, request, task_id):
+    def edit_task(self, request, task_id=None):
         task = get_object_or_404(Task, pk=task_id)
         if request.method == "POST":
             form = EditTaskForm(request.POST, instance=task)
             if form.is_valid():
                 form.save()
-                return redirect("task_list")
+                if request.accepted_renderer.format == 'json':
+                    return Response({"message": "Task updated successfully!"})
+                elif request.accepted_renderer.format == 'html':
+                    messages.success(request, "Task updated successfully!",extra_tags='primary')
+                    return redirect("task_list")
+                else:
+                    return redirect("task_list")
         else:
             form = EditTaskForm(instance=task)
-        
-        return render(request, "manager/edit_task.html", {"form": form})
+
+        if request.accepted_renderer.format == 'json':
+            return Response(form.errors, status=400)
+        else:
+            return render(request, "manager/edit_task.html", {"form": form, "task": task})
 
     @csrf_exempt
-    def delete_task(self, request, task_id):
+    def delete_task(self, request, task_id=None):
         task = get_object_or_404(Task, pk=task_id)
         task.delete()
-        return redirect("task_list")
-
-
-class TaskRunView(APIView):
-    def get(self, request, task_id,action):
-        # Wybór odpowiedniej akcji na podstawie ścieżki
-        if action == 'run':
-            return self.run_task(task_id,request)
-        elif action == 'cancel':
-            return self.cancel_task(task_id,request)
-        elif action == 'redo':
-            return self.redo_task(task_id,request)
+        if request.accepted_renderer.format == 'json':
+            return Response({"message": "Task deleted successfully"})
+        elif request.accepted_renderer.format == 'html':
+            messages.success(request, "Task canceled successfully!",extra_tags='primary')
+            return redirect("task_list")
         else:
-            return HttpResponse("Invalid action", status=400)
-    def get_task_list(self,request):
-        waiting_tasks = Task.objects.filter(status='waiting')
-        pending_tasks = Task.objects.filter(
-                            Q(status='pending') | Q(status='running')
-                        )
-        # finished_tasks = Task.objects.filter(status='finished')
-        
-        tasks = Task.objects.all()
-        for task in tasks:
-            task.est = format_timedelta(task.est) if task.est else None
-
-        return render(request, "manager/task_list.html", {"tasks": waiting_tasks,"active_tasks": pending_tasks})
+            return redirect("task_list")
 
     def select_gpu_for_task(self):
-        # Przykładowa funkcja do wyboru GPU na podstawie wymagań zadania
-        # Tutaj można dodać bardziej złożoną logikę dopasowania GPU do zadania
         return Gpus.objects.filter(status=0).first()
     
     def get_priority_task(self):
-    # Przykładowa funkcja do wyboru najwyższego priorytetu zadania
         return Task.objects.filter(status='waiting').order_by('-priority').first()
-
-    def run_task(self, task_id, request = None):
-        task = self.get_priority_task() if task_id is None else Task.objects.get(id=task_id)
-        if not task:
-            return HttpResponse("No task available or specified task does not exist.", status=404)
-
+    
+    def run_task(self, request, task_id=None):
+        task = self.get_priority_task() if task_id is None else get_object_or_404(Task, id=task_id)
         gpu = self.select_gpu_for_task()
         if not gpu:
-            return HttpResponse("No available GPUs.", status=503)
+            message = "No available GPUs."
+            if request.accepted_renderer.format == 'json':
+                return Response({"error": message}, status=400)
+            elif request.accepted_renderer.format == 'html':
+                messages.success(request, message ,extra_tags='danger')
+                return redirect("task_list")
+            else:
+                return redirect("task_list") ############ PROPABLY IT's the same as above
 
-        # Przydzielenie GPU do zadania i aktualizacja statusów
-        task.assigned_gpu = f"N{gpu.node_id.id}/G{gpu.id}"
-        task.assigned_node = f"{gpu.node_id.ip}"  # Convert gpu.node_id to a string
-        task.status = 'pending'
+        task.assigned_gpu_id = f"N{gpu.node_id.id}/G{gpu.id}"
+        task.assigned_node_id = f"{gpu.node_id.ip}"  
+        task.status = 'Pending'
         task.save()
 
-        gpu.status = 'Bussy'
-        gpu.task_id = str(task.id)  # Convert task.id to a string
+        gpu.status = 'Running'
+        gpu.task_id = task  
         gpu.save()
 
-        # Logika uruchomienia zadania na GPU
-        redirect("task_list")
-        # return self.get_task_list(request)
 
-    def cancel_task(self,task_id, request=None):
-        task = Task.objects.get(id=task_id)
-        task.assigned_gpu = None
-        task.assigned_node = None
-        task.status = 'waiting'
+        if request.accepted_renderer.format == 'json':
+            return Response({"message": "Task is running"})
+        else:
+            return redirect("task_list")
+
+    def cancel_task(self, request, task_id=None):
+        task = get_object_or_404(Task, id=task_id)
+        task.assigned_gpu_id = None
+        task.assigned_node_id = None
+        task.status = "Waiting"
         task.save()
 
         gpu = Gpus.objects.get(id=task_id)
-        gpu.status = 0
+        gpu.status = "Waiting"
         gpu.task_id = None
+        gpu.last_update = timezone.now()
         gpu.save()
+
+        if request.accepted_renderer.format == 'json':
+            return Response({"message": "Task cancelled"})
+        else:
+            return redirect("task_list")
+
+    def redo_task(self, request, task_id=None):
+        # Logic to redo the task
+        # ...
+
+        if request.accepted_renderer.format == 'json':
+            return Response({"message": f"Task {task_id} redo initiated"})
+        else:
+            return HttpResponse(f"Task {task_id} redo initiated")
         
-        if request:
-            return self.get_task_list(request)
-        else:        
-            return HttpResponse(f"Task {task_id} canceled.")
+    def add_task_form(self, request,task_id=None):
+        if request.method == 'GET':
+            form = AddTaskForm()
+            if request.accepted_renderer.format == 'json':
+                # W przypadku odpowiedzi JSON, zwracamy pustą strukturę formularza
+                serializer = TaskSerializer(data=request.data)
+                return Response(serializer.data)
+            else:
+                # W przypadku odpowiedzi HTML, renderujemy formularz HTML
+                return render(request, 'manager/task_form.html', {'form': form})
+        
+        elif request.method == 'POST':
+            # Obsługa żądania POST dla tworzenia nowego zadania
+            if request.accepted_renderer.format == 'json':
+                data = JSONParser().parse(request)
+                serializer = TaskSerializer(data=request.data)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data, status=201)
+                return Response(serializer.errors, status=400)
+            else:
+                form = AddTaskForm(request.POST)
+                if form.is_valid():
+                    form.save()
+                    return redirect("task_list")
+                else:
+                    return render(request, 'manager/task_form.html', {'form': form})
 
+class TaskListView(APIView):
+    renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
+    def get(self, request):
+        waiting_tasks = Task.objects.filter(
+            Q(status='Waiting') | Q(status='Waiting') | Q(status='Interrupted') | Q(status=None)
+        )
+        pending_tasks = Task.objects.filter(
+            Q(status='Pending') | Q(status='Running') | Q(status=None)
+        )
 
-    def redo_task(self, task_id,request=None):
-        # Logika ponownego uruchamiania zadania
-        return HttpResponse(f"Task {task_id} redo initiated.")
+        tasks = Task.objects.all()
+        data = {
+            "tasks": waiting_tasks,
+            # "tasks": tasks,
+            "active_tasks": pending_tasks
+        }
+
+        # Return a JSON response if the request is for API
+        if request.accepted_renderer.format == 'json':
+            return Response(data)
+
+        # Otherwise, render the HTML template
+        return Response(data, template_name="manager/task_list.html")

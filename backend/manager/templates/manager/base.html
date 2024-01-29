@@ -17,9 +17,7 @@
         integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
         crossorigin="anonymous"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
-        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
-        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
         <script>
             $(document).ready(function(){
                 // Znajdź tabelę
@@ -97,10 +95,10 @@
         <div class="collapse navbar-collapse" id="navbarsExampleDefault">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item {% if request.path == '/manager/tasks/' %}active{% endif %}">
-                    <a class="nav-link" href="/manager/tasks/">Task List</a>
+                    <a class="nav-link" href="/manager/task/">Task List</a>
                 </li>
-                <li class="nav-item {% if request.path == '/manager/gpus/' %}active{% endif %}">
-                    <a class="nav-link" href="/manager/task/add_new_task/">Add Task</a>
+                <li class="nav-item {% if request.path == '/manager/task/add_task/' %}active{% endif %}">
+                    <a class="nav-link" href="/manager/task/add_task/">Add Task</a>
                 </li>
                 <li class="nav-item {% if request.path == '/manager/nodes/' %}active{% endif %}">
                     <a class="nav-link" href="/manager/nodes/">Node List</a>

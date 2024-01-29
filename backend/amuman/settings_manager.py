@@ -30,3 +30,4 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'manager/static'),
 ]
+URL_MODE_PREFIX = "manager"

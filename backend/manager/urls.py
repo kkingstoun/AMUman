@@ -7,24 +7,10 @@ router = DefaultRouter()
 router.register(r'tasks', TaskViewSet)
 
 urlpatterns = [
-    
-    #OLD LINK TO FIX:
-    path('get_task/', views.get_task, name='get_task'),
-    path('finish_task/', views.finish_task, name='finish_task'),
-    # path('send_command/', views.send_command, name='send_command'),
-    
-    path('tasks/', task_list, name='task_list'),
-    path('task/add_new_task/', TaskManagerView.as_view(), name='add_task_form'),
-    path('task/edit/<int:task_id>/', TaskManagerView.as_view(), name='edit_task'),
-    path('task/delete/<int:task_id>/', TaskManagerView.as_view(), name='delete_task'),
-    
-    
-    path('task/<int:task_id>/pause/', views.pause_task, name='pause_task'),
-    path('task/<int:task_id>/resume/', views.resume_task, name='resume_task'),
-    # path('task/<int:task_id>/priority/<int:priority>/', views.update_priority, name='update_priority'),
-    
-    
-    
+      
+    path('task/', TaskListView.as_view(), name='task_list'),
+    path('task/<action>/<int:task_id>/', TaskManagerView.as_view(), name='task_action_id'),
+    path('task/<action>/', TaskManagerView.as_view(), name='task_action'),
     
     # path('', include(router.urls)),
     # path('', views.index, name='index'),
@@ -41,8 +27,6 @@ urlpatterns = [
     ####NODE-MANAGEMENT####
     path('node-management/', NodeManagementView.as_view(), name='node_management'),
 
-    ####TASK-RUN####
-    path('task/<int:task_id>/<str:action>', TaskRunView.as_view(), name='task_action'),
 
 
 ]

@@ -140,6 +140,7 @@ class GPUMonitor(BaseCommand):
         for gpu_key, gpu in self.gpus_status.items():
             data = {
                 "action": "assign_node_gpu",
+                "no": gpu_key,
                 "brand_name": gpu["name"],
                 "gpu_util": gpu["gpu_util"],
                 "status": gpu["status"],
@@ -177,6 +178,7 @@ class GPUMonitor(BaseCommand):
         for gpu_key, gpu in self.gpus_status.items():
             data = {
                 "action": "update_node_gpu_status",
+                "no": gpu_key,
                 "brand_name": gpu["name"],
                 "gpu_util": gpu["gpu_util"],
                 "status": gpu["status"],

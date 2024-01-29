@@ -1,3 +1,4 @@
+
 from django.db import models
 from django.utils import timezone
 
@@ -14,34 +15,27 @@ class Task(models.Model):
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
     error_time = models.DateTimeField(null=True, blank=True)
-    
-    PRIORITY_CHOICES = [
-        ('slow', 'Slow'),
-        ('normal', 'Normal'),
-        ('fast', 'Fast')
-    ]
+
+    PRIORITY_CHOICES = [("Slow", "Slow"), ("Normal", "Normal"), ("Fast", "Fast")]
     priority = models.CharField(
-        max_length=6,
-        choices=PRIORITY_CHOICES,
-        default='normal'
+        max_length=6, choices=PRIORITY_CHOICES, default="normal"
     )
-    
-    GPU_PARTITION_CHOICES = [
-        ('slow', 'Slow'),
-        ('normal', 'Normal'),
-        ('fast', 'Fast')
-    ]
+
+    GPU_PARTITION_CHOICES = [("Slow", "Slow"), ("Normal", "Normal"), ("Fast", "Fast")]
     gpu_partition = models.CharField(
-        max_length=6,
-        choices=GPU_PARTITION_CHOICES,
-        default='normal'
+        max_length=6, choices=GPU_PARTITION_CHOICES, default="normal"
     )
-    est = models.DurationField(null=True, blank=True)
-    status = models.CharField(
-        max_length=50, default="waiting"
-    )  # ['waiting', 'running', 'finished']
-    assigned_node = models.CharField(max_length=10, null=True, blank=True)
-    assigned_gpu = models.CharField(max_length=10, null=True, blank=True)
+    est = models.CharField(max_length=100, null=True, blank=True)
+    STATUS_CHOICES = [
+        ("Waiting", "Waiting"),
+        ("Pending", "Pending"),
+        ("Running", "Running"),
+        ("Finished", "Finished"),
+        ("Interrupted", "Interrupted"),
+    ]
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Waiting")
+    assigned_node_id = models.CharField(max_length=10, null=True, blank=True)
+    assigned_gpu_id = models.CharField(max_length=10, null=True, blank=True)
 
 
 class Nodes(models.Model):
@@ -53,9 +47,13 @@ class Nodes(models.Model):
     port = models.IntegerField(null=True, blank=True)
     number_of_gpus = models.CharField(max_length=15, null=True, blank=True)
     gpu_info = models.TextField(null=True, blank=True)
-    status = models.CharField(
-        max_length=10, default="free"
-    )  # np. 'active', 'disconnected'
+    STATUS_CHOICES = [
+        ("Waiting", "Waiting"),
+        ("Running", "Running"),
+        ("Reserved", "Reserved"),
+        ("Unavailable", "Unavailable"),
+    ]
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Waiting")
     last_seen = models.DateTimeField(default=timezone.now, null=True, blank=True)
 
     def __str__(self):
@@ -63,19 +61,29 @@ class Nodes(models.Model):
 
 
 class Gpus(models.Model):
-    id = models.AutoField(
-        primary_key=True, unique=True
-    )
-    gpu_uuid=models.TextField(unique=True,null=True, blank=True)
+    id = models.AutoField(primary_key=True, unique=True)
+    no = models.IntegerField(null=True, blank=True, default=0)
+    gpu_uuid = models.TextField(unique=True, null=True, blank=True)
     node_id = models.ForeignKey(Nodes, on_delete=models.CASCADE)
     brand_name = models.TextField(null=True, blank=True)
     gpu_speed = models.TextField(null=True, blank=True)
     gpu_util = models.TextField(null=True, blank=True)
     is_running_amumax = models.TextField(null=True, blank=True)
     gpu_info = models.TextField(null=True, blank=True)
-    status = models.CharField(max_length=10, default="free")
+    STATUS_CHOICES = [
+        ("Waiting", "Waiting"),
+        ("Running", "Running"),
+        ("Reserved", "Reserved"),
+        ("Unavailable", "Unavailable"),
+    ]
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Waiting")
     last_update = models.DateTimeField(default=timezone.now, null=True, blank=True)
-    task_id = models.CharField(max_length=10, null=True, blank=True)
-
+    task_id = models.ForeignKey(
+        Task, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name="gpu_tasks"  # Changed related_name to avoid conflict
+    )
     def __str__(self):
         return f"GPU-{self.id}, {self.node_id}/{self.id}"

@@ -8,7 +8,7 @@ class EditTaskForm(forms.ModelForm):
     pass
     class Meta:
         model = Task
-        fields = ['path', 'node_name', 'port', 'start_time', 'end_time', 'error_time', 'priority', 'status']
+        fields = ['path', 'node_name', 'port', 'priority', 'status']
         widgets = {
             'path': forms.TextInput(attrs={'class': 'form-control'}),
             'node_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -16,17 +16,13 @@ class EditTaskForm(forms.ModelForm):
             'start_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'end_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'error_time': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
-            'priority': forms.NumberInput(attrs={'class': 'form-control'}),
+            'priority': forms.Select(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
         }
     def __init__(self, *args, **kwargs):
         super(EditTaskForm, self).__init__(*args, **kwargs)
         for field in self.fields:
             self.fields[field].required = False
-        self.fields['status'].disabled = True
-        self.fields['end_time'].disabled = True
-        self.fields['error_time'].disabled = True
-        self.fields['start_time'].disabled = True
         self.fields['node_name'].disabled = True
         self.fields['port'].disabled = True
         
@@ -48,17 +44,3 @@ class AddTaskForm(forms.ModelForm):
         super(AddTaskForm, self).__init__(*args, **kwargs)
         for field in self.fields:
             self.fields[field].required = False
-
-
-    # def clean_est(self):
-    #     est = self.cleaned_data['est']
-    #     # Sprawdź, czy est jest już obiektem timedelta
-    #     if isinstance(est, timedelta):
-    #         return est
-    #     # Jeśli est jest ciągiem znaków, przetwórz go
-    #     try:
-    #         hours, minutes, seconds = [int(part) for part in est.split(':')]
-    #         return timedelta(hours=hours, minutes=minutes, seconds=seconds)
-    #     except ValueError:
-    #         # Możesz tu dodać jakąś logikę obsługi błędów lub po prostu zwrócić None
-    #         return None

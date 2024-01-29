@@ -103,6 +103,7 @@ class TaskRunView(APIView):
             return self.redo_task(task_id,request)
         else:
             return self.get_task_list(request)
+        
     async def get_task_list(self,request):
         node_id = await sync_to_async(Local.objects.get, thread_sensitive=True)(id=1)
         waiting_tasks = Task.objects.filter(status='pending',node_id=node_id)
@@ -133,9 +134,9 @@ class TaskRunView(APIView):
             return HttpResponse("No available GPUs.", status=503)
 
         # Przydzielenie GPU do zadania i aktualizacja statusów
-        task.assigned_gpu = f"N{gpu.node_id.id}/G{gpu.id}"
-        task.assigned_node = f"{gpu.node_id.ip}"  # Convert gpu.node_id to a string
-        task.status = 'running'
+        task.assigned_gpu_id = f"N{gpu.node_id.id}/G{gpu.id}"
+        task.assigned_node_id = f"{gpu.node_id.ip}"  # Convert gpu.node_id to a string
+        task.status = 'Running'
         task.save()
 
         gpu.status = 'Bussy'
@@ -148,8 +149,8 @@ class TaskRunView(APIView):
 
     def cancel_task(self,task_id, request=None):
         task = Task.objects.get(id=task_id)
-        task.assigned_gpu = None
-        task.assigned_node = None
+        task.assigned_gpu_id = None
+        task.assigned_node_id = None
         task.status = 'waiting'
         task.save()
 

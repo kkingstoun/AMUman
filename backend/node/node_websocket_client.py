@@ -2,6 +2,7 @@ import asyncio
 import websockets
 import json
 from asgiref.sync import sync_to_async
+import logging
 
 async def get_node_id():
     from node.models import Local
@@ -10,7 +11,7 @@ async def get_node_id():
     return node_id.id
     
 async def connect_to_manager():
-    uri = "ws://manager:8000/ws/node/"
+    uri = "ws://localhost:8000/ws/node/"
     while True:
         try:
             async with websockets.connect(uri) as websocket:
