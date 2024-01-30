@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     git \
+    cifs-utils \
     python${PYTHON_VER} python${PYTHON_VER}-dev python3-pip python-is-python3 && \
     apt-get autoremove -y && \
     apt-get clean && \
