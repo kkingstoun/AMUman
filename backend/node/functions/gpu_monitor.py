@@ -10,8 +10,8 @@ class GPUMonitor(BaseCommand):
         super(GPUMonitor, self).__init__(*args, **kwargs)
        
         self.node_id = os.environ['NODE_ID']
-        self.NODE_MANAGEMENT_URL = os.environ['NODE_MANAGEMENT_URL']
-                
+        self.NODE_MANAGEMENT_URL = f"http://{os.environ['NODE_MANAGEMENT_URL']}/manager/node-management/"
+        
         self.gpus = self.get_gpu_count()
         self.gpus_status = {
             i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)
@@ -153,7 +153,7 @@ class GPUMonitor(BaseCommand):
             }
 
             try:
-                response = requests.post(self.NODE_MANAGEMENT_URL, data=data)
+                response = requests.post(f"http://{os.environ['NODE_MANAGEMENT_URL']}/manager/node-management/", data=data)
                 if response.status_code == 200:
                     response_data = response.json()
                     self.stdout.write(
@@ -191,7 +191,7 @@ class GPUMonitor(BaseCommand):
             try:
                 # import json
                 # print(json.dumps(data))
-                response = requests.post(self.NODE_MANAGEMENT_URL, data=data)
+                response = requests.post(f"http://{os.environ['NODE_MANAGEMENT_URL']}/manager/node-management/", data=data)
                 if response.status_code == 200:
                     self.stdout.write(
                         self.style.SUCCESS(f"Successfull gpu {gpu_key} update.")

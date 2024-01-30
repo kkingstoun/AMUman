@@ -36,7 +36,7 @@ htmlcov/
 .hypothesis/
 
 # Env files #
-.env*
+.env
 !.env.example
 
 # Python & Django #

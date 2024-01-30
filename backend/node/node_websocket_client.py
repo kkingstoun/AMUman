@@ -13,7 +13,7 @@ async def get_node_id():
 
     
 async def connect_to_manager():
-    wsl_url = os.environ['HOST_WS_URL']
+    wsl_url = f"ws://{os.environ['MANAGER_URL']}/ws/node"
     node_id = os.environ['NODE_ID']
     tm = TaskManager(node_id)
     while True:

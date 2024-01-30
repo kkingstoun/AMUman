@@ -15,7 +15,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         dotenv_file = dotenv.find_dotenv()
         dotenv.load_dotenv(dotenv_file)
-        url = os.environ["NODE_MANAGEMENT_URL"]
+        url = f"http://{os.environ['NODE_MANAGEMENT_URL']}/manager/node-management/"
         data = {
             'action':"assign_new_node",
             'ip': self.get_own_ip(),
