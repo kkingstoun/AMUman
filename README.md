@@ -1,4 +1,20 @@
-# AMUman Simulation Manager
+<!-- markdownlint-configure-file {
+  "MD013": {
+    "code_blocks": false,
+    "tables": false
+  },
+  "MD033": false,
+  "MD041": false
+} -->
+
+<div align="center">
+  <!-- You are encouraged to replace this logo with your own! Otherwise you can also remove it. -->
+  <img src="logo.png" alt="logo" width="140"  height="auto" />
+  <br/>
+
+  # AMU<sup>MAN</sup>
+
+</div>
 
 ## About AMUman
 
@@ -22,12 +38,10 @@ AMUman Simulation Manager utilizes a variety of technologies and frameworks to e
   - [Celery](http://www.celeryproject.org/): An asynchronous task queue/job queue based on distributed message passing.
 
 - **Frontend**
+- In the current release, the frontend is built using Django and Bootstrap. In the future, we plan to release a version based on a Vuejs: frontend: 
   - [Vue.js](https://vuejs.org/): The Progressive JavaScript Framework for building user interfaces.
   - [Vuetify](https://vuetifyjs.com/): A Vue UI Library with beautifully handcrafted Material Components.
   - [Axios](https://github.com/axios/axios): A promise-based HTTP Client for node.js and the browser.
-
-- **Database**
-  - [PostgreSQL](https://www.postgresql.org/): A powerful, open source object-relational database system.
 
 ## Installation
 
