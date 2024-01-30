@@ -4,20 +4,25 @@ network:
 build:
 	sudo docker build . -t amuman
 
-build_db:
-	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py makemigrations --settings=amuman.settings_manager
-	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py makemigrations --settings=amuman.settings_node
-	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py makemigrations --settings=amuman.settings_client
-	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py migrate --settings=amuman.settings_manager
-	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py migrate --settings=amuman.settings_node
-	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py migrate --settings=amuman.settings_client
-
-manager: 
+manager: build
 	sudo docker rm -f manager
-	sudo docker run --network amuman --rm -it -v .:/app --name manager -p 8000:8000 amuman
+	sudo docker run --rm -it \
+		--name manager \
+		--network amuman \
+		-p 8000:8000 \
+		amuman
 
-node:
+node: build
 	sudo docker rm -f node
-	sudo docker run --network amuman --gpus all --rm -it -v .:/app --name node amuman poetry run python backend/manage.py runserver --settings=amuman.settings_node
+	sudo docker run --rm -it \
+		--name node \
+		--network amuman \
+		--cap-add SYS_ADMIN \
+		--cap-add DAC_READ_SEARCH \
+		--gpus all \
+		--env-file ./.env \
+		amuman \
+		ls
+
 it:
 	sudo docker run --network amuman --gpus all --rm -it -v .:/app amuman bash
