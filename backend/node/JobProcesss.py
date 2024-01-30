@@ -60,7 +60,7 @@ class JobProcess:
         return self.task
     async def update_task_status(self, return_code, stdout, stderr, task):
         task = await asyncio.to_thread(Task.objects.get, id=self.task.id)
-        task.status = 'Finished' if return_code == 0 else 'Error'
+        task.status = 'Finished' if return_code == 0 else 'Interrupted'
         task.output = stdout.decode() if stdout else ''
         task.error = stderr.decode() if stderr else ''
         await asyncio.to_thread(task.save)

@@ -10,7 +10,7 @@ from datetime import datetime
 from node.JobProcesss import JobProcess
 import json
 from subprocess import PIPE
-
+import logging
 class TaskManager:
     def __init__(self,node_id,*args, **kwargs):
         self.node_id=node_id
@@ -82,20 +82,36 @@ class TaskManager:
             self.task = None
     async def update_task_data(self,task=None):
         if task!= None:
-            self.task=task
-            status="Finished"
-            output=task.output
-        else:
-            status="Running"
-            output=None
+            self.task=task    
             
         url = f"{self.url}edit_task/{self.task_id}/"
-        data = {
-            "status": status,
-            "start_time": datetime.now().isoformat(),
-            "port": "35367",
-            "output": output,
-        }
+        if self.task.status=="Pending":
+            data = {
+                "status": self.task.status,
+                "start_time": datetime.now().isoformat(),
+                "port": self.task.flags.get('port','35367'),
+                "output": self.task.output,
+                "error": self.task.error,
+            }
+        elif self.task.status=="Interrupted":
+            data = {
+                "status": self.task.status,
+                "error_time": datetime.now().isoformat(),
+                "port": self.task.flags.get('port','35367'),
+                "output": self.task.output,
+                "error": self.task.error,
+                "end_time": datetime.now().isoformat(),
+                }
+        elif self.task.status == "Finished":
+            data = {
+                    "status": self.task.status,
+                    "end_time": datetime.now().isoformat(),
+                    "port": self.task.flags.get('port','35367'),
+                    "output": self.task.output,
+                    "error": self.task.error,
+                }
+        else:
+            logging.warning("Task execution Error.")
         async with httpx.AsyncClient() as client:
             response = await client.post(url, json=data)
             print("Response Status Code:", response.status_code)

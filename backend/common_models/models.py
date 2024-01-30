@@ -37,8 +37,8 @@ class Task(models.Model):
     assigned_gpu_id = models.CharField(max_length=10, null=True, blank=True)
     output = models.TextField(null=True, blank=True)
     error = models.TextField(null=True, blank=True)
-    flags = models.TextField(null=True, blank=True)
-    
+    flags = models.JSONField(default=dict)  # Używamy uniwersalnego JSONField z django.db.models
+
 
 class Nodes(models.Model):
     id = models.AutoField(primary_key=True)  # Auto-generowany unikalny klucz
