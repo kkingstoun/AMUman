@@ -32,4 +32,6 @@ ADD pyproject.toml poetry.lock /app/
 RUN poetry install --no-root 
 COPY . /app
 
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 CMD poetry run python backend/manage.py runserver 0.0.0.0:8000 --settings=amuman.settings_manager
