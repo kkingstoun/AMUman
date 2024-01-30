@@ -32,4 +32,4 @@ ADD pyproject.toml poetry.lock /app/
 RUN poetry install --no-root 
 COPY . /app
 
-CMD poetry run python manage.py runserver 0.0.0.0:8000 --settings=amuman.settings_manager
+CMD poetry run python backend/manage.py runserver 0.0.0.0:8000 --settings=amuman.settings_manager
