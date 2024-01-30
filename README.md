@@ -77,3 +77,9 @@ To run node
 ```bash
 python manage.py runserver 8000 --settings=amudmin.settings_node```
 ```
+
+## Authors
+
+Mateusz Zelent and Matehieu Moalic
+
+Institute of Spintronics and Quantum Information, Faculty of Physics, Adam Mickiewicz University, Poznań, Uniwersytetu Poznańskiego 2, 61-614 Poznań, Poland
