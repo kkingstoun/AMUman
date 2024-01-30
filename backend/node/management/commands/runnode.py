@@ -8,24 +8,20 @@ from common_models.models import Nodes
 from node.functions.gpu_monitor import GPUMonitor
 import json
 from django.core.cache import cache
-from node.models import Local
-
+import dotenv
+import os
 class Command(BaseCommand):
     
-    def add_arguments(self, parser):
-        parser.add_argument('--ip', type=str, help='Adres IP managera')
-        parser.add_argument('--port', type=str, help='Port managera')
-
     def handle(self, *args, **options):
-        ip = options.get('ip', 'localhost')  # Użyj 'localhost' jako wartości domyślnej, jeśli 'ip' nie istnieje
-        port = options.get('port', '8000')  # Użyj '8000' jako wartości domyślnej, jeśli 'port' nie istnieje
-        local_port = settings.PORT #NEED TO BE TESTED!!!!!!!
-        url = f'http://manager:8000/manager/node-management/'
+        dotenv_file = dotenv.find_dotenv()
+        dotenv.load_dotenv(dotenv_file)
+        url = os.environ["NODE_MANAGEMENT_URL"]
         data = {
             'action':"assign_new_node",
             'ip': self.get_own_ip(),
             'port': None,
         }
+        print("DUPAAA")
         try:
             response = requests.post(url, data=data)
             response_data = response.json()
@@ -34,10 +30,7 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(self.style.SUCCESS('Successfull node update. Response: ' + str(response_data)))
             
-            local_setting, created = Local.objects.get_or_create(id=1)
-            local_setting.node_id = response_data.get('id')
-            local_setting.url = url
-            local_setting.save()
+            dotenv.set_key(dotenv_file, "key", os.environ["key"])
             
             gpm = GPUMonitor()
             self.stdout.write(self.style.SUCCESS(f'Successfull found node_id: {local_setting.node_id}'))
@@ -45,7 +38,7 @@ class Command(BaseCommand):
             if response.status_code == 201:
                 
                 response_data = response.json()
-                node_id =  local_setting.node_id 
+                node_id =  os.environ["NODE_ID"]
                 gpm.update_gpu_status(node_id)       
         except requests.exceptions.RequestException as e:
             self.stdout.write(self.style.ERROR(f'Błąd: {e}'))

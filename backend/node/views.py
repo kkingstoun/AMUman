@@ -7,7 +7,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.apps import apps
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from node.models import Local
 
 # from .singleton import CurrentJob
 from rest_framework.parsers import JSONParser

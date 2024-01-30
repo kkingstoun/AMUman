@@ -20,7 +20,7 @@ from rest_framework.response import Response
 from common_models.models import *
 from .components.forms import EditTaskForm, AddTaskForm
 from .serializers import TaskSerializer
-from .components.nodes_monitor import NodesMonitor
+# from .components.nodes_monitor import NodesMonitor
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -95,8 +95,8 @@ class NodeListView(APIView):
     def get(self, request, *args, **kwargs):
         path = request.path_info.split("/")[-2]
         if path == "refresh_all_nodes":
-            n_monitor = NodesMonitor()
-            n_monitor.send_update_command()
+            # n_monitor = NodesMonitor()
+            # n_monitor.send_update_command()
             nodes = Nodes.objects.all()
             return Response({"message": f"GPU przypisane do Node."}, status=200)
 
@@ -626,11 +626,14 @@ class TaskListView(APIView):
         pending_tasks = Task.objects.filter(
             Q(status="Pending") | Q(status="Running") | Q(status=None)
         )
-
-        tasks = Task.objects.all()
+        finished_tasks = Task.objects.filter(
+            Q(status="Finished")
+        )
+        # tasks = Task.objects.all()
         data = {
             "tasks": waiting_tasks,
             # "tasks": tasks,
+            "finished_tasks": finished_tasks,
             "active_tasks": pending_tasks,
         }
 

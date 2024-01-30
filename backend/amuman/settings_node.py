@@ -31,7 +31,7 @@ MIDDLEWARE += [
     # ... inne middleware ...
     'node.middleware.gpu_monitor_middleware.GPUMonitorMiddleware',
     'node.middleware.node_register_middleware.NodeStartupMiddleware',
-    # 'node.middleware.websocket_check_middleware.WebSocketMiddleware',
+    'node.middleware.websocket_check_middleware.WebSocketMiddleware',
 ]
 PORT=8001
 

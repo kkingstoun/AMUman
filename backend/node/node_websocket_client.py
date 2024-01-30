@@ -5,22 +5,23 @@ import logging
 from django.shortcuts import get_object_or_404
 from asgiref.sync import sync_to_async
 from node.TaskManager import TaskManager
-
+import dotenv
+import os
 async def get_node_id():
-    from node.models import Local
-    local = await sync_to_async(get_object_or_404)(Local, pk=1)
-    return int(local.node_id)
+    dotenv_file = dotenv.find_dotenv()
+    dotenv.load_dotenv(dotenv_file)
+
     
 async def connect_to_manager():
-    uri = "ws://localhost:8000/ws/node/"
-    node_id = await get_node_id()
+    wsl_url = os.environ['HOST_WS_URL']
+    node_id = os.environ['NODE_ID']
     tm = TaskManager(node_id)
     while True:
         try:
-            async with websockets.connect(uri) as websocket:
+            async with websockets.connect(wsl_url) as websocket:
                 # Send initial message after connection
                 await websocket.send(json.dumps({"message": "Hello from Node!"}))
-
+                logging.warning("Connection to the WebSocket server closed.")
                 # Main loop to receive and handle messages
                 while True:
                     try:
@@ -33,7 +34,7 @@ async def connect_to_manager():
 
                         if command == "update_gpus" and r_node_id == node_id:
                             await sync_to_async(execute_update_gpus)(node_id)
-                        elif command is not None and r_node_id == node_id:
+                        elif command is not None and str(r_node_id) == node_id:
                             await tm.execute_command(command,data.get("task_id"))
                     except websockets.ConnectionClosed:
                         logging.warning("Connection to the WebSocket server closed.")
