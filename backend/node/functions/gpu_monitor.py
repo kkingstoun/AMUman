@@ -3,18 +3,20 @@ import time
 from datetime import datetime
 import requests
 from django.core.management.base import BaseCommand
-from node.models import Local
-
+import os
 
 class GPUMonitor(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(GPUMonitor, self).__init__(*args, **kwargs)
+       
+        self.node_id = os.environ['NODE_ID']
+        self.NODE_MANAGEMENT_URL = os.environ['NODE_MANAGEMENT_URL']
+                
         self.gpus = self.get_gpu_count()
         self.gpus_status = {
             i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)
         }
         self.number_of_gpus = len(self.gpus_status)
-        self.ls = Local.objects.get(id=1)
 
     def get_gpu_count(self):
         """Returns the number of available graphics cards."""
@@ -151,7 +153,7 @@ class GPUMonitor(BaseCommand):
             }
 
             try:
-                response = requests.post(self.ls.managerNmUrl, data=data)
+                response = requests.post(self.NODE_MANAGEMENT_URL, data=data)
                 if response.status_code == 200:
                     response_data = response.json()
                     self.stdout.write(
@@ -181,7 +183,7 @@ class GPUMonitor(BaseCommand):
                 "brand_name": gpu["name"],
                 "gpu_util": gpu["gpu_util"],
                 "status": gpu["status"],
-                "node_id": self.ls.node_id,
+                "node_id": self.node_id,
                 "is_running_amumax": gpu["is_running_amumax"],
                 "gpu_uuid": gpu["gpu_uuid"],
             }
@@ -189,7 +191,7 @@ class GPUMonitor(BaseCommand):
             try:
                 # import json
                 # print(json.dumps(data))
-                response = requests.post(self.ls.managerNmUrl, data=data)
+                response = requests.post(self.NODE_MANAGEMENT_URL, data=data)
                 if response.status_code == 200:
                     self.stdout.write(
                         self.style.SUCCESS(f"Successfull gpu {gpu_key} update.")

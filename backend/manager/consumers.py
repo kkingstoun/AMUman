@@ -23,14 +23,14 @@ class MasterConsumer(AsyncWebsocketConsumer):
             # Wysłaj odpowiedź
             await self.send(text_data=json.dumps({"message": "Witaj, node!"}))
 
-    async def send_test_message(self, message):
-        await self.channel_layer.group_send(
-            "nodes_group",
-            {
-                "type": "send_message_to_group",
-                "message": message,
-            }
-        )
+    # async def send_test_message(self, message):
+    #     await self.channel_layer.group_send(
+    #         "nodes_group",
+    #         {
+    #             "type": "send_message_to_group",
+    #             "message": message,
+    #         }
+    #     )
 
     async def send_message_to_group(self, event):
         message = event["message"]

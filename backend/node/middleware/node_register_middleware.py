@@ -4,13 +4,16 @@ from django.conf import settings
 import requests
 from django.core.management.base import BaseCommand
 from requests import get
-from node.models import Local
 from node.functions.gpu_monitor import GPUMonitor
 import json
 from django.core.exceptions import MiddlewareNotUsed
+import os
+import dotenv
 
 class NodeStartupMiddleware:
     def __init__(self, get_response):
+        dotenv_file = dotenv.find_dotenv()
+        dotenv.load_dotenv(dotenv_file)
         self.get_response = get_response
         self.run_node_startup()
         raise MiddlewareNotUsed("NodeStartupMiddleware is only used once.")
@@ -20,9 +23,7 @@ class NodeStartupMiddleware:
         return response
 
     def run_node_startup(self):
-        ip = 'localhost'  # Zastąp localhost swoim adresem IP, jeśli jest inny
-        port = '8000'  # Zastąp 8000 swoim portem, jeśli jest inny
-        url = f'http://{ip}:{port}/manager/node-management/'    
+        url = os.environ['NODE_MANAGEMENT_URL']    
         data = {
             'action': "assign_new_node",
             'ip': self.get_own_ip(),
@@ -37,16 +38,16 @@ class NodeStartupMiddleware:
             #     print('Successfull node assign. Response: ' + str(response_data.id))
             # else:
             #     print('Successfull node update. Response: ' + str(response_data))
+            self.node_id=response_data.get('id')
+            dotenv_file = dotenv.find_dotenv()
+            dotenv.load_dotenv(dotenv_file)
+            dotenv.set_key(dotenv_file, "NODE_ID", str(self.node_id))
+
             
-            local_setting, created = Local.objects.get_or_create(id=1)
-            local_setting.node_id = response_data.get('id')
-            local_setting.managerNmUrl = url
-            local_setting.save()
-            
-            print(f'\033[92mSuccessfull found node_id: {local_setting.node_id}.\033[0m')
+            print(f'\033[92mSuccessfull found node_id: {self.node_id}.\033[0m')
 
             if response.status_code == 201:
-                node_id =  local_setting.node_id
+                node_id = self.node_id
                 gpm = GPUMonitor() 
                 gpm.assign_gpus(node_id)       
         except requests.exceptions.RequestException as e:
