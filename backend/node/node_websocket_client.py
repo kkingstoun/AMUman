@@ -7,12 +7,12 @@ from asgiref.sync import sync_to_async
 from node.TaskManager import TaskManager
 import dotenv
 import os
-async def get_node_id():
+
+async def connect_to_manager():
     dotenv_file = dotenv.find_dotenv()
     dotenv.load_dotenv(dotenv_file)
-
-    
-async def connect_to_manager():
+    g = {os.environ['MANAGER_URL']}
+    a = f"ws://{os.environ['MANAGER_URL']}/ws/node"
     wsl_url = f"ws://{os.environ['MANAGER_URL']}/ws/node"
     node_id = os.environ['NODE_ID']
     tm = TaskManager(node_id)

@@ -23,7 +23,7 @@ class NodeStartupMiddleware:
         return response
 
     def run_node_startup(self):
-        url = f"http://{os.environ['NODE_MANAGEMENT_URL']}/manager/node-management/"   
+        url = f"http://{os.environ['MANAGER_URL']}/manager/node-management/"   
         data = {
             'action': "assign_new_node",
             'ip': self.get_own_ip(),

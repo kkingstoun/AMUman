@@ -11,11 +11,16 @@ from node.JobProcesss import JobProcess
 import json
 from subprocess import PIPE
 import logging
+import os
+import dotenv
 class TaskManager:
     def __init__(self,node_id,*args, **kwargs):
+        dotenv_file = dotenv.find_dotenv()
+        dotenv.load_dotenv(dotenv_file)
+
         self.node_id=node_id
-        self.url = f"http://localhost:8000/manager/task/"
-        self.api_base_url = f"{settings.MANAGER_PORT}:{settings.MANAGER_PORT}"
+        self.url = f"http://{os.environ['MANAGER_URL']}/manager/task/"
+        self.api_base_url = f"http://{os.environ['MANAGER_URL']}"
         self.tasks={}
 
     async def execute_command(self, command, task_id):
