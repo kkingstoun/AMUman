@@ -3,6 +3,7 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 
+
 class MasterConsumer(AsyncWebsocketConsumer):
     
     async def connect(self):

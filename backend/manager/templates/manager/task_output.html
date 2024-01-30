@@ -1,0 +1,42 @@
+{% extends "manager/base.html" %}
+
+{% block title %}Tasks {{task.id}} output{% endblock %}
+{% block name %}Tasks {{task.id}} output{% endblock %}
+{% block content %}
+<div class="container responsive">
+
+
+
+    <div class="row">
+        <div class="col-lg-12">
+            <p class="page-title lead">
+                <h2 class="text-white">Path: {{task.path}} - {{task.status}}</h2>
+            </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <pre><code class="language-go">
+                {{task.output}}
+            </code></pre>
+        </div>
+    </div>
+    
+    
+    <div class="row">
+        <div class="col-lg-12">
+            <pre><code class="language-go">
+                {{task.error}}
+            </code></pre>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascript %}
+<!-- Dodajemy skrypt Prism.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/components/prism-go.min.js"></script>
+
+{% endblock %}

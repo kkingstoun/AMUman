@@ -35,7 +35,7 @@ class TaskManager:
         print(task)
         edit = await self.update_task_data()
         self.task = await self.run_simulation(task)
-        edit = await self.update_task_data()
+        edit = await self.update_task_data(self.task)
         # await self.start_simulation(task, gpu)
 
         # # Wyślij aktualizację do głównego hosta
@@ -45,7 +45,7 @@ class TaskManager:
     async def run_simulation(self,task):
         
         job_process = JobProcess(task)
-        await job_process.run_subprocess()
+        return await job_process.run_subprocess()
 
     async def get_task(self, task_id):
         url = f"{self.url}get_task/{task_id}/"

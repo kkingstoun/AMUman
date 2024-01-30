@@ -38,7 +38,10 @@ class JobProcess:
             )
 
             logger.info(f"Started amumax (PID: {self.process.pid})")
-            await self.monitor_process(self.process)
+            self.task = await self.monitor_process(self.process)
+            
+            await asyncio.to_thread(self.task.save)
+            return self.task
 
         except Exception as e:
             print(f"Error in running subprocess: {e}")
@@ -50,8 +53,8 @@ class JobProcess:
             if process.returncode is not None:
                 print("Process finished")
                 stdout, stderr = await process.communicate()
-                await self.update_task_status(process.returncode, stdout, stderr, self.task)
-                break
+                print(stdout,stderr)
+                return await self.update_task_status(process.returncode, stdout, stderr, self.task)
             else:
                 await asyncio.sleep(0.1)  # Check process status every 0.1 seconds
         return self.task
@@ -61,6 +64,7 @@ class JobProcess:
         task.output = stdout.decode() if stdout else ''
         task.error = stderr.decode() if stderr else ''
         await asyncio.to_thread(task.save)
+        return task
         
 
 

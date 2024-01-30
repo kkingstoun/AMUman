@@ -351,6 +351,7 @@ class TaskManagerView(APIView):
             "cancel": self.cancel_task,
             "redo": self.redo_task,
             "add_task": self.add_task_form,
+            "output": self.task_output,
         }
 
         if action in methods:
@@ -422,6 +423,20 @@ class TaskManagerView(APIView):
         else:
             return render(
                 request, "manager/edit_task.html", {"form": form, "task": task}
+            )
+
+    @csrf_exempt
+    def task_output(self, request, task_id=None):
+        try:
+            data = Task.objects.get(id=task_id)
+            print(data.path)  # Assuming 'path' is an attribute of the Task model
+        except Task.DoesNotExist:
+            print("Task does not exist")
+        if request.accepted_renderer.format == "json":
+            return Response(data)
+
+        return render(
+                request, "manager/task_output.html", {"task": data}
             )
 
     @csrf_exempt

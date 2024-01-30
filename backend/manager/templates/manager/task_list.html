@@ -40,6 +40,7 @@
                 <th>Est. Sim. time</th>
                 <th>Assigned node</th>
                 <th>Assigned gpu</th>
+                <th>Output</th>
                 <th>Remove permanenty task</th>
                 <th>Edit</th>
                 <th>Run</th>
@@ -63,6 +64,9 @@
                 <td>{{ task.est }}</td>
                 <td>{{task.assigned_node_id}}</td>
                 <td>{{task.assigned_gpu_id}}</td>
+                <td>
+                    <a href="{% url 'task_action_id' 'output' task.id %}" class="btn btn-info btn-sm">Output</a>
+                </td>
                 <td>
                     <a href="{% url 'task_action_id' 'delete' task.id %}" class="btn btn-danger btn-sm">Remove</a>
                 </td>
@@ -105,6 +109,7 @@
                         <th>Est. Sim. time</th>
                         <th>Assigned node</th>
                         <th>Assigned gpu</th>
+                        <th>Outputs</th>
                         <th>Remove permanenty task</th>
                         <th>Move back to queue</th>
                         <th>Redo</th>
@@ -127,16 +132,18 @@
                         <td>{{ task.est }}</td>
                         <td>{{task.assigned_node_id}}
                         <td>{{task.assigned_gpu_id}}
-                            <td>
-                                <a href="{% url 'task_action_id' 'delete' task.id %}" class="btn btn-danger btn-sm">Remove</a>
-                            </td>
-                            <td>
-                                <a href="{% url 'task_action_id' 'cancel' task.id %}" class="btn btn-danger btn-sm">Cancel</a>
-                            </td>
-                            <td>
-                                <a href="{% url 'task_action_id' 'redo' task.id %}" class="btn btn-success btn-sm">Redo</a>
-
-                            </td>
+                        <td>
+                            <a href="{% url 'task_action_id' 'output' task.id %}" class="btn btn-info btn-sm">Output</a>
+                        </td>
+                        <td>
+                            <a href="{% url 'task_action_id' 'delete' task.id %}" class="btn btn-danger btn-sm">Remove</a>
+                        </td>
+                        <td>
+                            <a href="{% url 'task_action_id' 'cancel' task.id %}" class="btn btn-danger btn-sm">Cancel</a>
+                        </td>
+                        <td>
+                            <a href="{% url 'task_action_id' 'redo' task.id %}" class="btn btn-success btn-sm">Redo</a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -90,3 +90,25 @@ class Gpus(models.Model):
 
     def __str__(self):
         return f"GPU-{self.id}, {self.node_id}/{self.id}"
+
+
+
+class Gpus(models.Model):
+    id = models.AutoField(primary_key=True, unique=True)
+    no = models.IntegerField(null=True, blank=True, default=0)
+    gpu_uuid = models.TextField(unique=True, null=True, blank=True)
+    node_id = models.ForeignKey(Nodes, on_delete=models.CASCADE)
+    brand_name = models.TextField(null=True, blank=True)
+    gpu_speed = models.TextField(null=True, blank=True)
+    gpu_util = models.TextField(null=True, blank=True)
+    is_running_amumax = models.TextField(null=True, blank=True)
+    gpu_info = models.TextField(null=True, blank=True)
+    STATUS_CHOICES = [
+        ("Connected", "Connected"),
+        ("Disconnected", "Disconnected"),
+    ]
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Waiting")
+    last_update = models.DateTimeField(default=timezone.now, null=True, blank=True)
+
+    def __str__(self):
+        return f"GPU-{self.id}, {self.node_id}/{self.id}"

@@ -41,6 +41,7 @@ htmlcov/
 
 # Python & Django #
 __pycache__/
+**/migrations/
 *.py[cod]
 *$py.class
 db.sqlite3
