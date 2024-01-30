@@ -5,10 +5,10 @@ build:
 	sudo docker build . -t amuman
 
 build_db:
-	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py manage.py makemigrations  
-	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py manage.py migrate 
-	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py manage.py makemigrations common_models    
-	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py manage.py migrate common_models    
+	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py makemigrations  
+	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py migrate 
+	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py makemigrations common_models    
+	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py migrate common_models    
 	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py makemigrations --settings=amuman.settings_manager
 	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py makemigrations --settings=amuman.settings_node
 	sudo docker run --rm -it -v .:/app amuman poetry run python backend/manage.py makemigrations --settings=amuman.settings_client
