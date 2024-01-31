@@ -1,0 +1,92 @@
+backend/*.sqlite3
+# Node.js #
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.local
+# frontend/
+*.psd
+# Cypress #
+/cypress/videos/
+/cypress/screenshots/
+backend/master
+# Build outputs #
+dist/
+dist-ssr/
+build/
+lib/
+lib64/
+*.egg-info/
+*.whl
+*local*.py
+# Logs #
+*.log
+logs/
+
+# Dependency directories #
+.jest/
+.coverage
+.pytest_cache/
+.mypy_cache/
+htmlcov/
+.tox/
+.cache
+.hypothesis/
+
+# Env files #
+.env
+!.env.example
+
+# Python & Django #
+__pycache__/
+**/migrations/
+*.py[cod]
+*$py.class
+db.sqlite3
+*.sqlite3
+media/
+.sage.py
+.python-version
+celerybeat-schedule.*
+*.pot
+
+# Backup files #
+*.bak 
+
+# IDEs and Editors #
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.sublime-workspace
+*.sublime-project
+*.iws
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+.history
+.sftp-config.json
+
+# OS generated files #
+.DS_Store
+Thumbs.db
+
+# Others #
+*.sage.py
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+/public/mockServiceWorker.js
+/site
+/src/plugins/iconify/icons.css
+*.zarr

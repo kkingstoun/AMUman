@@ -28,4 +28,4 @@ RUN pip install -r requirements.txt
 COPY . /app
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD python backend/manage.py runserver 0.0.0.0:8000 --settings=amuman.settings_manager
+CMD manager
