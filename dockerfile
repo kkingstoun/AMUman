@@ -21,18 +21,11 @@ RUN mkdir /localbin && cd /localbin && \
     curl -Ls https://github.com/mathieumoalic/amumax/releases/latest/download/libcurand.so.10 > libcurand.so.10 && \
     chmod +x amumax
 
-RUN useradd -m -u 1000 -s /bin/bash amuman_user
-USER amuman_user
-ENV PATH="/localbin:${PATH}"
-ENV PATH="/usr/local/bin:${PATH}"
-ENV PATH="/home/amuman_user/.local/bin:${PATH}"
 
-RUN pip install --user poetry 
 WORKDIR /app
-ADD pyproject.toml poetry.lock /app/
-RUN poetry install --no-root 
+ADD requirements.txt /app/
+RUN pip install -r requirements.txt
 COPY . /app
 
-COPY entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
-CMD poetry run python backend/manage.py runserver 0.0.0.0:8000 --settings=amuman.settings_manager
+ENTRYPOINT ["/app/entrypoint.sh"]
+CMD python backend/manage.py runserver 0.0.0.0:8000 --settings=amuman.settings_manager
