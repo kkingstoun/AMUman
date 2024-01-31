@@ -88,3 +88,4 @@ venv.bak/
 /public/mockServiceWorker.js
 /site
 /src/plugins/iconify/icons.css
+*.zarr

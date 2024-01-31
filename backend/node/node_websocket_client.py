@@ -11,10 +11,13 @@ import os
 async def connect_to_manager():
     dotenv_file = dotenv.find_dotenv()
     dotenv.load_dotenv(dotenv_file)
-    g = {os.environ['MANAGER_URL']}
-    a = f"ws://{os.environ['MANAGER_URL']}/ws/node"
     wsl_url = f"ws://{os.environ['MANAGER_URL']}/ws/node"
-    node_id = os.environ['NODE_ID']
+    
+    try:
+        node_id = os.environ['NODE_ID']
+    except:
+        node_id = None
+        
     tm = TaskManager(node_id)
     while True:
         try:
@@ -31,7 +34,8 @@ async def connect_to_manager():
                         command = data.get("command")
                         r_node_id = data.get("node_id")
                         gpu_id = data.get("gpu_id",None)
-
+                        if node_id is None and r_node_id is not None:
+                            dotenv.set_key(dotenv_file, "NODE_ID",r_node_id)
                         if command == "update_gpus" and r_node_id == node_id:
                             await sync_to_async(execute_update_gpus)(node_id)
                         elif command is not None and str(r_node_id) == node_id:

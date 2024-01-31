@@ -30,8 +30,6 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(self.style.SUCCESS('Successfull node update. Response: ' + str(response_data)))
             
-            dotenv.set_key(dotenv_file, "key", os.environ["key"])
-            
             gpm = GPUMonitor()
             self.stdout.write(self.style.SUCCESS(f'Successfull found node_id: {local_setting.node_id}'))
 

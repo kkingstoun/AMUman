@@ -8,6 +8,7 @@ router.register(r'tasks', TaskViewSet)
 
 urlpatterns = [
       
+      
     path('task/', TaskListView.as_view(), name='task_list'),
     path('task/<action>/<int:task_id>/', TaskManagerView.as_view(), name='task_action_id'),
     path('task/<action>/', TaskManagerView.as_view(), name='task_action'),

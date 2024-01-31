@@ -14,8 +14,10 @@ if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "amuman.settings")
 
     try:
-        arg = sys.argv[2]
-        os.environ["DJANGO_SETTINGS_MODULE"] = SETTINGS_MODULES.get(arg, "amuman.settings")
+        command = sys.argv[1]
+        if command == "runserver":
+            arg = sys.argv[3]
+            os.environ["DJANGO_SETTINGS_MODULE"] = SETTINGS_MODULES.get(arg, "amuman.settings")
     except IndexError:
         pass
 
