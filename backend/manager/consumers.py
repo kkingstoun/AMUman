@@ -35,19 +35,11 @@ class MasterConsumer(AsyncWebsocketConsumer):
     async def send_message_to_group(self, event):
         message = event["message"]
         await self.send(text_data=json.dumps({"message": message}))
-  
+
     async def node_command(self, event):
         # Logika do obsługi komunikatu typu 'node.command'
-        command = event['command']
-        node_id = event['node_id']
-        if event['task_id'] is not None:
-            task_id = event['task_id']
-        else:
-            task_id = None
-        # Przetwarzanie komendy i wysyłanie odpowiedzi do klienta 'node'
-        # Na przykład, możesz tutaj wykonać pewne operacje w zależności od komendy
-        print(f"Otrzymano komendę: {command}")
-
-        # Przykładowa odpowiedź wysyłana z powrotem do klienta
-        response_message = {'command':command,'node_id':node_id,'task_id':task_id}
+        print(f"Otrzymano komendę: {event}")
+        # Tworzenie słownika odpowiedzi na podstawie otrzymanych danych
+        response_message = {key: event[key] for key in event if key != 'type'}
+        # Wysyłanie odpowiedzi do klienta 'node'
         await self.send(text_data=json.dumps(response_message))

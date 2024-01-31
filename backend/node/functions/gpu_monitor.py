@@ -4,19 +4,29 @@ from datetime import datetime
 import requests
 from django.core.management.base import BaseCommand
 import os
-
+from dotenv import load_dotenv, set_key, get_key, find_dotenv
+import re 
 class GPUMonitor(BaseCommand):
     def __init__(self, *args, **kwargs):
         super(GPUMonitor, self).__init__(*args, **kwargs)
        
-        self.node_id = os.environ['NODE_ID']
-        self.NODE_MANAGEMENT_URL = f"http://{os.environ['MANAGER_URL']}/manager/node-management/"
+        self.dotenv_file = find_dotenv()
+        load_dotenv(self.dotenv_file)
+        MANAGER_URL=get_key(self.dotenv_file, "MANAGER_URL")
+        self.node_id = get_key(self.dotenv_file, "NODE_ID")
+        
+        self.node_management_url = f"http://{MANAGER_URL}/manager/node-management/"
         
         self.gpus = self.get_gpu_count()
         self.gpus_status = {
             i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)
         }
         self.number_of_gpus = len(self.gpus_status)
+
+    def extract_integer_from_string(self,s):
+        match = re.search(r'\d+', s)
+        return int(match.group()) if match else None
+
 
     def get_gpu_count(self):
         """Returns the number of available graphics cards."""
@@ -153,7 +163,7 @@ class GPUMonitor(BaseCommand):
             }
 
             try:
-                response = requests.post(f"http://{os.environ['MANAGER_URL']}/manager/node-management/", data=data)
+                response = requests.post(self.node_management_url, data=data)
                 if response.status_code == 200:
                     response_data = response.json()
                     self.stdout.write(
@@ -191,7 +201,7 @@ class GPUMonitor(BaseCommand):
             try:
                 # import json
                 # print(json.dumps(data))
-                response = requests.post(f"http://{os.environ['NODE_MANAGEMENT_URL']}/manager/node-management/", data=data)
+                response = requests.post(self.node_management_url, data=data)
                 if response.status_code == 200:
                     self.stdout.write(
                         self.style.SUCCESS(f"Successfull gpu {gpu_key} update.")

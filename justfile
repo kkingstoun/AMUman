@@ -10,6 +10,7 @@ manager: build
 		--name manager \
 		--network amuman \
 		--cap-add SYS_ADMIN \
+		-v .:/app \
 		--cap-add DAC_READ_SEARCH \
 		-p 8000:8000 \
 		--env-file ./.env \
@@ -21,6 +22,7 @@ node: build
 		--name node \
 		--network amuman \
 		--cap-add SYS_ADMIN \
+		-v .:/app \
 		--cap-add DAC_READ_SEARCH \
 		--gpus all \
 		--env-file ./.env \

@@ -21,6 +21,8 @@ RUN mkdir /localbin && cd /localbin && \
     curl -Ls https://github.com/mathieumoalic/amumax/releases/latest/download/libcurand.so.10 > libcurand.so.10 && \
     chmod +x amumax
 
+# Add /localbin to PATH
+ENV PATH="/localbin:${PATH}"
 
 WORKDIR /app
 ADD requirements.txt /app/

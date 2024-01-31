@@ -8,22 +8,31 @@ from node.functions.gpu_monitor import GPUMonitor
 import json
 from django.core.exceptions import MiddlewareNotUsed
 import os
-import dotenv
+
+from dotenv import load_dotenv, set_key, get_key, find_dotenv
+
 
 class NodeStartupMiddleware:
     def __init__(self, get_response):
-        dotenv_file = dotenv.find_dotenv()
-        dotenv.load_dotenv(dotenv_file)
-        self.get_response = get_response
-        self.run_node_startup()
-        raise MiddlewareNotUsed("NodeStartupMiddleware is only used once.")
+        
+        self.dotenv_file = find_dotenv()
+        load_dotenv(self.dotenv_file)
+        self.node_id=get_key(self.dotenv_file, "NODE_ID")
+        MANAGER_URL=get_key(self.dotenv_file, "MANAGER_URL")
+        self.node_management_url = f"http://{MANAGER_URL}/manager/node-management/"
 
+        self.get_response = get_response
+
+        if not (os.environ.get('RUN_MAIN') or 'runserver' in os.environ.get('DJANGO_SETTINGS_MODULE', '')):
+            raise MiddlewareNotUsed("NodeStartupMiddleware is only used once.")
+        self.run_node_startup()
+        
     def __call__(self, request):
         response = self.get_response(request)
         return response
 
     def run_node_startup(self):
-        url = f"http://{os.environ['MANAGER_URL']}/manager/node-management/"   
+        url = self.node_management_url  
         data = {
             'action': "assign_new_node",
             'ip': self.get_own_ip(),
@@ -39,23 +48,20 @@ class NodeStartupMiddleware:
             # else:
             #     print('Successfull node update. Response: ' + str(response_data))
             self.node_id=response_data.get('id')
-            dotenv_file = dotenv.find_dotenv()
-            dotenv.load_dotenv(dotenv_file)
-            dotenv.set_key(dotenv_file, "NODE_ID", str(self.node_id))
-
-            
+            load_dotenv(self.dotenv_file)
+            set_key(self.dotenv_file, "NODE_ID", str(self.node_id))
             print(f'\033[92mSuccessfull found node_id: {self.node_id}.\033[0m')
 
             if response.status_code == 201:
-                node_id = self.node_id
                 gpm = GPUMonitor() 
-                gpm.assign_gpus(node_id)       
+                gpm.assign_gpus(self.node_id)       
         except requests.exceptions.RequestException as e:
             print(f'\033[92mBłąd: {e}.\033[0m')
 
     def get_own_ip(self):
         try:
             ip = get('https://api.ipify.org').content.decode('utf8')
+            print(f'\033[92mIP: {ip}.\033[0m')
             return ip
         except Exception as e:
             print(f"Błąd podczas pobierania własnego adresu IP: {e}")
