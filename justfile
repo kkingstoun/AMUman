@@ -21,7 +21,10 @@ manager: build
 	sudo docker run --rm -it \
 		--name manager \
 		--network amuman \
+		--cap-add SYS_ADMIN \
+		--cap-add DAC_READ_SEARCH \
 		-p 8000:8000 \
+		--env-file ./.env \
 		amuman
 
 node: build
@@ -34,7 +37,6 @@ node: build
 		--gpus all \
 		--env-file ./.env \
 		amuman \
-		ls
-
+		python backend/manage.py runserver --settings=amuman.settings_node
 it:
 	sudo docker run --network amuman --gpus all --rm -it -v .:/app amuman bash
