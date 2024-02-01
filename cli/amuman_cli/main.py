@@ -1,6 +1,6 @@
 from enum import Enum
 from pathlib import Path
-from typing import List
+from typing import List, Optional, Dict, Union
 
 import httpx
 import toml
@@ -12,7 +12,7 @@ from typing_extensions import Annotated
 from xdg_base_dirs import xdg_config_home
 
 app = typer.Typer(rich_markup_mode="rich")
-default_config_path = xdg_config_home().joinpath("amuman/amuman.toml")
+default_config_path: Path = xdg_config_home().joinpath("amuman/amuman.toml")
 
 
 class Priority(str, Enum):
@@ -27,22 +27,22 @@ class GPUPartition(str, Enum):
     Slow = "Slow"
 
 
-def init_config(config_path):
+def init_config(config_path: Path) -> Dict[str, Union[str, Path]]:
     print(
         f"[bold red]No config was found[/bold red] at `{config_path}`,[bold green] creating one:[/bold green]"
     )
     config_path.parent.mkdir(parents=True, exist_ok=True)
-    manager_url = Prompt.ask(
+    manager_url: str = Prompt.ask(
         "[bold green]AMUman manager URL [/bold green]",
         default="http://manager:8000",
     )
-    shared_dir_path = Prompt.ask(
+    shared_dir_path: str = Prompt.ask(
         "[bold green]Full path to the shared storage. [/bold green]",
         default="/shared",
     )
-    config = {
+    config: Dict[str, Union[str, Path]] = {
         "manager_url": manager_url,
-        "shared_dir_path": shared_dir_path,
+        "shared_dir_path": Path(shared_dir_path),
     }
     config_path.write_text(toml.dumps(config))
     print("[bold green]Successfully created the config file.[/bold green]")
@@ -52,38 +52,38 @@ def init_config(config_path):
     return config
 
 
-def read_config(config_path):
-    config = toml.loads(config_path.read_text())
-    required_keys = ["manager_url", "shared_dir_path"]
-    missing_keys = [key for key in required_keys if key not in config]
+def read_config(config_path: Path) -> Dict[str, Union[str, Path]]:
+    config: Dict[str, Union[str, Path]] = toml.loads(config_path.read_text())
+    required_keys: List[str] = ["manager_url", "shared_dir_path"]
+    missing_keys: List[str] = [key for key in required_keys if key not in config]
     if missing_keys:
         print(f"Missing keys: {missing_keys}")
         config = init_config(config_path)
-    return config
+    return config  # Type casting might be required if your config has mixed types
 
 
-def sanitize_path(path, shared_dir_path):
+def sanitize_path(path: Path, shared_dir_path: Path) -> Optional[Path]:
     path = path.resolve()
-    shared_dir_path = Path(shared_dir_path).resolve()
+    shared_dir_path = shared_dir_path.resolve()
     if shared_dir_path in path.parents:
         if path.suffix == ".mx3":
             return path
         else:
             print(f"[bold red]Skipping `{path}`: the path does not end in `.mx3`.")
-
     else:
         print(
             f"[bold red]Skipping `{path}`: the path is not in the shared directory `{shared_dir_path}`."
         )
+    return None
 
 
-def warning_if_not_mounted(shared_dir_path):
-    shared_dir_path = Path(shared_dir_path).resolve()
+def warning_if_not_mounted(shared_dir_path: Path) -> None:
+    shared_dir_path = shared_dir_path.resolve()
     with open("/proc/mounts", "r") as mounts:
         for line in mounts:
-            mount_point = Path(
+            mount_point: Path = Path(
                 line.split()[1]
-            ).resolve()  # Get the mount point from each line
+            ).resolve()  # Type casting might be required
             if shared_dir_path == mount_point:
                 return
     print(
@@ -141,16 +141,16 @@ def queue(
             max=300,
         ),
     ] = 1,
-    manager_url: Annotated[
-        str,
+    manager_url_input: Annotated[
+        Optional[str],
         typer.Option(
             "--manager-url",
             "-m",
             help="Override the manager URL from the configuration.",
         ),
     ] = None,
-    shared_dir_path: Annotated[
-        Path,
+    shared_dir_path_input: Annotated[
+        Optional[Path],
         typer.Option(
             "--shared-dir-path",
             "-s",
@@ -163,14 +163,21 @@ def queue(
             resolve_path=True,
         ),
     ] = None,
-):
-    if None in [shared_dir_path, manager_url]:
+) -> None:
+    if None in [shared_dir_path_input, manager_url_input]:
         if config_path.is_file():
             config = read_config(config_path)
         else:
             config = init_config(config_path)
-        manager_url = config["manager_url"]
-        shared_dir_path = config["shared_dir_path"]
+    if manager_url_input is None:
+        manager_url: str = str(config["manager_url"])
+    else:
+        manager_url = manager_url_input
+
+    if shared_dir_path_input is None:
+        shared_dir_path: Path = Path(config["shared_dir_path"])
+    else:
+        shared_dir_path = shared_dir_path_input
 
     warning_if_not_mounted(shared_dir_path)
     url = f"{manager_url}/manager/task/add_task/"
@@ -193,5 +200,5 @@ def queue(
             print(f"An HTTP error occurred for path {path}: {e}")
 
 
-def entrypoint():
+def entrypoint() -> None:
     app()
