@@ -1,13 +1,19 @@
 {% extends "manager/base.html" %}
 
-{% block title %}Manage node {{node_id}}{% endblock %}
-{% block name %}Manage node {{node_id}}{% endblock %}
+{% block title %}Manage node {{node_id}}- {{gpu_count}} gpus {% endblock %}
+{% block name %}Manage node {{node_id}} - {{gpu_count}} gpus {% endblock %}
 {% block content %}
 <div class="container">
     <div class="mb-3">
-        <a href="#" id="refresh-button" class="btn btn-success">
-            <i class="fas fa-sync-alt"></i> Refresh
-        </a>
+        {% if gpu_count > 0 %}
+            <a href="#" id="refresh-button" class="btn btn-success" role="button" >
+                <i class="fas fa-sync-alt"></i> Refresh
+            </a>
+        {% else %}
+            <a href="#" id="refresh-button" class="btn btn-success disabled" role="button" aria-disabled="true">
+                <i class="fas fa-sync-alt"></i> NO GPUS
+            </a>
+        {% endif %}
     </div>
     <table id="gpu-table" class="table table-striped table-bordered" data-bs-theme="dark">
         <thead class="thead-light">

@@ -42,7 +42,7 @@ class Task(models.Model):
 
 class Nodes(models.Model):
     id = models.AutoField(primary_key=True)  # Auto-generowany unikalny klucz
-    ip = models.CharField(max_length=15, unique=True)  # Przykładowy format IPv4
+    ip = models.CharField(max_length=15)  # Przykładowy format IPv4
     name = models.CharField(
         max_length=15, unique=True, null=True, blank=True
     )  # Przykładowy format IPv4
@@ -56,6 +56,11 @@ class Nodes(models.Model):
         ("Unavailable", "Unavailable"),
     ]
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Waiting")
+    CONNECTION_CHOICES = [
+        ("Connected", "Connected"),
+        ("Disconnected", "Disconnected"),
+    ]
+    connection_status = models.CharField(max_length=50, choices=CONNECTION_CHOICES, default="Waiting")
     last_seen = models.DateTimeField(default=timezone.now, null=True, blank=True)
 
     def __str__(self):
