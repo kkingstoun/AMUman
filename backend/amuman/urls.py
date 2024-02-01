@@ -44,11 +44,7 @@ urlpatterns = [
 # Dodanie prefiksu URL na podstawie trybu
 mode_prefix = getattr(settings, 'URL_MODE_PREFIX', '')
 
-if mode_prefix == 'client':
-    urlpatterns += [
-        path('client/', include('client.urls')),
-    ]
-elif mode_prefix == 'node':
+if mode_prefix == 'node':
     urlpatterns += [
         path('node/', include('node.urls')),
     ]

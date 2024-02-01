@@ -6,7 +6,6 @@ import sys
 SETTINGS_MODULES = {
     'node': "amuman.settings_node",
     'manager': "amuman.settings_manager",
-    'client': "amuman.settings_client",
 }
 
 if __name__ == "__main__":
