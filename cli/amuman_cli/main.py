@@ -77,6 +77,20 @@ def sanitize_path(path, shared_dir_path):
         )
 
 
+def warning_if_not_mounted(shared_dir_path):
+    shared_dir_path = Path(shared_dir_path).resolve()
+    with open("/proc/mounts", "r") as mounts:
+        for line in mounts:
+            mount_point = Path(
+                line.split()[1]
+            ).resolve()  # Get the mount point from each line
+            if shared_dir_path == mount_point:
+                return
+    print(
+        f"[bold red]Warning: the shared directory `{shared_dir_path}` does not appear to be a network drive. It might not be accessible to the nodes."
+    )
+
+
 @app.command()
 def queue(
     paths: Annotated[
@@ -127,14 +141,38 @@ def queue(
             max=300,
         ),
     ] = 1,
+    manager_url: Annotated[
+        str,
+        typer.Option(
+            "--manager-url",
+            "-m",
+            help="Override the manager URL from the configuration.",
+        ),
+    ] = None,
+    shared_dir_path: Annotated[
+        Path,
+        typer.Option(
+            "--shared-dir-path",
+            "-s",
+            help="Override the shared directory path from the configuration.",
+            exists=True,
+            file_okay=False,
+            dir_okay=True,
+            writable=False,
+            readable=True,
+            resolve_path=True,
+        ),
+    ] = None,
 ):
-    if config_path.is_file():
-        config = read_config(config_path)
-    else:
-        config = init_config(config_path)
-    manager_url = config["manager_url"]
-    shared_dir_path = config["shared_dir_path"]
+    if None in [shared_dir_path, manager_url]:
+        if config_path.is_file():
+            config = read_config(config_path)
+        else:
+            config = init_config(config_path)
+        manager_url = config["manager_url"]
+        shared_dir_path = config["shared_dir_path"]
 
+    warning_if_not_mounted(shared_dir_path)
     url = f"{manager_url}/manager/task/add_task/"
     print(f"[bold green]Submitting jobs to {manager_url}/manager/task/")
     for path in track(paths, description="[bold green]Progress:"):
