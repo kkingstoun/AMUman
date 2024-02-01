@@ -42,7 +42,7 @@ def init_config(config_path: Path) -> Dict[str, Union[str, Path]]:
     )
     config: Dict[str, Union[str, Path]] = {
         "manager_url": manager_url,
-        "shared_dir_path": Path(shared_dir_path),
+        "shared_dir_path": shared_dir_path,
     }
     config_path.write_text(toml.dumps(config))
     print("[bold green]Successfully created the config file.[/bold green]")
