@@ -29,9 +29,9 @@ DATABASES.update({
 
 MIDDLEWARE += [
     # ... inne middleware ...
+    # 'node.middleware.gpu_monitor_middleware.GPUMonitorMiddleware',
     'node.middleware.websocket_check_middleware.WebSocketMiddleware',
     'node.middleware.node_register_middleware.NodeStartupMiddleware',
-    'node.middleware.gpu_monitor_middleware.GPUMonitorMiddleware',
 ]
 PORT=8001
 

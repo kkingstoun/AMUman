@@ -2,7 +2,12 @@
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
+import pprint
 
+from exceptiongroup import catch
+from common_models.models import Nodes
+import requests
+from channels.db import database_sync_to_async
 
 class MasterConsumer(AsyncWebsocketConsumer):
     
@@ -14,14 +19,27 @@ class MasterConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard("nodes_group", self.channel_name)
 
+    @database_sync_to_async
+    def update_node_status(self, node_id, name, connection_status):
+        return Nodes.objects.filter(id=node_id).update(name=name, connection_status=connection_status)
+
+
     async def receive(self, text_data):
         # Rozłóż wiadomość na dane
         data = json.loads(text_data)
+        # print(data)
+        if data["command"] == "register":
+            try:
+                await self.update_node_status(data["node_id"], data["node_name"], "Connected")
+                print("Registering node", data.get("node_name"))
+            except Exception as e:
+                print("Error", data.get("node_name"), str(e))
+                await self.update_node_status(data["node_id"], data["node_name"], "Disconnected")
 
         # Wykonaj jakąś logikę w oparciu o dane
         if data["message"] == "Hello from Node!":
             # Wysłaj odpowiedź
-            await self.send(text_data=json.dumps({"message": "Witaj, node!"}))
+            await self.send(text_data=json.dumps({"message": "Welcome, node!"}))
 
     async def send_test_message(self, message):
         await self.channel_layer.group_send(

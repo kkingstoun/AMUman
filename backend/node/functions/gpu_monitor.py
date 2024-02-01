@@ -2,27 +2,29 @@ import subprocess
 import time
 from datetime import datetime
 import requests
-from django.core.management.base import BaseCommand
 import os
 from dotenv import load_dotenv, set_key, get_key, find_dotenv
 import re 
-class GPUMonitor(BaseCommand):
+import uuid
+import sys 
+import logging
+class GPUMonitor():
     def __init__(self, *args, **kwargs):
-        super(GPUMonitor, self).__init__(*args, **kwargs)
-       
-        self.dotenv_file = find_dotenv()
-        load_dotenv(self.dotenv_file)
-        MANAGER_URL=get_key(self.dotenv_file, "MANAGER_URL")
-        self.node_id = get_key(self.dotenv_file, "NODE_ID")
-        
-        self.node_management_url = f"http://{MANAGER_URL}/manager/node-management/"
-        
+
+        self.manager_url = os.getenv("MANAGER_URL") if os.getenv("MANAGER_URL") not in [None, ""] else "localhost:8000"
+        self.node_id = os.getenv("NODE_ID") if os.getenv("NODE_ID") not in [None, ""] else "0" 
+        self.node_name = os.getenv("NODE_NAME") if os.getenv("NODE_NAME") not in [None, ""] else str(uuid.uuid1())        
+        self.node_management_url = f"http://{self.manager_url}/manager/node-management/"
         self.gpus = self.get_gpu_count()
+        self.gpus_status = self.check_gpus_status()
+        self.number_of_gpus = len(self.gpus_status) if self.gpus_status is not None else 0
+        
+    def check_gpus_status(self):
         self.gpus_status = {
             i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)
         }
-        self.number_of_gpus = len(self.gpus_status)
-
+        return self.gpus_status if self.gpus_status is not None else {}
+        
     def extract_integer_from_string(self,s):
         match = re.search(r'\d+', s)
         return int(match.group()) if match else None
@@ -146,9 +148,9 @@ class GPUMonitor(BaseCommand):
             return None
 
     def assign_gpus(self, node_id):
-        self.gpu_status = {
-            i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)
-        }
+        # self.gpu_status = {
+        #     i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)
+        # }
         for gpu_key, gpu in self.gpus_status.items():
             data = {
                 "action": "assign_node_gpu",
@@ -166,51 +168,42 @@ class GPUMonitor(BaseCommand):
                 response = requests.post(self.node_management_url, data=data)
                 if response.status_code == 200:
                     response_data = response.json()
-                    self.stdout.write(
-                        self.style.SUCCESS(f"Successfull new gpu {gpu_key} assign.")
-                    )
+                    print(f'\033[92m Successfull new gpu {gpu_key} assign. \033[0m')
                 elif response.status_code == 201:
                     response_data = response.json()
-                    self.stdout.write(
-                        self.style.SUCCESS(f"Successfull update of gpu {gpu_key}.")
-                    )
+                    print(f'\033[92m Successfull gpu {gpu_key} update. \033[0m')
                 else:
-                    self.stdout.write(
-                        self.style.ERROR(
-                            f"Error !!: {response.text}, Status Code: {response.status_code}"
-                        )
-                    )
+                    print(f'\033[91m Error, gpu status rejected. \033[0m')
+
             except requests.exceptions.RequestException as e:
-                self.stdout.write(self.style.ERROR(f"Error2: {e}"))
+                logging.warning(f"Error2: {e}")
 
     def submit_update_gpu_status(self,node_id):
-        self.gpu_status = {
-            i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)
-        }
-        for gpu_key, gpu in self.gpus_status.items():
-            data = {
-                "action": "update_node_gpu_status",
-                "brand_name": gpu["name"],
-                "gpu_util": gpu["gpu_util"],
-                "status": gpu["status"],
-                "node_id": self.node_id,
-                "is_running_amumax": gpu["is_running_amumax"],
-                "gpu_uuid": gpu["gpu_uuid"],
-            }
+        if node_id is not None:
+            # self.gpu_status = {
+            #     i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)
+            # }
+            for gpu_key, gpu in self.gpus_status.items():
+                data = {
+                    "action": "update_node_gpu_status",
+                    "brand_name": gpu["name"],
+                    "gpu_util": gpu["gpu_util"],
+                    "status": gpu["status"],
+                    "node_id": self.node_id,
+                    "is_running_amumax": gpu["is_running_amumax"],
+                    "gpu_uuid": gpu["gpu_uuid"],
+                }
 
-            try:
-                # import json
-                # print(json.dumps(data))
-                response = requests.post(self.node_management_url, data=data)
-                if response.status_code == 200:
-                    self.stdout.write(
-                        self.style.SUCCESS(f"Successfull gpu {gpu_key} update.")
-                    )
-                else:
-                    self.stdout.write(
-                        self.style.ERROR(
-                            f"Error !!: {response.text}, Status Code: {response.status_code}"
-                        )
-                    )
-            except requests.exceptions.RequestException as e:
-                self.stdout.write(self.style.ERROR(f"Error2: {e}"))
+                try:
+                    # import json
+                    # print(json.dumps(data))
+                    response = requests.post(self.node_management_url, data=data)
+                    if response.status_code == 200:
+                        print(f'\033[92m Successfull gpu {gpu_key} update.\033[0m')
+                    else:
+                        print(f'\033[91m Error gpu {gpu_key} not found in manager database.\033[0m')
+                        
+                except requests.exceptions.RequestException as e:
+                    print(f'\033[91m Error {e}. \033[0m')
+        else:
+            print(f'\033[91m Node not found \033[0m')

@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.shortcuts import get_object_or_404, redirect
 from django.http import HttpResponse
 from django.db.models import Q
+from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib import messages
@@ -107,8 +108,8 @@ class NodeListView(APIView):
                 return self.remove_node(request, node_id)
             elif node_id and action == "manage":
                 return self.manage_node(request, node_id)
-            elif node_id and action == "refresh_gpus":
-                return self.refresh_gpus(request, node_id)
+            # elif node_id and action == "refresh_gpus":
+            #     return self.refresh_gpus(request, node_id)
             else:
                 nodes = Nodes.objects.all()
                 return render(request, "manager/node_list.html", {"nodes": nodes})
@@ -131,8 +132,9 @@ class NodeListView(APIView):
         # Logika do wyświetlenia szczegółów i zarządzania konkretnym węzłem
         gpu_list = Gpus.objects.all()
         gpus = Gpus.objects.filter(node_id=node_id)
+        gpu_count = Gpus.objects.filter(node_id=node_id).count()
         return render(
-            request, "manager/node_manage.html", {"gpus": gpus, "node_id": node_id}
+            request, "manager/node_manage.html", {"gpus": gpus, "node_id": node_id, "gpu_count": gpu_count}
         )
 
     # def refresh_gpus(self,request, node_id):
@@ -208,24 +210,27 @@ class NodeManagementView(APIView):
         ip = request.data.get("ip")
         port = request.data.get("port")
         gpu_info = request.data.get("gpu_info")
-
+        name = request.data.get("node_name")
+        
         node, created = Nodes.objects.get_or_create(
-            ip=ip,
-            port=port,
-            defaults={"gpu_info": gpu_info, "last_seen": timezone.now()},
+            name=name,
+            defaults={"status": "Connected","gpu_info": gpu_info, "last_seen": timezone.now()},
         )
 
         if created:
             return Response(
-                {"message": "Node assigned sucessfull.", "id": node.id}, status=201
+                {"message": "Node assigned sucessfull.", "id": node.id}, status=200
             )
         else:
             # Aktualizuj istniejący węzeł
             node.gpu_info = gpu_info
+            node.ip=ip
+            node.connection_status="Connected"
+            node.name=name
             node.last_seen = timezone.now()
             node.save()
             return Response(
-                {"message": "Node status updated.", "id": node.id}, status=201
+                {"message": "Node status updated.", "id": str(node.id)}, status=201
             )
 
     def get_gpu_performance_category(self, gpu_model):
@@ -269,20 +274,30 @@ class NodeManagementView(APIView):
         is_running_amumax = request.data.get("is_running_amumax")
         gpu_uuid = request.data.get("gpu_uuid")
 
-        gpu, created = Gpus.objects.get_or_create(
-            node_id=node_id,
-            gpu_uuid=gpu_uuid,
-            defaults={
-                "brand_name": brand_name,
-                "gpu_speed": self.get_gpu_performance_category(brand_name),
-                "gpu_info": gpu_info,
-                "gpu_util": gpu_util,
-                "is_running_amumax": is_running_amumax,
-                "gpu_speed": str(self.get_gpu_performance_category(brand_name)),
-                "status": status,
-                "last_update": timezone.now(),
-            },
-        )
+        
+        with transaction.atomic():  # Używamy transakcji, aby zapewnić spójność danych
+            # Sprawdzamy, czy istnieje już GPU o danym UUID
+            existing_gpu = Gpus.objects.filter(gpu_uuid=gpu_uuid).first()
+            
+            if existing_gpu:
+                old_node = existing_gpu.node_id
+                Nodes.objects.filter(id=old_node.id).delete()  # Usuwamy wszystkie GPU powiązane ze starym węzłem
+                old_node.delete()  # Następnie usuwamy stary węzeł
+            
+            gpu, created = Gpus.objects.get_or_create(
+                node_id=node_id,
+                gpu_uuid=gpu_uuid,
+                defaults={
+                    "brand_name": brand_name,
+                    "gpu_speed": self.get_gpu_performance_category(brand_name),
+                    "gpu_info": gpu_info,
+                    "gpu_util": gpu_util,
+                    "is_running_amumax": is_running_amumax,
+                    "gpu_speed": str(self.get_gpu_performance_category(brand_name)),
+                    "status": status,
+                    "last_update": timezone.now(),
+                },
+            )
 
         if created:
             return Response(
@@ -344,14 +359,14 @@ class TaskManagerView(APIView):
     def get(self, request, action, *args, **kwargs):
         task_id = kwargs.get("task_id")
         methods = {
-            "edit": self.edit_task,
+            "edit_task": self.edit_task,
             "get_task": self.get_task,
-            "delete": self.delete_task,
-            "run": self.run_task,
-            "cancel": self.cancel_task,
-            "redo": self.redo_task,
-            "add_task": self.add_task_form,
-            "output": self.task_output,
+            "delete_task": self.delete_task,
+            "run_task": self.run_task,
+            "cancel_task": self.cancel_task,
+            "redo_task": self.redo_task,
+            "add_task": self.add_task,
+            "task_output": self.task_output,
         }
 
         if action in methods:
@@ -366,11 +381,13 @@ class TaskManagerView(APIView):
     def post(self, request, *args, **kwargs):
         action = kwargs.get("action")
         if action == "add_task":
-            return self.add_task_form(request)
+            return self.add_task(request)
         elif action == "edit_task":
             return self.edit_task(request, task_id=kwargs.get("task_id"))
         elif action == "get_task":
             return self.get_task(request, task_id=kwargs.get("task_id"))
+        elif action == "run_task":
+            return self.run_task(request, task_id=kwargs.get("task_id"))
         else:
             if request.accepted_renderer.format == "json":
                 return Response({"error": "Invalid action"}, status=400)
@@ -459,65 +476,67 @@ class TaskManagerView(APIView):
     def get_priority_task(self):
         return Task.objects.filter(status="Waiting").order_by("-priority").first()
 
+    @csrf_exempt
     def run_task(self, request, task_id=None):
-        try:
-            task = (
-                self.get_priority_task()
-                if task_id is None
-                else get_object_or_404(Task, id=task_id)
-            )
-            gpu = self.select_gpu_for_task()
-            if not gpu:
-                message = "No available GPUs."
-                if request.accepted_renderer.format == "json":
-                    return Response({"error": message}, status=400)
-                elif request.accepted_renderer.format == "html":
-                    messages.success(request, message, extra_tags="danger")
-                    return redirect("task_list")
-                else:
-                    return redirect(
-                        "task_list"
-                    )  ############ PROPABLY IT"s the same as above
+            try:
+                # Deserialize task data from JSON if applicable
+                task_data = request.data if request.content_type == "application/json" else request.POST.dict()
+                task_id = task_data.get("task_id", task_id)
+                task = get_object_or_404(Task, pk=task_id)
 
-            task.assigned_gpu_id = gpu.no
-            task.assigned_node_id = f"{gpu.node_id.ip}"
-            task.status = "Pending"
-            task.submit_time = timezone.now()
-            task.save()
+                gpu = self.select_gpu_for_task()
+                if not gpu:
+                    return self.handle_response(request, "No available GPUs.", "danger", 400)
 
-            gpu.status = "Running"
-            gpu.task_id = task
-            gpu.last_update = timezone.now()
-            gpu.save()
 
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                "nodes_group",
-                {
-                    "type": "node.command",
-                    "command": "run_task",
-                    "node_id": gpu.node_id.id,
-                    "task_id": task.id,
-                },
-            )
-            time.sleep(2)
-            message = f"Task {task_id} is pending on {gpu.node_id.id}/{gpu.no}."
-            if request.accepted_renderer.format == "json":
-                return Response({"message": message})
-            elif request.accepted_renderer.format == "html":
-                messages.success(request, message, extra_tags="primary")
-                return redirect("task_list")
+                gpu.status = "Running"
+                gpu.task_id = task
+                gpu.last_update = timezone.now()
+                gpu.save()
+                
+                # Update task with assigned GPU and status
+                task.assigned_gpu_id = gpu.no
+                task.assigned_node_id = gpu.node_id.id
+                task.status = "Pending"
+                task.submit_time = timezone.now()
+                task.save()
+
+                # Send task run command to the node managing the selected GPU
+                self.send_run_command(task, gpu)
+                time.sleep(3)
+                
+                return self.handle_response(request, f"Task {task_id} is running on GPU {gpu.id}.", "success", 200)
+            except Exception as e:
+                return self.handle_response(request, str(e), "danger", 400)
+
+
+    def send_run_command(self, task, gpu):
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "nodes_group",  # Assume a group name for nodes
+            {
+                "type": "node.command",
+                "command": "run_task",
+                "node_id": task.assigned_node_id,
+                "task_id": task.id,
+                "gpu_id": task.assigned_gpu_id,
+            }
+        )
+
+    def handle_response(self, request, message, tag, status_code=200):
+        if request.accepted_renderer.format == "json" or request.content_type == "application/json":
+            response_content = {"message": message} if status_code == 200 else {"error": message}
+            return Response(response_content, status=status_code)
+        else:
+            # Add message for HTML response
+            from django.contrib import messages
+            if tag == "success":
+                messages.success(request, message)
+            elif tag == "danger":
+                messages.error(request, message)
             else:
-                return redirect("task_list")
-        except Exception as e:
-            message = f"The task {task_id} has not been started. Error: {e}"
-            if request.accepted_renderer.format == "json":
-                return Response({"error": message}, status=400)
-            elif request.accepted_renderer.format == "html":
-                messages.success(request, message, extra_tags="danger")
-                return redirect("task_list")
-            else:
-                return redirect("task_list")
+                messages.info(request, message)
+            return redirect("task_list")
 
     def cancel_task(self, request, task_id=None):
         try:
@@ -584,34 +603,30 @@ class TaskManagerView(APIView):
         else:
             return HttpResponse(f"Task {task_id} redo initiated")
 
-    def add_task_form(self, request, task_id=None):
+    def add_task(self, request,*args, **kwargs):
         if request.method == "GET":
             form = AddTaskForm()
-            if request.accepted_renderer.format == "json":
-                # W przypadku odpowiedzi JSON, zwracamy pustą strukturę formularza
-                serializer = TaskSerializer(data=request.data)
-                return Response(serializer.data)
-            else:
-                # W przypadku odpowiedzi HTML, renderujemy formularz HTML
-                return render(request, "manager/task_form.html", {"form": form})
+            return render(request, "manager/task_form.html", {"form": form})
 
         elif request.method == "POST":
-            # Obsługa żądania POST dla tworzenia nowego zadania
-            if request.accepted_renderer.format == "json":
+            if request.content_type == "application/json":
+                # Handle JSON data
                 data = JSONParser().parse(request)
-                serializer = TaskSerializer(data=request.data)
+                serializer = TaskSerializer(data=data)
                 if serializer.is_valid():
                     serializer.save()
-                    return Response(serializer.data, status=201)
-                return Response(serializer.errors, status=400)
+                    return JsonResponse(serializer.data, status=201)
+                else:
+                    return JsonResponse(serializer.errors, status=400)
             else:
+                # Handle form data
                 form = AddTaskForm(request.POST)
                 if form.is_valid():
                     form.save()
+                    messages.success(request, "Task added successfully!")
                     return redirect("task_list")
                 else:
                     return render(request, "manager/task_form.html", {"form": form})
-
 
 class TaskListView(APIView):
     renderer_classes = [TemplateHTMLRenderer, JSONRenderer]

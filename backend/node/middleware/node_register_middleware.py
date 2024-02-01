@@ -8,7 +8,7 @@ from node.functions.gpu_monitor import GPUMonitor
 import json
 from django.core.exceptions import MiddlewareNotUsed
 import os
-
+import uuid
 from dotenv import load_dotenv, set_key, get_key, find_dotenv
 
 
@@ -17,9 +17,13 @@ class NodeStartupMiddleware:
         
         self.dotenv_file = find_dotenv()
         load_dotenv(self.dotenv_file)
-        self.node_id=get_key(self.dotenv_file, "NODE_ID")
-        MANAGER_URL=get_key(self.dotenv_file, "MANAGER_URL")
-        self.node_management_url = f"http://{MANAGER_URL}/manager/node-management/"
+        
+        self.manager_url = os.getenv("MANAGER_URL") if os.getenv("MANAGER_URL") not in [None, ""] else "localhost:8000"
+        self.node_id = os.getenv("NODE_ID") if os.getenv("NODE_ID") not in [None, ""] else "0" 
+        self.node_name = os.getenv("NODE_NAME") if os.getenv("NODE_NAME") not in [None, ""] else str(uuid.uuid1())    
+        
+       
+        self.node_management_url = f"http://{self.manager_url}/manager/node-management/"
 
         self.get_response = get_response
 
@@ -35,26 +39,34 @@ class NodeStartupMiddleware:
         url = self.node_management_url  
         data = {
             'action': "assign_new_node",
+            'node_name':self.node_name,
             'ip': self.get_own_ip(),
-            'port': None,  # Możesz zastąpić None właściwym portem, jeśli jest potrzebny
-            'number_of_gpus': 0,  # Zaktualizuj tę wartość odpowiednio
+            'port': None,  
+            'number_of_gpus': 0,  
         }
 
         try:
             response = requests.post(url, data=data)
             response_data = response.json()
-            # if response.status_code == 200:
-            #     print('Successfull node assign. Response: ' + str(response_data.id))
-            # else:
-            #     print('Successfull node update. Response: ' + str(response_data))
+            if response.status_code == 200:
+                os.environ["NODE_ID"] = str(response_data.get('id'))
+                self.node_id=response_data.get('id')
+                print('Successfull node assign. Response: ' + str(response_data.get('id')))
+            elif response.status_code == 201:
+                os.environ["NODE_ID"] = str(response_data.get('id'))
+                self.node_id=response_data.get('id')
+                print('Successfull node update. Response: ' + str(response_data))
             self.node_id=response_data.get('id')
-            load_dotenv(self.dotenv_file)
-            set_key(self.dotenv_file, "NODE_ID", str(self.node_id))
+            os.environ["NODE_ID"]=str(self.node_id)
             print(f'\033[92mSuccessfull found node_id: {self.node_id}.\033[0m')
 
-            if response.status_code == 201:
+            if response.status_code == 200:
                 gpm = GPUMonitor() 
-                gpm.assign_gpus(self.node_id)       
+                gpm.assign_gpus(self.node_id)  
+            elif response.status_code == 201:
+                gpm = GPUMonitor() 
+                gpm.submit_update_gpu_status(self.node_id)
+                
         except requests.exceptions.RequestException as e:
             print(f'\033[92mBłąd: {e}.\033[0m')
 
