@@ -10,7 +10,6 @@ manager: build
 		--name manager \
 		--network amuman \
 		--cap-add SYS_ADMIN \
-		-v .:/app \
 		--cap-add DAC_READ_SEARCH \
 		-p 8000:8000 \
 		--env-file ./.env \
@@ -22,10 +21,10 @@ node: build
 		--name node \
 		--network amuman \
 		--cap-add SYS_ADMIN \
-		-v .:/app \
 		--cap-add DAC_READ_SEARCH \
 		--gpus all \
 		--env-file ./.env \
+		-e NODE_ID=1 \
 		amuman node
 it:
 	sudo docker run --network amuman --gpus all --rm -it -v .:/app amuman bash
