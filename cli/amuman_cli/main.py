@@ -8,6 +8,7 @@ import toml
 import typer
 from rich import print
 from rich.prompt import Prompt
+from rich.progress import track
 from typing_extensions import Annotated
 from xdg_base_dirs import xdg_config_home
 
@@ -121,7 +122,9 @@ def queue(
         config = init_config(config_path)
 
     url = f"{config['manager_url']}/manager/task/add_task/"
-    for path in paths:
+    total = 0
+    print(f"Processed {total} things.")
+    for path in track(paths, description="Sending jobs..."):
         data = {
             "path": str(path),
             "priority": priority.name,
@@ -134,6 +137,7 @@ def queue(
             # print(f"Response Body: {response.text}\n---")
         except httpx.HTTPError as e:
             print(f"An HTTP error occurred for path {path}: {e}")
+        total += 1
 
 
 def entrypoint():
