@@ -21,11 +21,27 @@ def main(
             resolve_path=True,
         ),
     ],
-    priority: Annotated[str, typer.Option(help="Fast, Normal or Slow")] = "Normal",
-    gpu_partition: Annotated[str, typer.Option(help="Fast, Normal or Slow")] = "Normal",
+    priority: Annotated[
+        str,
+        typer.Option(
+            "--priority",
+            "-p",
+            help="Fast, Normal or Slow",
+        ),
+    ] = "Normal",
+    gpu_partition: Annotated[
+        str,
+        typer.Option(
+            "--gpu-partition",
+            "-g",
+            help="Fast, Normal or Slow",
+        ),
+    ] = "Normal",
     estimated_time: Annotated[
         int,
         typer.Option(
+            "--estimated-time",
+            "-e",
             help="Estimated time for one simulations in hours",
             min=0,
             max=300,
