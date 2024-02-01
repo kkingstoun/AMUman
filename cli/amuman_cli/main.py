@@ -1,14 +1,13 @@
+from enum import Enum
 from pathlib import Path
 from typing import List
-from enum import Enum
-
 
 import httpx
 import toml
 import typer
 from rich import print
-from rich.prompt import Prompt
 from rich.progress import track
+from rich.prompt import Prompt
 from typing_extensions import Annotated
 from xdg_base_dirs import xdg_config_home
 
@@ -41,13 +40,11 @@ def init_config(config_path):
         "[bold green]Full path to the shared storage. [/bold green]",
         default="/shared",
     )
-    with open(config_path, "w") as config_file:
-        data = {
-            "manager_url": manager_url,
-            "shared_dir_path": shared_dir_path,
-        }
-        config = toml.dumps(data)
-        config_file.write(config)
+    config = {
+        "manager_url": manager_url,
+        "shared_dir_path": shared_dir_path,
+    }
+    config_path.write_text(toml.dumps(config))
     print("[bold green]Successfully created the config file.[/bold green]")
     print(
         "[bold blue]Run `amuman-cli --install-completion` to benefit from shell completion. [/bold blue]"
@@ -56,13 +53,28 @@ def init_config(config_path):
 
 
 def read_config(config_path):
-    with open(config_path, "r") as config_file:
-        config = toml.load(config_file)
+    config = toml.loads(config_path.read_text())
     required_keys = ["manager_url", "shared_dir_path"]
     missing_keys = [key for key in required_keys if key not in config]
     if missing_keys:
         print(f"Missing keys: {missing_keys}")
+        config = init_config(config_path)
     return config
+
+
+def sanitize_path(path, shared_dir_path):
+    path = path.resolve()
+    shared_dir_path = Path(shared_dir_path).resolve()
+    if shared_dir_path in path.parents:
+        if path.suffix == ".mx3":
+            return path
+        else:
+            print(f"[bold red]Skipping `{path}`: the path does not end in `.mx3`.")
+
+    else:
+        print(
+            f"[bold red]Skipping `{path}`: the path is not in the shared directory `{shared_dir_path}`."
+        )
 
 
 @app.command()
@@ -116,15 +128,19 @@ def queue(
         ),
     ] = 1,
 ):
-    if config_path.exists():
+    if config_path.is_file():
         config = read_config(config_path)
     else:
         config = init_config(config_path)
+    manager_url = config["manager_url"]
+    shared_dir_path = config["shared_dir_path"]
 
-    url = f"{config['manager_url']}/manager/task/add_task/"
-    total = 0
-    print(f"Processed {total} things.")
-    for path in track(paths, description="Sending jobs..."):
+    url = f"{manager_url}/manager/task/add_task/"
+    print(f"[bold green]Submitting jobs to {manager_url}/manager/task/")
+    for path in track(paths, description="[bold green]Progress:"):
+        path = sanitize_path(path, shared_dir_path)
+        if path is None:
+            continue
         data = {
             "path": str(path),
             "priority": priority.name,
@@ -137,7 +153,6 @@ def queue(
             # print(f"Response Body: {response.text}\n---")
         except httpx.HTTPError as e:
             print(f"An HTTP error occurred for path {path}: {e}")
-        total += 1
 
 
 def entrypoint():
