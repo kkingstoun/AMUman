@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'widget_tweaks',
     'bootstrap5',
     'channels',
+    'drf_yasg',
 ]
 
 CHANNEL_LAYERS = {
