@@ -28,3 +28,6 @@ node: build
 		amuman node
 it:
 	sudo docker run --network amuman --gpus all --rm -it -v .:/app amuman bash
+
+cli:
+	docker run --network amuman --rm -it -v ./cli:/app -w /app docker.io/python:3.11-slim /bin/sh -c "pip install . && bash"
