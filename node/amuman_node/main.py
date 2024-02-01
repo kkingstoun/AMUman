@@ -1,0 +1,2 @@
+def entrypoint() -> None:
+    return

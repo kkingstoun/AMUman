@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=42.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+authors = [
+  { name = "Mathieu Moalic", email = "matmoa@amu.edu.pl" },
+  { name = "Mateusz Zelent", email = "mateusz.zelent@amu.edu.pl" },
+]
+name = "amuman-node"
+requires-python = ">=3.8"
+dependencies = [
+]
+version = "0.0.1"
+
+[project.scripts]
+amuman-node="amuman_node.main:entrypoint"
+
+[tool.mypy]
+ignore_missing_imports = true

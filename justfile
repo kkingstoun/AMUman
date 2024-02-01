@@ -15,17 +15,16 @@ manager: build
 		--env-file ./.env \
 		amuman manager
 
-node: build
-	sudo docker rm -f node
-	sudo docker run --rm -it \
+node:
+	docker run --rm -it \
 		--name node \
 		--network amuman \
-		--cap-add SYS_ADMIN \
-		--cap-add DAC_READ_SEARCH \
-		--gpus all \
 		--env-file ./.env \
-		-e NODE_ID=1 \
-		amuman node
+		-e NODE_NAME=test_node \
+		-v ./node:/app \
+		-w /app \
+		docker.io/python:3.11-slim \
+		/bin/sh -c "pip install -e . && bash"
 it:
 	sudo docker run --network amuman --gpus all --rm -it -v .:/app amuman bash
 
