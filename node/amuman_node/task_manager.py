@@ -3,19 +3,22 @@ import logging
 import os
 from datetime import datetime
 
-import dotenv
 import httpx
 import requests
 from asgiref.sync import sync_to_async
-from common_models.models import Task
+# from common_models.models import Task
 
-from node.JobProcesss import JobProcess
+from .job_processs import JobProcess
+
+
+class Task:
+    pass
 
 
 class TaskManager:
     def __init__(self, node_id, *args, **kwargs):
-        dotenv_file = dotenv.find_dotenv()
-        dotenv.load_dotenv(dotenv_file)
+        # dotenv_file = dotenv.find_dotenv()
+        # dotenv.load_dotenv(dotenv_file)
         self.node_id = node_id
 
         self.url = f"http://{os.environ['MANAGER_URL']}/manager/task/"

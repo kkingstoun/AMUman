@@ -2,9 +2,13 @@ import asyncio
 import logging
 import signal
 
-from common_models.models import *  # Załóżmy, że te modele są zdefiniowane w aplikacji
+# from common_models.models import *  # Załóżmy, że te modele są zdefiniowane w aplikacji
 
 logger = logging.getLogger(__name__)
+
+
+class Task:
+    pass
 
 
 class JobProcess:
