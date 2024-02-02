@@ -1,11 +1,11 @@
 [build-system]
-requires = ["setuptools>=42.0", "wheel"]
+requires = ["setuptools>=69.0.3", "wheel"]
 build-backend = "setuptools.build_meta"
-
 
 [project]
 authors = [
   { name = "Mathieu Moalic", email = "matmoa@amu.edu.pl" },
+  { name = "Mateusz Zelent", email = "mateusz.zelent@amu.edu.pl" },
 ]
 name = "amuman-cli"
 requires-python = ">=3.8"
