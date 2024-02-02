@@ -3,6 +3,9 @@ from common_models.models import Task
 from django.core.exceptions import ValidationError
 import re
 from datetime import timedelta
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Div, Field, HTML
+from common_models.models import ManagerSettings
 
 class EditTaskForm(forms.ModelForm):
     pass
@@ -42,3 +45,28 @@ class AddTaskForm(forms.ModelForm):
         super(AddTaskForm, self).__init__(*args, **kwargs)
         for field in self.fields:
             self.fields[field].required = False
+            
+  
+
+
+
+
+class SettingsForm(forms.ModelForm):
+    class Meta:
+        model = ManagerSettings
+        fields = ["queue_watchdog"]
+
+    def __init__(self, *args, **kwargs):
+        super(SettingsForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.layout = Layout(
+            Div(
+                Div(
+                    Field('queue_watchdog', wrapper_class='form-check form-switch'),
+                    HTML('<label class="form-check-label" for="id_queue_watchdog">Default switch checkbox input</label>'),
+                    css_class='form-check form-switch',
+                ),
+                css_class='row',
+            ),
+        )
+        self.helper.form_method = 'post'

@@ -51,6 +51,8 @@ INSTALLED_APPS = [
     'bootstrap5',
     'channels',
     'drf_yasg',
+    'crispy_forms',
+    "crispy_bootstrap4",
 ]
 
 CHANNEL_LAYERS = {
@@ -150,11 +152,13 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 CORS_ALLOW_ALL_ORIGINS = True
 
 RUN_WEBSOCKET_CLIENT = True  # Ustaw na False, aby nie uruchamiać klienta WebSocket
 
 MANAGER_HOST="localhost"
+
 MANAGER_PORT=8000
 
 STATIC_URL = '/static/'
@@ -162,5 +166,11 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'manager/static'),
 ]
+
 URL_MODE_PREFIX = "manager"
-APPEND_SLASH = False
+
+APPEND_SLASH = True
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
+
+CRISPY_TEMPLATE_PACK = "bootstrap4"

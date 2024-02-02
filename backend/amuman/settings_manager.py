@@ -24,3 +24,7 @@ DATABASES.update({
         "NAME": BASE_DIR / "managerdb.sqlite3", 
     }
 })
+
+MIDDLEWARE += [
+    'manager.middleware.scheduler_middleware.SchedulerMiddleware',
+]

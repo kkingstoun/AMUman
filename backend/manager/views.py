@@ -11,6 +11,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.urls import reverse
+from django.core.cache import cache
+from manager.components.scheduler import ThreadedScheduler
 
 from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 from rest_framework.parsers import JSONParser
@@ -19,7 +21,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from common_models.models import *
-from .components.forms import EditTaskForm, AddTaskForm
+from .components.forms import EditTaskForm, AddTaskForm, SettingsForm
 from .serializers import TaskSerializer
 # from .components.nodes_monitor import NodesMonitor
 
@@ -367,6 +369,8 @@ class TaskManagerView(APIView):
             "redo_task": self.redo_task,
             "add_task": self.add_task,
             "task_output": self.task_output,
+            "run_schedule": self.run_schedule,
+            "stop_schedule": self.stop_schedule,
         }
 
         if action in methods:
@@ -393,6 +397,29 @@ class TaskManagerView(APIView):
                 return Response({"error": "Invalid action"}, status=400)
             else:
                 return redirect("task_list")
+
+
+    def print_work(self, what_to_say: str):
+        print(what_to_say)
+
+    @csrf_exempt
+    def run_schedule(self, request, task_id):
+        scheduler = ThreadedScheduler.get_instance()  # Pobierz instancję schedulera
+
+        scheduler.every(1).seconds.do(self.print_work, what_to_say='Did_job1')
+        scheduler.start()  # Uruchom scheduler, jeśli nie jest już uruchomiony
+        return HttpResponse("Scheduler started.")
+
+        
+    @csrf_exempt
+    def stop_schedule(self, request, task_id):
+        scheduler = ThreadedScheduler.get_instance()  # Pobierz instancję schedulera
+        scheduler.stop()  # Zatrzymaj scheduler
+        return JsonResponse(
+                    {"message": "Scheduler stopped!"}, status=200
+                )
+
+
 
     @csrf_exempt
     def get_task(self, request, task_id):
@@ -656,3 +683,20 @@ class TaskListView(APIView):
             return Response(data)
 
         return Response(data, template_name="manager/task_list.html")
+
+
+@csrf_exempt
+def settings_view(request):
+    # Załóżmy, że istnieje tylko jeden obiekt ustawień, więc używamy `first()`
+    settings_instance = ManagerSettings.objects.first()  
+    if request.method == "POST":
+        form = SettingsForm(request.POST, instance=settings_instance)
+        if form.is_valid():
+            form.save()
+            # Tutaj możesz dodać obsługę odpowiedzi JSON, jeśli jest potrzebna
+            messages.success(request, "Settings updated successfully!", extra_tags="primary")
+            return redirect("settings_view")  # Zakładam, że 'settings_view' to nazwa URL widoku ustawień
+    else:
+        form = SettingsForm(instance=settings_instance)
+    
+    return render(request, "manager/manager_settings.html", {"form": form})

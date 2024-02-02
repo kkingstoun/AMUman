@@ -27,6 +27,7 @@ urlpatterns = [
    
     ####NODE-MANAGEMENT####
     path('node-management/', NodeManagementView.as_view(), name='node_management'),
+    path('settings/', settings_view, name='settings_view'),
 
 
 
