@@ -17,8 +17,8 @@ class TaskManager:
     def __init__(self,node_id,*args, **kwargs):
         dotenv_file = dotenv.find_dotenv()
         dotenv.load_dotenv(dotenv_file)
+
         self.node_id=node_id
-        
         self.url = f"http://{os.environ['MANAGER_URL']}/manager/task/"
         self.api_base_url = f"http://{os.environ['MANAGER_URL']}"
         self.tasks={}
@@ -90,24 +90,14 @@ class TaskManager:
             self.task=task    
             
         url = f"{self.url}edit_task/{self.task_id}/"
-        print(self.task.status)
-        if self.task.status=='Waiting':
+        if self.task.status=="Pending":
             data = {
-                "status": "Pending",
+                "status": self.task.status,
                 "start_time": datetime.now().isoformat(),
                 "port": self.task.flags.get('port','35367'),
                 "output": self.task.output,
                 "error": self.task.error,
             }
-        elif self.task.status=="Pending":
-            data = {
-                "status": "Running",
-                "error_time": datetime.now().isoformat(),
-                "port": self.task.flags.get('port','35367'),
-                "output": self.task.output,
-                "error": self.task.error,
-                "end_time": None,
-                }
         elif self.task.status=="Interrupted":
             data = {
                 "status": self.task.status,
@@ -115,7 +105,7 @@ class TaskManager:
                 "port": self.task.flags.get('port','35367'),
                 "output": self.task.output,
                 "error": self.task.error,
-                "end_time": None,
+                "end_time": datetime.now().isoformat(),
                 }
         elif self.task.status == "Finished":
             data = {
