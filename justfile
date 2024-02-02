@@ -5,7 +5,6 @@ build:
 	sudo docker build . -t amuman
 
 manager: build
-	sudo docker rm -f manager
 	sudo docker run --rm -it \
 		--name manager \
 		--network amuman \
@@ -13,20 +12,27 @@ manager: build
 		--cap-add DAC_READ_SEARCH \
 		-p 8000:8000 \
 		--env-file ./.env \
+		-v .:/app \
 		amuman manager
 
-node:
-	docker run --rm -it \
+node: build
+	sudo docker run --rm -it \
 		--name node \
 		--network amuman \
 		--env-file ./.env \
+		--cap-add SYS_ADMIN \
+		--cap-add DAC_READ_SEARCH \
+		--gpus all \
 		-e NODE_NAME=test_node \
-		-v ./node:/app \
-		-w /app \
-		docker.io/python:3.11-slim \
-		/bin/sh -c "pip install -e . && bash"
-it:
-	sudo docker run --network amuman --gpus all --rm -it -v .:/app amuman bash
+		-v .:/app \
+		amuman node
 
-cli:
-	sudo docker run --network amuman --rm -it -v ./cli:/app -w /app docker.io/python:3.11-slim /bin/sh -c "pip install -e . && bash"
+cli: build
+	sudo docker run --rm -it \
+		--name cli \
+		--network amuman \
+		--env-file ./.env \
+		--cap-add SYS_ADMIN \
+		--cap-add DAC_READ_SEARCH \
+		-v .:/app \
+		amuman cli
