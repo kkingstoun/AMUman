@@ -1,29 +1,19 @@
 import logging
-import os
 import re
 import subprocess
 import time
-import uuid
 from datetime import datetime
 
 import requests
 
 
+log = logging.getLogger("rich")
+
+
 class GPUMonitor:
-    def __init__(self, *args, **kwargs):
-        self.manager_url = (
-            os.getenv("MANAGER_URL")
-            if os.getenv("MANAGER_URL") not in [None, ""]
-            else "localhost:8000"
-        )
-        self.node_id = (
-            os.getenv("NODE_ID") if os.getenv("NODE_ID") not in [None, ""] else "0"
-        )
-        self.node_name = (
-            os.getenv("NODE_NAME")
-            if os.getenv("NODE_NAME") not in [None, ""]
-            else str(uuid.uuid1())
-        )
+    def __init__(self, node_id, manager_url):
+        self.node_id = node_id
+        self.manager_url = manager_url
         self.node_management_url = f"http://{self.manager_url}/manager/node-management/"
         self.gpus = self.get_gpu_count()
         self.gpus_status = self.check_gpus_status()
@@ -74,10 +64,10 @@ class GPUMonitor:
                 if gpu_util < threshold and mem_util < threshold:
                     return "Waiting", gpu_util
             except subprocess.CalledProcessError as e:
-                print(f"Error running nvidia-smi: {e}")
+                log.exception(f"Error running nvidia-smi: {e}")
                 return "error"
             except ValueError:
-                print("Data conversion error.")
+                log.exception("Data conversion error.")
                 return "error"
             time.sleep(1)  # Wait 1 second before the next check
         return 1, gpu_util
@@ -119,10 +109,10 @@ class GPUMonitor:
                     return True
             return False
         except subprocess.CalledProcessError as e:
-            print(f"Subprocess error: {e}")
+            log.exception(f"Subprocess error: {e}")
             return False
         except Exception as e:
-            print(f"Error: {e}")
+            log.exception(f"Error: {e}")
             return False
 
     def check_gpu_brand(self, gpu_index=0):
@@ -143,7 +133,7 @@ class GPUMonitor:
             )
             return output
         except subprocess.CalledProcessError as e:
-            print(f"Error running nvidia-smi: {e}")
+            log.exception(f"Error running nvidia-smi: {e}")
             return None
 
     def get_nvidia_gpu_uuid(self, pk=0):
@@ -155,7 +145,7 @@ class GPUMonitor:
                 return uuids[pk]
             return uuids
         except Exception as e:
-            print(f"Error getting GPU UUIDs: {e}")
+            log.exception(f"Error getting GPU UUIDs: {e}")
             return None
 
     def assign_gpus(self, node_id):
@@ -176,24 +166,22 @@ class GPUMonitor:
             }
 
             try:
-                response = requests.post(self.node_management_url, data=data)
-                if response.status_code == 200:
-                    response_data = response.json()
-                    print(f"\033[92m Successfull new gpu {gpu_key} assign. \033[0m")
-                elif response.status_code == 201:
-                    response_data = response.json()
-                    print(f"\033[92m Successfull gpu {gpu_key} update. \033[0m")
+                response = requests.post(
+                    self.node_management_url,
+                    data=data,
+                )
+                if response.status_code in [200, 201]:
+                    log.info(
+                        f"Added GPU:{gpu_key} ({gpu['name']}) in the manager database"
+                    )
                 else:
-                    print("\033[91m Error, gpu status rejected. \033[0m")
+                    log.error("Error, gpu status rejected")
 
             except requests.exceptions.RequestException as e:
-                logging.warning(f"Error2: {e}")
+                log.exception(f"Error2: {e}")
 
     def submit_update_gpu_status(self, node_id):
         if node_id is not None:
-            # self.gpu_status = {
-            #     i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)
-            # }
             for gpu_key, gpu in self.gpus_status.items():
                 data = {
                     "action": "update_node_gpu_status",
@@ -206,17 +194,19 @@ class GPUMonitor:
                 }
 
                 try:
-                    # import json
-                    # print(json.dumps(data))
                     response = requests.post(self.node_management_url, data=data)
                     if response.status_code == 200:
-                        print(f"\033[92m Successfull gpu {gpu_key} update.\033[0m")
+                        log.info(
+                            f"Updated GPU:{gpu_key} ({gpu['name']}) in the manager database"
+                        )
                     else:
-                        print(
-                            f"\033[91m Error gpu {gpu_key} not found in manager database.\033[0m"
+                        log.exception(
+                            f"Error gpu {gpu_key} not found in manager database"
                         )
 
                 except requests.exceptions.RequestException as e:
-                    print(f"\033[91m Error {e}. \033[0m")
+                    log.exception(f"Error {e}")
+                except Exception as e:
+                    log.exception(f"Error {e}")
         else:
-            print("\033[91m Node not found \033[0m")
+            log.exception("Node not found")

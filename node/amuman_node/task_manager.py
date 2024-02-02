@@ -1,148 +1,67 @@
-import json
 import logging
-import os
+from dataclasses import asdict
 from datetime import datetime
 
-import httpx
 import requests
-from asgiref.sync import sync_to_async
-# from common_models.models import Task
 
 from .job_processs import JobProcess
+from .task import Task
 
-
-class Task:
-    pass
+log = logging.getLogger("rich")
 
 
 class TaskManager:
-    def __init__(self, node_id, *args, **kwargs):
-        # dotenv_file = dotenv.find_dotenv()
-        # dotenv.load_dotenv(dotenv_file)
+    def __init__(self, node_id: int, manager_url: str):
         self.node_id = node_id
-
-        self.url = f"http://{os.environ['MANAGER_URL']}/manager/task/"
-        self.api_base_url = f"http://{os.environ['MANAGER_URL']}"
-        self.tasks = {}
-
-    async def execute_command(self, command, task_id):
-        methods = {
-            "run_task": self.run_task,
-            # "cancel_task": self.cancel_task,
-            # "redo_task": self.redo_task,
-        }
-
-        if command in methods:
-            return await methods[command](task_id)
-        else:
-            return False
+        self.manager_url = manager_url
 
     async def run_task(self, task_id):
-        task = await self.get_task(task_id)
-        print(task)
-        edit = await self.update_task_data()
-        self.task = await self.run_simulation(task)
-        edit = await self.update_task_data(self.task)
-        # await self.start_simulation(task, gpu)
-
-        # # Wyślij aktualizację do głównego hosta
-        # await self.update_main_host(task)
-
-        # return True
-
-    async def run_simulation(self, task):
+        task = await self.fetch_task_from_manager(task_id)
+        log.debug(f"Starting the task: {task}")
         job_process = JobProcess(task)
-        return await job_process.run_subprocess()
 
-    async def get_task(self, task_id):
-        url = f"{self.url}get_task/{task_id}/"
-        self.task_id = task_id
-        response = requests.get(url)
+        task.status = "Running"
+        task.start_time: datetime.now().isoformat()
+        await self.post_updated_task_to_manager(task)
+        self.task = await job_process.run_subprocess()
+
+        # TODO: Check if interupted
+        task.end_time: datetime.now().isoformat()
+        task.status = "Finished"
+
+    async def post_updated_task_to_manager(self, task):
+        url = f"http://{self.manager_url}/manager/api/tasks/{task.id}/"
+
+        data = asdict(task)
         try:
+            log.debug(f"Sending updated task to `{url}`")
+            response = requests.put(url, json=data)
+            if response.status_code == 200:
+                updated_task = response.json()
+                log.debug(f"Received updated task: {updated_task}")
+            else:
+                log.exception(
+                    f"Error sending updated task: Status code {response.status_code}"
+                )
+        except Exception as e:
+            log.exception(f"Error sending updated task to manager {e}")
+
+    async def fetch_task_from_manager(self, task_id):
+        url = f"http://{self.manager_url}/manager/api/tasks/{task_id}/"
+        try:
+            log.debug(f"Fetching task from `{url}`")
+            response = requests.get(url)
             if response.status_code == 200:
                 task_data = response.json()
-                self.task = Task(
-                    id=task_data["id"],
-                    user=task_data["user"],
-                    path=task_data["path"],
-                    node_name=task_data["node_name"],
-                    port=task_data["port"],
-                    submit_time=task_data["submit_time"],
-                    start_time=task_data["start_time"],
-                    end_time=task_data["end_time"],
-                    error_time=task_data["error_time"],
-                    priority=task_data["priority"],
-                    gpu_partition=task_data["gpu_partition"],
-                    est=task_data["est"],
-                    status=task_data["status"],
-                    assigned_node_id=task_data["assigned_node_id"],
-                    assigned_gpu_id=task_data["assigned_gpu_id"],
-                )
-                await sync_to_async(self.task.save)()
-                print("Successfully fetched task")
-                return self.task
+                log.debug(f"Received task: {task_data}")
             else:
-                print(f"Error fetching task: Status code {response.status_code}")
-                self.task = None
+                log.error(f"Error fetching task: Status code {response.status_code}")
         except Exception as e:
-            print(e)
-            self.task = None
+            log.error(f"Error fetching task from manager {e}")
 
-    async def update_task_data(self, task=None):
-        if task != None:
-            self.task = task
+        try:
+            task = Task(**task_data)
+        except Exception as e:
+            log.error(f"Error while casting the task api response to dataclass: {e}")
 
-        url = f"{self.url}edit_task/{self.task_id}/"
-        if self.task.status == "Pending":
-            data = {
-                "status": self.task.status,
-                "start_time": datetime.now().isoformat(),
-                "port": self.task.flags.get("port", "35367"),
-                "output": self.task.output,
-                "error": self.task.error,
-            }
-        elif self.task.status == "Interrupted":
-            data = {
-                "status": self.task.status,
-                "error_time": datetime.now().isoformat(),
-                "port": self.task.flags.get("port", "35367"),
-                "output": self.task.output,
-                "error": self.task.error,
-                "end_time": None,
-            }
-        elif self.task.status == "Finished":
-            data = {
-                "status": self.task.status,
-                "end_time": datetime.now().isoformat(),
-                "port": self.task.flags.get("port", "35367"),
-                "output": self.task.output,
-                "error": self.task.error,
-            }
-        else:
-            logging.warning("Task execution Error.")
-        async with httpx.AsyncClient() as client:
-            response = await client.post(url, json=data)
-            print("Response Status Code:", response.status_code)
-            try:
-                print("Response JSON:", response.json())
-                return response.json()
-            except json.JSONDecodeError:
-                print("Invalid JSON response")
-                return None
-
-    async def assign_gpu_to_task(self, task, gpu):
-        task.assigned_gpu = gpu
-        task.status = "Running"
-        await sync_to_async(task.save)()
-
-        gpu.status = "Busy"
-        await sync_to_async(gpu.save)()
-
-    async def start_simulation(self, task, gpu):
-        # Logika rozpoczynania symulacji
-        pass
-
-    async def update_main_host(self, task):
-        async with httpx.AsyncClient() as client:
-            payload = {"task_id": task.id, "status": task.status}
-            await client.post(f"{self.api_base_url}/update_task_status", json=payload)
+        return task
