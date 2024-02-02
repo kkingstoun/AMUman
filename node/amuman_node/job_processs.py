@@ -1,40 +1,46 @@
 import asyncio
+import logging
 import signal
+
+from .task import Task
+
+log = logging.getLogger("rich")
 
 
 class JobProcess:
-    def __init__(self, path: str, flags: str = None):
+    def __init__(self, task: Task):
         self.process = None
-        self.task = None
-        self.path = path
-        self.flags = flags
-        self.task = asyncio.create_task(self.run_subprocess())
+        self.task = task
+        log.debug(f"Starting {task.id=}")
+        # asyncio.create_task(self.run_subprocess())
 
     async def run_subprocess(self):
-        # Start the amumax subprocess
-        self.process = await asyncio.create_subprocess_exec(
-            "amumax",
-            self.flags,
-            self.path,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
+        log.debug(f"Starting subprocess for {self.task.id=}")
+        try:
+            self.process = await asyncio.create_subprocess_exec(
+                "amumax",
+                self.task.path,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+        except Exception as e:
+            log.exception(e)
 
-        print(f"Started amumax (PID: {self.process.pid})")
+        log.info(f"Started amumax (PID: {self.process.pid})")
 
         # Wait for the process to finish
         stdout, stderr = await self.process.communicate()
 
         if stdout:
-            print(f"[STDOUT]\n{stdout.decode()}")
+            log.debug(f"[STDOUT]\n{stdout.decode()}")
         if stderr:
-            print(f"[STDERR]\n{stderr.decode()}")
+            log.debug(f"[STDERR]\n{stderr.decode()}")
 
-        print(f"amumax exited with {self.process.returncode}")
+        log.debug(f"amumax exited with {self.process.returncode}")
 
     def stop_process(self):
         if self.task and not self.task.done():
-            print("Stopping amumax")
+            log.debug("Stopping amumax")
             self.task.cancel()
             if self.process:
                 self.process.send_signal(
@@ -49,7 +55,7 @@ async def main():
     path = "/"
     job_process = JobProcess(path=path)
 
-    print(job_process.is_running())
+    log.debug(job_process.is_running())
     # Wait for a few seconds before terminating the process
     await asyncio.sleep(5)
 
@@ -62,8 +68,4 @@ async def main():
         try:
             await job_process.task
         except asyncio.CancelledError:
-            print("The amumax task was cancelled")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+            log.exception("The amumax task was cancelled")
