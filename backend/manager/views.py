@@ -1,3 +1,4 @@
+from queue import Queue
 from typing import Any
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -11,6 +12,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.urls import reverse
+from django.core.cache import cache
+from manager.components.scheduler import ThreadedScheduler
 
 from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
 from rest_framework.parsers import JSONParser
@@ -19,8 +22,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from common_models.models import *
-from .components.forms import EditTaskForm, AddTaskForm
+from .components.forms import EditTaskForm, AddTaskForm, SettingsForm
 from .serializers import TaskSerializer
+from .components.queue import QueueManager
+from .components.run_task import RunTask
 # from .components.nodes_monitor import NodesMonitor
 
 from channels.layers import get_channel_layer
@@ -367,6 +372,8 @@ class TaskManagerView(APIView):
             "redo_task": self.redo_task,
             "add_task": self.add_task,
             "task_output": self.task_output,
+            "run_schedule": self.run_schedule,
+            "stop_schedule": self.stop_schedule,
         }
 
         if action in methods:
@@ -393,6 +400,23 @@ class TaskManagerView(APIView):
                 return Response({"error": "Invalid action"}, status=400)
             else:
                 return redirect("task_list")
+
+    @csrf_exempt
+    def run_schedule(self, request, task_id):
+        scheduler = ThreadedScheduler.get_instance()  # Pobierz instancję schedulera
+        self.qm = QueueManager()
+        scheduler.every(10).seconds.do(self.qm.schedule_tasks)
+        scheduler.start()  # Uruchom scheduler, jeśli nie jest już uruchomiony
+        return HttpResponse("Scheduler started.")
+
+        
+    @csrf_exempt
+    def stop_schedule(self, request, task_id):
+        scheduler = ThreadedScheduler.get_instance()  # Pobierz instancję schedulera
+        scheduler.stop()  # Zatrzymaj scheduler
+        return JsonResponse(
+                    {"message": "Scheduler stopped!"}, status=200
+                )
 
     @csrf_exempt
     def get_task(self, request, task_id):
@@ -470,58 +494,24 @@ class TaskManagerView(APIView):
         else:
             return redirect("task_list")
 
-    def select_gpu_for_task(self):
-        return Gpus.objects.filter(status="Waiting").first()
-
-    def get_priority_task(self):
-        return Task.objects.filter(status="Waiting").order_by("-priority").first()
 
     @csrf_exempt
-    def run_task(self, request, task_id=None):
-            try:
-                # Deserialize task data from JSON if applicable
-                task_data = request.data if request.content_type == "application/json" else request.POST.dict()
-                task_id = task_data.get("task_id", task_id)
-                task = get_object_or_404(Task, pk=task_id)
+    def run_task(self, request, task_id=None, gpu_id=None):
+        
+        
+        task_data = request.data if request.content_type == "application/json" else request.POST.dict()
+        task_id = task_data.get("task_id", task_id)
+        task = get_object_or_404(Task, pk=task_id)
 
-                gpu = self.select_gpu_for_task()
-                if not gpu:
-                    return self.handle_response(request, "No available GPUs.", "danger", 400)
+        gpu = Gpus.objects.filter(status="Waiting").first()
+        if not gpu:
+            return self.handle_response(request, "No available GPUs.", "danger", 400)
 
-
-                gpu.status = "Running"
-                gpu.task_id = task
-                gpu.last_update = timezone.now()
-                gpu.save()
-                
-                # Update task with assigned GPU and status
-                task.assigned_gpu_id = gpu.no
-                task.assigned_node_id = gpu.node_id.id
-                task.status = "Pending"
-                task.submit_time = timezone.now()
-                task.save()
-
-                # Send task run command to the node managing the selected GPU
-                self.send_run_command(task, gpu)
-                time.sleep(3)
-                
-                return self.handle_response(request, f"Task {task_id} is running on GPU {gpu.id}.", "success", 200)
-            except Exception as e:
-                return self.handle_response(request, str(e), "danger", 400)
+        self.rt=RunTask()
+        self.rt.run_task(task=task,gpu=gpu,request=request)
 
 
-    def send_run_command(self, task, gpu):
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            "nodes_group",  # Assume a group name for nodes
-            {
-                "type": "node.command",
-                "command": "run_task",
-                "node_id": task.assigned_node_id,
-                "task_id": task.id,
-                "gpu_id": task.assigned_gpu_id,
-            }
-        )
+
 
     def handle_response(self, request, message, tag, status_code=200):
         if request.accepted_renderer.format == "json" or request.content_type == "application/json":
@@ -656,3 +646,49 @@ class TaskListView(APIView):
             return Response(data)
 
         return Response(data, template_name="manager/task_list.html")
+
+def print_work(what_to_say: str):
+    print(what_to_say)
+    
+@csrf_exempt
+def settings_view(request):
+    # Załóżmy, że istnieje tylko jeden obiekt ustawień, więc używamy `first()`
+    settings_instance = ManagerSettings.objects.first()  
+    if request.method == "POST":
+        form = SettingsForm(request.POST, instance=settings_instance)
+        if form.is_valid():
+            form.save()
+            queue_watchdog_value = form.cleaned_data['queue_watchdog']
+            if queue_watchdog_value == True:
+                try:
+                    scheduler = ThreadedScheduler.get_instance()  # Pobierz instancję schedulera
+                    scheduler.every(1).seconds.do(QueueManager().schedule_tasks)
+                    scheduler.start()  # Uruchom scheduler, jeśli nie jest już uruchomiony
+                except Exception as e:
+                    print(e)  
+            else:
+                try:
+                    scheduler = ThreadedScheduler.get_instance()  # Pobierz instancję schedulera
+                    scheduler.stop()  # Uruchom scheduler, jeśli nie jest już uruchomiony
+                except Exception as e:
+                    print(e)
+                
+            # Tutaj możesz dodać obsługę odpowiedzi JSON, jeśli jest potrzebna
+            messages.success(request, "Settings updated successfully!", extra_tags="primary")
+            return redirect("settings_view")  # Zakładam, że 'settings_view' to nazwa URL widoku ustawień
+    else:
+        form = SettingsForm(instance=settings_instance)
+    
+    return render(request, "manager/manager_settings.html", {"form": form})
+
+
+class ConsoleView(APIView):
+    renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
+
+    def get(self, request):
+        return Response(template_name="manager/console.html")
+
+    def post(self, request):
+        pass
+        # Logic to handle POST request
+        # ...   

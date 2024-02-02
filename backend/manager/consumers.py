@@ -5,10 +5,11 @@ import json
 import pprint
 
 from exceptiongroup import catch
+from yaml import serialize
 from common_models.models import Nodes
 import requests
 from channels.db import database_sync_to_async
-
+from django.http import JsonResponse
 class MasterConsumer(AsyncWebsocketConsumer):
     
     async def connect(self):
@@ -28,14 +29,16 @@ class MasterConsumer(AsyncWebsocketConsumer):
         # Rozłóż wiadomość na dane
         data = json.loads(text_data)
         # print(data)
-        if data["command"] == "register":
+        if data.get("command",None) == "register":
             try:
                 await self.update_node_status(data["node_id"], data["node_name"], "Connected")
                 print("Registering node", data.get("node_name"))
             except Exception as e:
                 print("Error", data.get("node_name"), str(e))
                 await self.update_node_status(data["node_id"], data["node_name"], "Disconnected")
-
+        else:
+            await self.send_test_message("test")
+            await self.send(text_data=json.dumps({"message": "Hello I'm WS server. Nice to meet you."}))
         # Wykonaj jakąś logikę w oparciu o dane
         if data["message"] == "Hello from Node!":
             # Wysłaj odpowiedź

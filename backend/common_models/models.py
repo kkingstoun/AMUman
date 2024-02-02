@@ -37,7 +37,9 @@ class Task(models.Model):
     assigned_gpu_id = models.CharField(max_length=10, null=True, blank=True)
     output = models.TextField(null=True, blank=True)
     error = models.TextField(null=True, blank=True)
-    flags = models.JSONField(default=dict)  # Używamy uniwersalnego JSONField z django.db.models
+    flags = models.JSONField(
+        default=dict
+    )  # Używamy uniwersalnego JSONField z django.db.models
 
 
 class Nodes(models.Model):
@@ -60,7 +62,9 @@ class Nodes(models.Model):
         ("Connected", "Connected"),
         ("Disconnected", "Disconnected"),
     ]
-    connection_status = models.CharField(max_length=50, choices=CONNECTION_CHOICES, default="Waiting")
+    connection_status = models.CharField(
+        max_length=50, choices=CONNECTION_CHOICES, default="Waiting"
+    )
     last_seen = models.DateTimeField(default=timezone.now, null=True, blank=True)
 
     def __str__(self):
@@ -73,16 +77,27 @@ class Gpus(models.Model):
     gpu_uuid = models.TextField(unique=True, null=True, blank=True)
     node_id = models.ForeignKey(Nodes, on_delete=models.CASCADE)
     brand_name = models.TextField(null=True, blank=True)
-    gpu_speed = models.TextField(null=True, blank=True)
+
+    STATUS_CHOICES = [
+        ("Slow", "Slow"),
+        ("Normal", "Normal"),
+        ("Fast", "Fast"),
+    ]
+    gpu_speed = models.CharField(
+        max_length=50, choices=STATUS_CHOICES, default="Normal"
+    )
+
     gpu_util = models.TextField(null=True, blank=True)
     is_running_amumax = models.TextField(null=True, blank=True)
     gpu_info = models.TextField(null=True, blank=True)
+
     STATUS_CHOICES = [
         ("Waiting", "Waiting"),
         ("Running", "Running"),
         ("Reserved", "Reserved"),
         ("Unavailable", "Unavailable"),
     ]
+
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Waiting")
     last_update = models.DateTimeField(default=timezone.now, null=True, blank=True)
     task_id = models.ForeignKey(
@@ -96,3 +111,10 @@ class Gpus(models.Model):
     def __str__(self):
         return f"GPU-{self.id}, {self.node_id}/{self.id}"
 
+
+class ManagerSettings(models.Model):
+    id = models.AutoField(primary_key=True, unique=True)
+    queue_watchdog = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"GPU-{self.id}, {self.queue_watchdog}"
