@@ -46,11 +46,7 @@ class AddTaskForm(forms.ModelForm):
         for field in self.fields:
             self.fields[field].required = False
             
-  
-
-
-
-
+ 
 class SettingsForm(forms.ModelForm):
     class Meta:
         model = ManagerSettings

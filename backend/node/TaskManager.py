@@ -90,14 +90,24 @@ class TaskManager:
             self.task=task    
             
         url = f"{self.url}edit_task/{self.task_id}/"
-        if self.task.status=="Pending":
+        print(self.task.status)
+        if self.task.status=='Waiting':
             data = {
-                "status": self.task.status,
+                "status": "Pending",
                 "start_time": datetime.now().isoformat(),
                 "port": self.task.flags.get('port','35367'),
                 "output": self.task.output,
                 "error": self.task.error,
             }
+        elif self.task.status=="Pending":
+            data = {
+                "status": "Running",
+                "error_time": datetime.now().isoformat(),
+                "port": self.task.flags.get('port','35367'),
+                "output": self.task.output,
+                "error": self.task.error,
+                "end_time": None,
+                }
         elif self.task.status=="Interrupted":
             data = {
                 "status": self.task.status,
