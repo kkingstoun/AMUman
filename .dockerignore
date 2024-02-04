@@ -1,4 +1,4 @@
-backend/*.sqlite3
+**/*.sqlite3
 # Node.js #
 node_modules/
 npm-debug.log*
