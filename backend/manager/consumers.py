@@ -1,17 +1,13 @@
 # manager/consumers.py
 
-from channels.generic.websocket import AsyncWebsocketConsumer
 import json
-import pprint
 
-from exceptiongroup import catch
-from yaml import serialize
-from common_models.models import Nodes
-import requests
 from channels.db import database_sync_to_async
-from django.http import JsonResponse
-class MasterConsumer(AsyncWebsocketConsumer):
-    
+from channels.generic.websocket import AsyncWebsocketConsumer
+from common_models.models import Nodes
+
+
+class ManagerConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         await self.channel_layer.group_add("nodes_group", self.channel_name)
         await self.accept()
@@ -22,23 +18,32 @@ class MasterConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def update_node_status(self, node_id, name, connection_status):
-        return Nodes.objects.filter(id=node_id).update(name=name, connection_status=connection_status)
-
+        return Nodes.objects.filter(id=node_id).update(
+            name=name, connection_status=connection_status
+        )
 
     async def receive(self, text_data):
         # Rozłóż wiadomość na dane
         data = json.loads(text_data)
         # print(data)
-        if data.get("command",None) == "register":
+        if data.get("command", None) == "register":
             try:
-                await self.update_node_status(data["node_id"], data["node_name"], "Connected")
+                await self.update_node_status(
+                    data["node_id"], data["node_name"], "Connected"
+                )
                 print("Registering node", data.get("node_name"))
             except Exception as e:
                 print("Error", data.get("node_name"), str(e))
-                await self.update_node_status(data["node_id"], data["node_name"], "Disconnected")
+                await self.update_node_status(
+                    data["node_id"], data["node_name"], "Disconnected"
+                )
         else:
             await self.send_test_message("test")
-            await self.send(text_data=json.dumps({"message": "Hello I'm WS server. Nice to meet you."}))
+            await self.send(
+                text_data=json.dumps(
+                    {"message": "Hello I'm WS server. Nice to meet you."}
+                )
+            )
         # Wykonaj jakąś logikę w oparciu o dane
         if data["message"] == "Hello from Node!":
             # Wysłaj odpowiedź
@@ -50,7 +55,7 @@ class MasterConsumer(AsyncWebsocketConsumer):
             {
                 "type": "send_message_to_group",
                 "message": message,
-            }
+            },
         )
 
     async def send_message_to_group(self, event):
@@ -61,6 +66,6 @@ class MasterConsumer(AsyncWebsocketConsumer):
         # Logika do obsługi komunikatu typu 'node.command'
         print(f"Otrzymano komendę: {event}")
         # Tworzenie słownika odpowiedzi na podstawie otrzymanych danych
-        response_message = {key: event[key] for key in event if key != 'type'}
+        response_message = {key: event[key] for key in event if key != "type"}
         # Wysyłanie odpowiedzi do klienta 'node'
         await self.send(text_data=json.dumps(response_message))

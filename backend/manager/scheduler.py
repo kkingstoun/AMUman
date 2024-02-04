@@ -1,16 +1,18 @@
 import threading
-import time
+
 import requests
 
-def send_command_to_master():
+
+def send_command_to_manager():
     url = "http://localhost:8000/manager/send_command/"
     # Dodaj odpowiednie parametry zgodnie z potrzebami
     data = {"param1": "value1", "param2": "value2"}
     try:
         response = requests.post(url, data=data)
-        print("Response from Master:", response.text)
+        print("Response from Manager:", response.text)
     except requests.RequestException as e:
-        print("Error sending command to master:", e)
+        print("Error sending command to manager:", e)
+
 
 class RepeatTimer(threading.Timer):
     def __init__(self, interval, function, *args, **kwargs):
@@ -24,6 +26,7 @@ class RepeatTimer(threading.Timer):
                 return
             self.function(*self.args, **self.kwargs)
 
+
 def start_scheduler():
-    timer = RepeatTimer(30, send_command_to_master)  # Uruchom co 30 sekund
+    timer = RepeatTimer(30, send_command_to_manager)  # Uruchom co 30 sekund
     timer.start()
