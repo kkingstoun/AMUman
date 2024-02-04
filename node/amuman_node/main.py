@@ -12,7 +12,7 @@ import websockets
 from rich.logging import RichHandler
 
 from .gpu_monitor import GPUMonitor
-from .task_manager import TaskManager
+from .job_manager import JobManager
 
 logging.basicConfig(
     level="DEBUG",
@@ -25,8 +25,6 @@ logging.basicConfig(
 log = logging.getLogger("rich")
 logging.getLogger("websockets").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
-log.debug("*" * 60)
-log.debug("*" * 60)
 
 
 class NodeClient:
@@ -34,9 +32,11 @@ class NodeClient:
         self.manager_url: str = os.getenv("MANAGER_URL", "localhost:8000")
         self.node_id: int = int(os.getenv("NODE_ID", 0))
         self.node_name: str = os.getenv("NODE_NAME", str(uuid.uuid1()))
-        log.debug(f"{self.manager_url=}, {self.node_id=}, {self.node_name=}")
+        log.debug(
+            f"Manager URL: '{self.manager_url}', Node ID: {self.node_id}, Node Name: '{self.node_name}'"
+        )
 
-        self.task_manager: TaskManager = TaskManager(self.node_id, self.manager_url)
+        self.job_manager: JobManager = JobManager(self.node_id, self.manager_url)
         self.reconnect_attempts: int = 10
         self.sleep_increment: int = 1
         self.gpm: Optional[GPUMonitor] = None
@@ -48,7 +48,7 @@ class NodeClient:
     def get_own_ip(self) -> str:
         try:
             ip: str = requests.get("https://api.ipify.org").content.decode("utf8")
-            log.debug(f"{ip=}")
+            log.debug(f"IP={ip}")
             return ip
         except Exception as err:
             log.exception(f"Unable to get the external IP: {err}")
@@ -74,9 +74,10 @@ class NodeClient:
                 self.gpm = GPUMonitor(self.node_id, self.manager_url)
 
                 if response.status_code == 200:
-                    self.gpm.post_assign_gpus(self.node_id)
+                    self.gpm.api_post("assign")
+                # 201 = exists and modified ?
                 elif response.status_code == 201:
-                    self.gpm.post_update_node_gpu_status(self.node_id)
+                    self.gpm.api_post("update")
         except requests.exceptions.RequestException as e:
             log.exception(f"Error registering the node: {e}")
 
@@ -133,8 +134,8 @@ class NodeClient:
                 log.info("Updating GPUs")
                 await self.execute_update_gpus(self.node_id)
             elif command == "run_task":
-                log.info("Running task")
-                await self.task_manager.run_task(data["task_id"])
+                log.info("Running job")
+                await self.job_manager.run_job(data["task_id"])
             else:
                 log.error(f"Unknown command: {command}")
         elif command is not None:
