@@ -4,9 +4,8 @@ run cmd arg="None": build
 		--network amuman \
 		--cap-add SYS_ADMIN \
 		--cap-add DAC_READ_SEARCH \
-		--gpus all \
-		-p 8000:8000 \
-		-p 5678:5678 \
+		{{ if cmd == "node" { "--gpus all" } else { "" } }} \
+		{{ if cmd == "manager" { "-p 8000:8000 -p 5678:5678" } else { "" } }} \
 		--env-file ./.env \
 		-v .:/app \
 		amuman {{cmd}} {{arg}}
@@ -16,4 +15,3 @@ network:
 
 build:
 	sudo docker build . -t amuman
-
