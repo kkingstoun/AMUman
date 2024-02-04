@@ -1,6 +1,6 @@
 from django.urls import path
-from .consumers import MasterConsumer
+from .consumers import ManagerConsumer
 
 websocket_urlpatterns = [
-    path('ws/node', MasterConsumer.as_asgi()),
+    path("ws/node", ManagerConsumer.as_asgi()),
 ]
