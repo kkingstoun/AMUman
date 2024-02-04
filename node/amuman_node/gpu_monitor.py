@@ -1,131 +1,50 @@
 import logging
-import re
 import subprocess
-import time
+from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Dict, List
 
 import requests
-
 
 log = logging.getLogger("rich")
 
 
-class GPUMonitor:
-    def __init__(self, node_id, manager_url):
-        self.node_id = node_id
-        self.manager_url = manager_url
-        self.node_management_url = f"http://{self.manager_url}/manager/node-management/"
-        self.gpus = self.get_gpu_count()
-        self.gpus_status = self.check_gpus_status()
-        self.number_of_gpus = (
-            len(self.gpus_status) if self.gpus_status is not None else 0
-        )
+@dataclass
+class GPU:
+    id: int
+    node_id: int
+    name: str = field(init=False)
+    uuid: str = field(init=False)
+    gpu_util: int = field(init=False)
+    mem_util: int = field(init=False)
+    status: str = field(init=False)
+    is_running_amumax: bool = field(init=False)
+    refresh_time: str = field(init=False)
 
-    def check_gpus_status(self):
-        self.gpus_status = {
-            i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)
-        }
-        return self.gpus_status if self.gpus_status is not None else {}
+    # Do we want it to run when the GPU class is created?
+    def __post_init__(self) -> None:
+        self.update_status()
 
-    def extract_integer_from_string(self, s):
-        match = re.search(r"\d+", s)
-        return int(match.group()) if match else None
+    def update_status(self) -> None:
+        log.info(f"GPU {self.id} updating status")
+        self.name = self.get_name()
+        self.uuid = self.get_uuid()
+        self.gpu_util = self.get_gpu_util()
+        self.mem_util = self.get_mem_util()
+        self.status = self.get_gpu_load_status()
+        self.is_running_amumax = self.check_is_amumax_running()
+        self.refresh_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    def get_gpu_count(self):
-        """Returns the number of available graphics cards."""
+    def query_nvidia_smi(self, query: str) -> str:
         try:
-            output = subprocess.check_output(["nvidia-smi", "-L"]).decode()
-            return len(output.strip().split("\n"))
-        except subprocess.CalledProcessError:
-            return 0
-
-    def check_gpu_load(self, gpu_index=0, check_duration=2, threshold=20):
-        start_time = time.time()
-        gpu_util = 0
-        while time.time() - start_time < check_duration:
-            try:
-                # Get load information for the specified GPU
-                gpu_util, mem_util = map(
-                    int,
-                    subprocess.check_output(
-                        [
-                            "nvidia-smi",
-                            "--query-gpu=utilization.gpu,utilization.memory",
-                            "--format=csv,noheader,nounits",
-                            "--id=" + str(gpu_index),
-                        ]
-                    )
-                    .decode()
-                    .strip()
-                    .split(","),
-                )
-
-                # Return 'free' if the GPU is less loaded than the threshold
-                if gpu_util < threshold and mem_util < threshold:
-                    return "Waiting", gpu_util
-            except subprocess.CalledProcessError as e:
-                log.exception(f"Error running nvidia-smi: {e}")
-                return "error"
-            except ValueError:
-                log.exception("Data conversion error.")
-                return "error"
-            time.sleep(1)  # Wait 1 second before the next check
-        return 1, gpu_util
-
-    def check_gpu_status(self, gpu_index=0):
-        # Check the status of the specified GPU
-        if gpu_index is not None and gpu_index != "":
-            gpu_status, gpu_util = self.check_gpu_load(gpu_index=gpu_index)
-
-            # Return a dictionary containing the status and utilization of the GPU
-            return {
-                "name": self.check_gpu_brand(gpu_index=gpu_index),
-                "status": gpu_status,
-                "gpu_util": gpu_util,
-                "gpu_uuid": self.get_nvidia_gpu_uuid(gpu_index),
-                "is_running_amumax": 1
-                if self.check_for_amumax(gpu_index=gpu_index)
-                else 0,
-                "refresh_time": datetime.now().strftime("%d.%m.%Y, %H:%M:%S"),
-            }
-        else:
-            return {i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)}
-
-    def check_for_amumax(self, gpu_index=0):
-        # Check if the process 'amumax' is running on the specified GPU
-        try:
-            output = subprocess.check_output(
-                [
-                    "nvidia-smi",
-                    "-i",
-                    str(gpu_index),
-                    "--query-compute-apps=process_name",
-                    "--format=csv,noheader",
-                ]
-            ).decode()
-            processes = output.strip().split("\n")
-            for process in processes:
-                if process.strip().startswith("amumax"):
-                    return True
-            return False
-        except subprocess.CalledProcessError as e:
-            log.exception(f"Subprocess error: {e}")
-            return False
-        except Exception as e:
-            log.exception(f"Error: {e}")
-            return False
-
-    def check_gpu_brand(self, gpu_index=0):
-        try:
-            # The nvidia-smi command to read the model of the graphics card
             output = (
                 subprocess.check_output(
                     [
                         "nvidia-smi",
                         "-i",
-                        str(gpu_index),
-                        "--query-gpu=gpu_name",
-                        "--format=csv,noheader",
+                        str(self.id),
+                        query,
+                        "--format=csv,noheader,nounits",
                     ]
                 )
                 .decode()
@@ -133,80 +52,107 @@ class GPUMonitor:
             )
             return output
         except subprocess.CalledProcessError as e:
-            log.exception(f"Error running nvidia-smi: {e}")
-            return None
+            log.error(f"Error running nvidia-smi for GPU {self.id}: {e}")
+        except Exception as e:
+            log.error(f"Unexpected error for GPU {self.id}: {e}")
+        return ""
 
-    def get_nvidia_gpu_uuid(self, pk=0):
+    def get_gpu_load_status(self, check_duration: int = 2, threshold: int = 20) -> str:
+        if self.gpu_util < threshold and self.mem_util < threshold:
+            status = "Waiting"
+        else:
+            status = "Busy"
+        log.debug(f"GPU {self.id} status: {status}")
+        return status
+
+    def get_gpu_util(self) -> int:
+        gpu_util = int(self.query_nvidia_smi("--query-gpu=utilization.gpu"))
+        log.debug(f"GPU {self.id} utilization: {gpu_util}%")
+        return gpu_util
+
+    def get_mem_util(self) -> int:
+        mem_util = int(self.query_nvidia_smi("--query-gpu=utilization.memory"))
+        log.debug(f"GPU {self.id} memory utilization: {mem_util}%")
+        return mem_util
+
+    def check_is_amumax_running(self) -> bool:
+        output = self.query_nvidia_smi("--query-compute-apps=process_name")
+        is_running = "amumax" in output if output else False
+        log.debug(f"GPU {self.id} amumax running: {is_running}")
+        return is_running
+
+    def get_name(self) -> str:
+        name = self.query_nvidia_smi("--query-gpu=gpu_name")
+        log.debug(f"GPU {self.id} name: {name}")
+        return name
+
+    def get_uuid(self) -> str:
+        uuid = self.query_nvidia_smi("--query-gpu=uuid")
+        log.debug(f"GPU {self.id} UUID: {uuid}")
+        return uuid
+
+    def to_dict(self) -> Dict[str, str]:
+        data = {
+            "action": "assign_node_gpu",
+            "node_id": self.node_id,
+            "brand_name": str(self.name),
+            "gpu_util": self.gpu_util,
+            "status": str(self.status),
+            "is_running_amumax": self.is_running_amumax,
+            "gpu_uuid": str(self.uuid),
+            "gpu_info": "",
+        }
+        return data
+
+
+class GPUMonitor:
+    def __init__(self, node_id: int, manager_url: str) -> None:
+        self.node_id: int = node_id
+        self.manager_url: str = manager_url
+        self.node_management_url: str = (
+            f"http://{self.manager_url}/manager/node-management/"
+        )
+        self.gpus: List[GPU] = self.get_gpus()
+
+    def get_gpus(self) -> List[GPU]:
         try:
             output = subprocess.check_output(["nvidia-smi", "-L"]).decode()
-            lines = output.strip().split("\n")
-            uuids = [line.split("(")[-1].split(")")[0] for line in lines]
-            if pk is not None:
-                return uuids[pk]
-            return uuids
-        except Exception as e:
-            log.exception(f"Error getting GPU UUIDs: {e}")
-            return None
+            gpu_count = len(output.strip().split("\n"))
+        except subprocess.CalledProcessError as e:
+            log.error(f"Failed to get GPU count: {e}")
+            raise e
 
-    def assign_gpus(self, node_id):
-        # self.gpu_status = {
-        #     i: self.check_gpu_status(gpu_index=i) for i in range(self.gpus)
-        # }
-        for gpu_key, gpu in self.gpus_status.items():
-            data = {
-                "action": "assign_node_gpu",
-                "no": gpu_key,
-                "brand_name": gpu["name"],
-                "gpu_util": gpu["gpu_util"],
-                "status": gpu["status"],
-                "node_id": node_id,
-                "is_running_amumax": gpu["is_running_amumax"],
-                "gpu_uuid": gpu["gpu_uuid"],
-                "gpu_info": None,
-            }
+        return [GPU(id=id, node_id=self.node_id) for id in range(gpu_count)]
 
+    def api_post(self, action: str) -> None:
+        log.debug(f"GPU api post: {action}")
+        action_word = "assigned" if action == "assign" else "updated"
+        failure_action_word = "assign" if action == "assign" else "update"
+        for gpu in self.gpus:
+            # if action == "update":
+            #     gpu.update_status()
             try:
-                response = requests.post(
-                    self.node_management_url,
-                    data=data,
-                )
+                data = gpu.to_dict()
+                log.debug(f"Sending {data}")
+                response = requests.post(self.node_management_url, json=gpu.to_dict())
                 if response.status_code in [200, 201]:
                     log.info(
-                        f"Added GPU:{gpu_key} ({gpu['name']}) in the manager database"
+                        f"Successfully {action_word} GPU:{gpu.id} ({gpu.name}) to node {self.node_id}."
                     )
                 else:
-                    log.error("Error, gpu status rejected")
-
+                    error_message = (
+                        f"Failed to {failure_action_word} GPU:{gpu.id} ({gpu.name}). "
+                        f"Server responded with status code: {response.status_code}."
+                    )
+                    if response.status_code == 500:
+                        try:
+                            error_details = (
+                                response.json()
+                            )  # Assuming the server error response is in JSON format
+                            error_message += f" Error details: {error_details}"
+                        except ValueError:
+                            # If response is not in JSON format, fallback to logging the text content
+                            error_message += " Error content was not json"
+                    log.error(error_message)
             except requests.exceptions.RequestException as e:
-                log.exception(f"Error2: {e}")
-
-    def submit_update_gpu_status(self, node_id):
-        if node_id is not None:
-            for gpu_key, gpu in self.gpus_status.items():
-                data = {
-                    "action": "update_node_gpu_status",
-                    "brand_name": gpu["name"],
-                    "gpu_util": gpu["gpu_util"],
-                    "status": gpu["status"],
-                    "node_id": self.node_id,
-                    "is_running_amumax": gpu["is_running_amumax"],
-                    "gpu_uuid": gpu["gpu_uuid"],
-                }
-
-                try:
-                    response = requests.post(self.node_management_url, data=data)
-                    if response.status_code == 200:
-                        log.info(
-                            f"Updated GPU:{gpu_key} ({gpu['name']}) in the manager database"
-                        )
-                    else:
-                        log.exception(
-                            f"Error gpu {gpu_key} not found in manager database"
-                        )
-
-                except requests.exceptions.RequestException as e:
-                    log.exception(f"Error {e}")
-                except Exception as e:
-                    log.exception(f"Error {e}")
-        else:
-            log.exception("Node not found")
+                log.exception(f"Network error during GPU {failure_action_word}: {e}")
