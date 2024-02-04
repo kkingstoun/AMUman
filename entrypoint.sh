@@ -18,6 +18,7 @@ if [ "$1" = "manager" ]; then
 
     python manage.py makemigrations 
     python manage.py migrate 
+    python manage.py makemigrations manager
     python manage.py migrate --settings=amuman.settings_manager
 
     if [ "$2" = "debug" ]; then
