@@ -4,8 +4,7 @@ import os
 import sys
 
 SETTINGS_MODULES = {
-    'node': "amuman.settings_node",
-    'manager': "amuman.settings_manager",
+    "manager": "amuman.settings_manager",
 }
 
 if __name__ == "__main__":
@@ -16,7 +15,9 @@ if __name__ == "__main__":
         command = sys.argv[1]
         if command == "runserver":
             arg = sys.argv[3]
-            os.environ["DJANGO_SETTINGS_MODULE"] = SETTINGS_MODULES.get(arg, "amuman.settings")
+            os.environ["DJANGO_SETTINGS_MODULE"] = SETTINGS_MODULES.get(
+                arg, "amuman.settings"
+            )
     except IndexError:
         pass
 

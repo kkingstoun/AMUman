@@ -9,22 +9,21 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-from datetime import timedelta
-from pathlib import Path
+
 from .settings import *
 
-INSTALLED_APPS += [
-    "manager",
-]
+INSTALLED_APPS += []
 
-URL_MODE_PREFIX = 'manager'  # Prefiks URL dla trybu klienta
-DATABASES.update({
-    'default': {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "managerdb.sqlite3", 
+URL_MODE_PREFIX = "manager"  # Prefiks URL dla trybu klienta
+DATABASES.update(
+    {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "managerdb.sqlite3",
+        }
     }
-})
+)
 
 MIDDLEWARE += [
-    'manager.middleware.scheduler_middleware.SchedulerMiddleware',
+    "manager.middleware.scheduler_middleware.SchedulerMiddleware",
 ]
