@@ -10,15 +10,17 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
-from pathlib import Path
-from .settings import *
-from dotenv import load_dotenv
 import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+from .settings import *
 
 load_dotenv()
 
 # SECRET_KEY from .env
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -36,28 +38,28 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
-    'daphne',
+    "manager",
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "common_models",
-    'corsheaders',
-    'rest_framework',
-    'notification',
-    'widget_tweaks',
-    'bootstrap5',
-    'channels',
-    'drf_yasg',
-    'crispy_forms',
+    "corsheaders",
+    "rest_framework",
+    "notification",
+    "widget_tweaks",
+    "bootstrap5",
+    "channels",
+    "drf_yasg",
+    "crispy_forms",
     "crispy_bootstrap4",
 ]
 
 CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
 
@@ -66,13 +68,12 @@ ASGI_APPLICATION = "amuman.asgi.application"
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
 ]
 
 ROOT_URLCONF = "amuman.urls"
@@ -81,8 +82,8 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
-            os.path.join(BASE_DIR,"manager",'templates'),
-            ],
+            os.path.join(BASE_DIR, "manager", "templates"),
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -96,7 +97,7 @@ TEMPLATES = [
 ]
 
 
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "amuman" / "static"]
 
 WSGI_APPLICATION = "amuman.wsgi.application"
@@ -105,9 +106,9 @@ WSGI_APPLICATION = "amuman.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 DATABASES = {
-    'default': {
+    "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "maindb.sqlite3", 
+        "NAME": BASE_DIR / "maindb.sqlite3",
     }
 }
 
@@ -157,14 +158,14 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 RUN_WEBSOCKET_CLIENT = True  # Ustaw na False, aby nie uruchamiać klienta WebSocket
 
-MANAGER_HOST="localhost"
+MANAGER_HOST = "localhost"
 
-MANAGER_PORT=8000
+MANAGER_PORT = 8000
 
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'manager/static'),
+    os.path.join(BASE_DIR, "manager/static"),
 ]
 
 CACHES = {

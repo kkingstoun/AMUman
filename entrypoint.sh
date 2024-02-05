@@ -17,9 +17,8 @@ if [ "$1" = "manager" ]; then
     redis-server /etc/redis/redis.conf
 
     python manage.py makemigrations 
-    python manage.py makemigrations common_models
     python manage.py migrate 
-    python manage.py migrate common_models
+    python manage.py makemigrations manager
     python manage.py migrate --settings=amuman.settings_manager
 
     if [ "$2" = "debug" ]; then
