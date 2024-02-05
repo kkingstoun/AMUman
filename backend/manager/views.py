@@ -1,38 +1,30 @@
-from queue import Queue
-from typing import Any
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.utils import timezone
-from django.shortcuts import render
-from django.shortcuts import get_object_or_404, redirect
-from django.http import HttpResponse
-from django.db.models import Q
-from django.db import transaction
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
+import json
+import time
+
+from asgiref.sync import async_to_sync
+
+# from .components.nodes_monitor import NodesMonitor
+from channels.layers import get_channel_layer
+from manager.models import *
 from django.contrib import messages
-from django.urls import reverse
-from django.core.cache import cache
+from django.db import transaction
+from django.db.models import Q
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import viewsets
+from rest_framework.parsers import JSONParser
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from manager.components.scheduler import ThreadedScheduler
 
-from rest_framework.renderers import TemplateHTMLRenderer, JSONRenderer
-from rest_framework.parsers import JSONParser
-from rest_framework import viewsets
-from rest_framework.views import APIView
-from rest_framework.response import Response
-
-from common_models.models import *
-from .components.forms import EditTaskForm, AddTaskForm, SettingsForm
-from .serializers import TaskSerializer
+from .components.forms import AddTaskForm, EditTaskForm, SettingsForm
 from .components.queue import QueueManager
 from .components.run_task import RunTask
-# from .components.nodes_monitor import NodesMonitor
-
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-from datetime import timedelta
-import time
-import json
+from .serializers import TaskSerializer
 
 # @csrf_exempt
 # def add_task(request):
@@ -104,7 +96,7 @@ class NodeListView(APIView):
             # n_monitor = NodesMonitor()
             # n_monitor.send_update_command()
             nodes = Nodes.objects.all()
-            return Response({"message": f"GPU przypisane do Node."}, status=200)
+            return Response({"message": "GPU przypisane do Node."}, status=200)
 
         else:
             node_id = kwargs.get("node_id")
@@ -139,7 +131,9 @@ class NodeListView(APIView):
         gpus = Gpus.objects.filter(node_id=node_id)
         gpu_count = Gpus.objects.filter(node_id=node_id).count()
         return render(
-            request, "manager/node_manage.html", {"gpus": gpus, "node_id": node_id, "gpu_count": gpu_count}
+            request,
+            "manager/node_manage.html",
+            {"gpus": gpus, "node_id": node_id, "gpu_count": gpu_count},
         )
 
     # def refresh_gpus(self,request, node_id):
@@ -216,10 +210,14 @@ class NodeManagementView(APIView):
         port = request.data.get("port")
         gpu_info = request.data.get("gpu_info")
         name = request.data.get("node_name")
-        
+
         node, created = Nodes.objects.get_or_create(
             name=name,
-            defaults={"status": "Connected","gpu_info": gpu_info, "last_seen": timezone.now()},
+            defaults={
+                "status": "Connected",
+                "gpu_info": gpu_info,
+                "last_seen": timezone.now(),
+            },
         )
 
         if created:
@@ -229,9 +227,9 @@ class NodeManagementView(APIView):
         else:
             # Aktualizuj istniejący węzeł
             node.gpu_info = gpu_info
-            node.ip=ip
-            node.connection_status="Connected"
-            node.name=name
+            node.ip = ip
+            node.connection_status = "Connected"
+            node.name = name
             node.last_seen = timezone.now()
             node.save()
             return Response(
@@ -279,16 +277,17 @@ class NodeManagementView(APIView):
         is_running_amumax = request.data.get("is_running_amumax")
         gpu_uuid = request.data.get("gpu_uuid")
 
-        
         with transaction.atomic():  # Używamy transakcji, aby zapewnić spójność danych
             # Sprawdzamy, czy istnieje już GPU o danym UUID
             existing_gpu = Gpus.objects.filter(gpu_uuid=gpu_uuid).first()
-            
+
             if existing_gpu:
                 old_node = existing_gpu.node_id
-                Nodes.objects.filter(id=old_node.id).delete()  # Usuwamy wszystkie GPU powiązane ze starym węzłem
+                Nodes.objects.filter(
+                    id=old_node.id
+                ).delete()  # Usuwamy wszystkie GPU powiązane ze starym węzłem
                 old_node.delete()  # Następnie usuwamy stary węzeł
-            
+
             gpu, created = Gpus.objects.get_or_create(
                 node_id=node_id,
                 gpu_uuid=gpu_uuid,
@@ -409,14 +408,11 @@ class TaskManagerView(APIView):
         scheduler.start()  # Uruchom scheduler, jeśli nie jest już uruchomiony
         return HttpResponse("Scheduler started.")
 
-        
     @csrf_exempt
     def stop_schedule(self, request, task_id):
         scheduler = ThreadedScheduler.get_instance()  # Pobierz instancję schedulera
         scheduler.stop()  # Zatrzymaj scheduler
-        return JsonResponse(
-                    {"message": "Scheduler stopped!"}, status=200
-                )
+        return JsonResponse({"message": "Scheduler stopped!"}, status=200)
 
     @csrf_exempt
     def get_task(self, request, task_id):
@@ -476,9 +472,7 @@ class TaskManagerView(APIView):
         if request.accepted_renderer.format == "json":
             return Response(data)
 
-        return render(
-                request, "manager/task_output.html", {"task": data}
-            )
+        return render(request, "manager/task_output.html", {"task": data})
 
     @csrf_exempt
     def delete_task(self, request, task_id=None):
@@ -494,12 +488,13 @@ class TaskManagerView(APIView):
         else:
             return redirect("task_list")
 
-
     @csrf_exempt
     def run_task(self, request, task_id=None, gpu_id=None):
-        
-        
-        task_data = request.data if request.content_type == "application/json" else request.POST.dict()
+        task_data = (
+            request.data
+            if request.content_type == "application/json"
+            else request.POST.dict()
+        )
         task_id = task_data.get("task_id", task_id)
         task = get_object_or_404(Task, pk=task_id)
 
@@ -507,19 +502,22 @@ class TaskManagerView(APIView):
         if not gpu:
             return self.handle_response(request, "No available GPUs.", "danger", 400)
 
-        self.rt=RunTask()
-        self.rt.run_task(task=task,gpu=gpu,request=request)
-
-
-
+        self.rt = RunTask()
+        self.rt.run_task(task=task, gpu=gpu, request=request)
 
     def handle_response(self, request, message, tag, status_code=200):
-        if request.accepted_renderer.format == "json" or request.content_type == "application/json":
-            response_content = {"message": message} if status_code == 200 else {"error": message}
+        if (
+            request.accepted_renderer.format == "json"
+            or request.content_type == "application/json"
+        ):
+            response_content = (
+                {"message": message} if status_code == 200 else {"error": message}
+            )
             return Response(response_content, status=status_code)
         else:
             # Add message for HTML response
             from django.contrib import messages
+
             if tag == "success":
                 messages.success(request, message)
             elif tag == "danger":
@@ -593,7 +591,7 @@ class TaskManagerView(APIView):
         else:
             return HttpResponse(f"Task {task_id} redo initiated")
 
-    def add_task(self, request,*args, **kwargs):
+    def add_task(self, request, *args, **kwargs):
         if request.method == "GET":
             form = AddTaskForm()
             return render(request, "manager/task_form.html", {"form": form})
@@ -618,6 +616,7 @@ class TaskManagerView(APIView):
                 else:
                     return render(request, "manager/task_form.html", {"form": form})
 
+
 class TaskListView(APIView):
     renderer_classes = [TemplateHTMLRenderer, JSONRenderer]
 
@@ -631,9 +630,7 @@ class TaskListView(APIView):
         pending_tasks = Task.objects.filter(
             Q(status="Pending") | Q(status="Running") | Q(status=None)
         )
-        finished_tasks = Task.objects.filter(
-            Q(status="Finished")
-        )
+        finished_tasks = Task.objects.filter(Q(status="Finished"))
         # tasks = Task.objects.all()
         data = {
             "tasks": waiting_tasks,
@@ -647,38 +644,48 @@ class TaskListView(APIView):
 
         return Response(data, template_name="manager/task_list.html")
 
+
 def print_work(what_to_say: str):
     print(what_to_say)
-    
+
+
 @csrf_exempt
 def settings_view(request):
     # Załóżmy, że istnieje tylko jeden obiekt ustawień, więc używamy `first()`
-    settings_instance = ManagerSettings.objects.first()  
+    settings_instance = ManagerSettings.objects.first()
     if request.method == "POST":
         form = SettingsForm(request.POST, instance=settings_instance)
         if form.is_valid():
             form.save()
-            queue_watchdog_value = form.cleaned_data['queue_watchdog']
+            queue_watchdog_value = form.cleaned_data["queue_watchdog"]
             if queue_watchdog_value == True:
                 try:
-                    scheduler = ThreadedScheduler.get_instance()  # Pobierz instancję schedulera
+                    scheduler = (
+                        ThreadedScheduler.get_instance()
+                    )  # Pobierz instancję schedulera
                     scheduler.every(1).seconds.do(QueueManager().schedule_tasks)
                     scheduler.start()  # Uruchom scheduler, jeśli nie jest już uruchomiony
                 except Exception as e:
-                    print(e)  
+                    print(e)
             else:
                 try:
-                    scheduler = ThreadedScheduler.get_instance()  # Pobierz instancję schedulera
+                    scheduler = (
+                        ThreadedScheduler.get_instance()
+                    )  # Pobierz instancję schedulera
                     scheduler.stop()  # Uruchom scheduler, jeśli nie jest już uruchomiony
                 except Exception as e:
                     print(e)
-                
+
             # Tutaj możesz dodać obsługę odpowiedzi JSON, jeśli jest potrzebna
-            messages.success(request, "Settings updated successfully!", extra_tags="primary")
-            return redirect("settings_view")  # Zakładam, że 'settings_view' to nazwa URL widoku ustawień
+            messages.success(
+                request, "Settings updated successfully!", extra_tags="primary"
+            )
+            return redirect(
+                "settings_view"
+            )  # Zakładam, że 'settings_view' to nazwa URL widoku ustawień
     else:
         form = SettingsForm(instance=settings_instance)
-    
+
     return render(request, "manager/manager_settings.html", {"form": form})
 
 
@@ -691,4 +698,4 @@ class ConsoleView(APIView):
     def post(self, request):
         pass
         # Logic to handle POST request
-        # ...   
+        # ...

@@ -1,13 +1,10 @@
-from venv import logger
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
-from common_models.models import Task, Gpus
 import time
-from rest_framework.response import Response
-from channels.layers import get_channel_layer
+from venv import logger
+
 from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from django.utils import timezone
+from rest_framework.response import Response
 
 
 class RunTask:
@@ -40,7 +37,6 @@ class RunTask:
                     200,
                 )
         except Exception as e:
-
             time.sleep(self.time_break)
             self.time_break += 5
 
