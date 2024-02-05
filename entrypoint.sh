@@ -36,8 +36,8 @@ elif [ "$1" = "node" ]; then
 elif [ "$1" = "cli" ]; then
     pip install -e /app/cli
     mkdir -p ~/.config/amuman
-    echo 'manager_url = "http://manager:8000"
-shared_dir_path = "/nas"' > ~/.config/amuman/amuman.toml
+    echo 'manager_url = "http://amuman-manager:8000"
+shared_dir_root = "/nas"' > ~/.config/amuman/amuman.toml
     amuman-cli --install-completion bash
     source ~/.bash_completions/amuman-cli.sh
     bash

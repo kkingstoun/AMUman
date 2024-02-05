@@ -34,15 +34,15 @@ def init_config(config_path: Path) -> Dict[str, Union[str, Path]]:
     config_path.parent.mkdir(parents=True, exist_ok=True)
     manager_url: str = Prompt.ask(
         "[bold green]AMUman manager URL [/bold green]",
-        default="http://manager:8000",
+        default="http://amuman-manager:8000",
     )
-    shared_dir_path: str = Prompt.ask(
+    shared_dir_root: str = Prompt.ask(
         "[bold green]Full path to the shared storage. [/bold green]",
         default="/shared",
     )
     config: Dict[str, Union[str, Path]] = {
         "manager_url": manager_url,
-        "shared_dir_path": shared_dir_path,
+        "shared_dir_root": shared_dir_root,
     }
     config_path.write_text(toml.dumps(config))
     print("[bold green]Successfully created the config file.[/bold green]")
@@ -54,7 +54,7 @@ def init_config(config_path: Path) -> Dict[str, Union[str, Path]]:
 
 def read_config(config_path: Path) -> Dict[str, Union[str, Path]]:
     config: Dict[str, Union[str, Path]] = toml.loads(config_path.read_text())
-    required_keys: List[str] = ["manager_url", "shared_dir_path"]
+    required_keys: List[str] = ["manager_url", "shared_dir_root"]
     missing_keys: List[str] = [key for key in required_keys if key not in config]
     if missing_keys:
         print(f"Missing keys: {missing_keys}")
@@ -62,32 +62,32 @@ def read_config(config_path: Path) -> Dict[str, Union[str, Path]]:
     return config  # Type casting might be required if your config has mixed types
 
 
-def sanitize_path(path: Path, shared_dir_path: Path) -> Optional[Path]:
+def sanitize_path(path: Path, shared_dir_root: Path) -> Optional[Path]:
     path = path.resolve()
-    shared_dir_path = shared_dir_path.resolve()
-    if shared_dir_path in path.parents:
+    shared_dir_root = shared_dir_root.resolve()
+    if shared_dir_root in path.parents:
         if path.suffix == ".mx3":
             return path
         else:
             print(f"[bold red]Skipping `{path}`: the path does not end in `.mx3`.")
     else:
         print(
-            f"[bold red]Skipping `{path}`: the path is not in the shared directory `{shared_dir_path}`."
+            f"[bold red]Skipping `{path}`: the path is not in the shared directory `{shared_dir_root}`."
         )
     return None
 
 
-def warning_if_not_mounted(shared_dir_path: Path) -> None:
-    shared_dir_path = shared_dir_path.resolve()
+def warning_if_not_mounted(shared_dir_root: Path) -> None:
+    shared_dir_root = shared_dir_root.resolve()
     with open("/proc/mounts", "r") as mounts:
         for line in mounts:
             mount_point: Path = Path(
                 line.split()[1]
             ).resolve()  # Type casting might be required
-            if shared_dir_path == mount_point:
+            if shared_dir_root == mount_point:
                 return
     print(
-        f"[bold red]Warning: the shared directory `{shared_dir_path}` does not appear to be a network drive. It might not be accessible to the nodes."
+        f"[bold red]Warning: the shared directory `{shared_dir_root}` does not appear to be a network drive. It might not be accessible to the nodes."
     )
 
 
@@ -149,7 +149,7 @@ def queue(
             help="Override the manager URL from the configuration.",
         ),
     ] = None,
-    shared_dir_path_input: Annotated[
+    shared_dir_root_input: Annotated[
         Optional[Path],
         typer.Option(
             "--shared-dir-path",
@@ -164,7 +164,7 @@ def queue(
         ),
     ] = None,
 ) -> None:
-    if None in [shared_dir_path_input, manager_url_input]:
+    if None in [shared_dir_root_input, manager_url_input]:
         if config_path.is_file():
             config = read_config(config_path)
         else:
@@ -174,16 +174,16 @@ def queue(
     else:
         manager_url = manager_url_input
 
-    if shared_dir_path_input is None:
-        shared_dir_path: Path = Path(config["shared_dir_path"])
+    if shared_dir_root_input is None:
+        shared_dir_root: Path = Path(config["shared_dir_root"])
     else:
-        shared_dir_path = shared_dir_path_input
+        shared_dir_root = shared_dir_root_input
 
-    warning_if_not_mounted(shared_dir_path)
+    warning_if_not_mounted(shared_dir_root)
     url = f"{manager_url}/manager/task/add_task/"
     print(f"[bold green]Submitting jobs to {manager_url}/manager/task/")
     for path in track(paths, description="[bold green]Progress:"):
-        path = sanitize_path(path, shared_dir_path)
+        path = sanitize_path(path, shared_dir_root)
         if path is None:
             continue
         data = {
