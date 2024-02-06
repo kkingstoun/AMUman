@@ -1,6 +1,6 @@
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Dict, Union
+from typing import Dict, List, Optional, Union
 
 import httpx
 import toml
@@ -79,7 +79,7 @@ def sanitize_path(path: Path, shared_dir_root: Path) -> Optional[Path]:
 
 def warning_if_not_mounted(shared_dir_root: Path) -> None:
     shared_dir_root = shared_dir_root.resolve()
-    with open("/proc/mounts", "r") as mounts:
+    with open("/proc/mounts") as mounts:
         for line in mounts:
             mount_point: Path = Path(
                 line.split()[1]
@@ -182,8 +182,8 @@ def queue(
     warning_if_not_mounted(shared_dir_root)
     url = f"{manager_url}/manager/task/add_task/"
     print(f"[bold green]Submitting jobs to {manager_url}/manager/task/")
-    for path in track(paths, description="[bold green]Progress:"):
-        path = sanitize_path(path, shared_dir_root)
+    for input_path in track(paths, description="[bold green]Progress:"):
+        path = sanitize_path(input_path, shared_dir_root)
         if path is None:
             continue
         data = {

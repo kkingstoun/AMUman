@@ -5,7 +5,6 @@ from asgiref.sync import async_to_sync
 
 # from .components.nodes_monitor import NodesMonitor
 from channels.layers import get_channel_layer
-from manager.models import Gpus, ManagerSettings, Nodes, Task
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q
@@ -20,6 +19,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from manager.components.scheduler import ThreadedScheduler
+from manager.models import Gpus, ManagerSettings, Nodes, Task
 
 from .components.forms import AddTaskForm, EditTaskForm, SettingsForm
 from .components.queue import QueueManager
@@ -194,13 +194,13 @@ class NodeManagementView(APIView):
     def post(self, request, format=None):
         action = request.data.get("action")
 
-        if action == "assign_new_node": # /api/nodes POST
+        if action == "assign_new_node":  # /api/nodes POST
             return self.assign_new_node(request)
-        elif action == "update_node_status": # /api/nodes/{id} PUT OR PATCH ask chatgpt
+        elif action == "update_node_status":  # /api/nodes/{id} PUT OR PATCH ask chatgpt
             return self.update_node_status(request)
-        elif action == "assign_node_gpu": # /api/gpus POST
+        elif action == "assign_node_gpu":  # /api/gpus POST
             return self.assign_node_gpu(request)
-        elif action == "update_node_gpu_status": # /api/gpus/{id} PUT or PATCH 
+        elif action == "update_node_gpu_status":  # /api/gpus/{id} PUT or PATCH
             return self.update_node_gpu_status(request)
         else:
             return Response({"message": "Uknown action."}, status=400)

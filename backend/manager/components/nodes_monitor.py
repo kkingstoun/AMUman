@@ -5,7 +5,7 @@
 # class NodesMonitor:
 #     def __init__(self):
 #         pass
-    
+
 #     async def send_update_command(self):
 #         try:
 #             cl = get_channel_layer()

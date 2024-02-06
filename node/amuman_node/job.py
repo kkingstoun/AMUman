@@ -1,8 +1,8 @@
 import asyncio
 import logging
+from asyncio.subprocess import Process
 from dataclasses import dataclass, field
 from typing import Optional
-from asyncio.subprocess import Process
 
 log = logging.getLogger("rich")
 
@@ -31,7 +31,7 @@ class Job:
 
     def start(self) -> None:
         log.debug(f"Starting job {self.id=}")
-        asyncio.create_task(self.run_subprocess())
+        self.async_task = asyncio.create_task(self.run_subprocess())
 
     async def run_subprocess(self) -> None:
         log.debug(f"Starting subprocess for job ID: {self.id}")
