@@ -3,11 +3,9 @@ import json
 import logging
 import os
 import uuid
-from typing import Optional, Any, Union
-
+from typing import Any, Optional, Union
 
 import requests
-
 import websockets
 from rich.logging import RichHandler
 
@@ -38,7 +36,7 @@ class NodeClient:
 
         self.job_manager: JobManager = JobManager(self.node_id, self.manager_url)
         self.reconnect_attempts: int = 10
-        self.sleep_increment: int = 1
+        self.reconnect_delay: int = 30
         self.gpm: Optional[GPUMonitor] = None
 
     async def start(self) -> None:
@@ -100,13 +98,17 @@ class NodeClient:
                 async with websockets.connect(
                     f"ws://{self.manager_url}/ws/node"
                 ) as websocket:
+                    self.reconnect_attemps = 10
                     await self.register_websocket(websocket)
                     await self.handle_connection(websocket)
             except Exception as e:
                 log.exception(f"WebSocket connection error: {e}")
 
-            log.info("Attempting to reconnect...")
-            await self.reconnect()
+            if self.reconnect_attempts > 0:
+                log.warning(f"{self.reconnect_attemps} reconnection attempts left")
+                log.warning(f"Reconnecting in {self.reconnect_delay} seconds...")
+                await asyncio.sleep(self.reconnect_delay)
+                self.reconnect_attemps -= 1
 
     async def handle_connection(
         self, websocket: websockets.WebSocketClientProtocol
@@ -143,13 +145,8 @@ class NodeClient:
                 f"Command not for this node: {command=}, {r_node_id=} != {self.node_id=}"
             )
 
-    async def reconnect(self) -> None:
-        for i in range(self.reconnect_attempts, 0, -1):
-            log.info(f"Reconnecting in {i} seconds...")
-            await asyncio.sleep(self.sleep_increment)
-
     async def execute_update_gpus(self, node_id: int) -> None:
-        if self.gpm and self.gpm.number_of_gpus > 0:
+        if self.gpm and len(self.gpm.gpus) > 0:
             await self.gpm.check_gpus_status()
             await self.gpm.submit_update_gpu_status(node_id)
 

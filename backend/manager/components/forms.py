@@ -1,7 +1,8 @@
-from manager.models import ManagerSettings, Task
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Field, Layout
 from django import forms
+
+from manager.models import ManagerSettings, Task
 
 
 class EditTaskForm(forms.ModelForm):

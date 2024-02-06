@@ -1,0 +1,25 @@
+
+
+[tool.ruff.lint]
+ignore = ["E501"]
+select = [
+    # pycodestyle
+    "E",
+    "W",
+    "C90",
+    "N",
+    # "PL",
+    "ARG",
+    "RUF",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+]
+
