@@ -5,7 +5,7 @@ from asgiref.sync import async_to_sync
 
 # from .components.nodes_monitor import NodesMonitor
 from channels.layers import get_channel_layer
-from manager.models import *
+from manager.models import Gpus, ManagerSettings, Nodes, Task
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import Q
