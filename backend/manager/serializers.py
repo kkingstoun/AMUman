@@ -1,9 +1,8 @@
-# scheduler/serializers.py
-
 from rest_framework import serializers
-from common_models.models import Task
+from manager.models import Task
+
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = '__all__'
+        fields = "__all__"

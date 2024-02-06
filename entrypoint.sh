@@ -10,25 +10,33 @@ fi
 
 if [ "$1" = "manager" ]; then
     echo "Running the manager"
-    cd /app
-    rm /app/backend/*.sqlite3
-    pip install -r /app/requirements.txt
-    python backend/manage.py makemigrations 
-    python backend/manage.py makemigrations common_models 
-    python backend/manage.py migrate 
-    python backend/manage.py migrate common_models 
-    python backend/manage.py migrate --settings=amuman.settings_manager
-    python backend/manage.py runserver 0.0.0.0:8000 --settings=amuman.settings_manager
+    cd /app/backend
+    rm -rfd *.sqlite3
+    find . -type d -name "__pycache__" -exec rm -rdf {} +
+    find . -type d -name "migrations" -exec rm -rdf {} +
+    redis-server /etc/redis/redis.conf
+
+    python manage.py makemigrations 
+    python manage.py migrate 
+    python manage.py makemigrations manager
+    python manage.py migrate --settings=amuman.settings_manager
+
+    if [ "$2" = "debug" ]; then
+       python -m debugpy --listen 0.0.0.0:5678 --wait-for-client /app/backend/manage.py runserver 0.0.0.0:8000 --settings=amuman.settings_manager
+    else
+        python manage.py runserver 0.0.0.0:8000 --settings=amuman.settings_manager
+    fi
 
 elif [ "$1" = "node" ]; then
     pip install -e /app/node
+    export NODE_NAME=test_node 
     bash
 
 elif [ "$1" = "cli" ]; then
     pip install -e /app/cli
     mkdir -p ~/.config/amuman
-    echo 'manager_url = "http://manager:8000"
-shared_dir_path = "/nas"' > ~/.config/amuman/amuman.toml
+    echo 'manager_url = "http://amuman-manager:8000"
+shared_dir_root = "/nas"' > ~/.config/amuman/amuman.toml
     amuman-cli --install-completion bash
     source ~/.bash_completions/amuman-cli.sh
     bash

@@ -1,11 +1,10 @@
-from django.db.models import Q, Case, When, Value, IntegerField
-from common_models.models import Task, Gpus
-from datetime import datetime
-from manager.components.run_task import RunTask
-from typing import List
+from manager.models import Gpus, Task
+from django.core.cache import cache, caches
 from django.db import models
-from django.core.cache import caches
-from django.core.cache import cache
+from django.db.models import Case, IntegerField, Q, Value, When
+
+from manager.components.run_task import RunTask
+
 
 class QueueManager:
     """
@@ -41,8 +40,10 @@ class QueueManager:
         Returns:
             A list of tasks ordered by decreasing priority, decreasing GPU partition, and increasing submission time.
         """
-        return Task.objects.filter(Q(status='Waiting') | Q(status="Interrupted")).order_by('-priority', '-gpu_partition', 'submit_time')
-                
+        return Task.objects.filter(
+            Q(status="Waiting") | Q(status="Interrupted")
+        ).order_by("-priority", "-gpu_partition", "submit_time")
+
     @property
     def waiting_gpus(self):
         """
@@ -54,26 +55,28 @@ class QueueManager:
             The first available GPU, or None if no GPUs are available.
         """
         speed_order = Case(
-            When(gpu_speed='Fast', then=Value(3)),
-            When(gpu_speed='Normal', then=Value(2)),
-            When(gpu_speed='Slow', then=Value(1)),
+            When(gpu_speed="Fast", then=Value(3)),
+            When(gpu_speed="Normal", then=Value(2)),
+            When(gpu_speed="Slow", then=Value(1)),
             default=Value(0),
-            output_field=IntegerField()
+            output_field=IntegerField(),
         )
 
-        gpus = Gpus.objects.filter(status='Waiting').annotate(
-            speed_as_number=speed_order
-        ).order_by('-speed_as_number')
+        gpus = (
+            Gpus.objects.filter(status="Waiting")
+            .annotate(speed_as_number=speed_order)
+            .order_by("-speed_as_number")
+        )
 
         return gpus.first()
-        
-        
+
     def pause_tasks(self):
         import time
+
         """
         Pause all tasks in the queue.
         """
-        while caches["schedule_tasks"]==True:
+        while caches["schedule_tasks"] == True:
             time.sleep(10)
 
     def schedule_tasks(self):
@@ -88,7 +91,7 @@ class QueueManager:
                 available_gpu = self.waiting_gpus
                 if available_gpu:
                     print(f"Run task {task.id} on GPU {available_gpu.id}")
-                    cache.set("schedule_tasks", False, timeout=300) 
+                    cache.set("schedule_tasks", False, timeout=300)
                     rt = RunTask()
                     rt.run_task(task, available_gpu)
             else:
