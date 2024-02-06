@@ -194,13 +194,13 @@ class NodeManagementView(APIView):
     def post(self, request, format=None):
         action = request.data.get("action")
 
-        if action == "assign_new_node":
+        if action == "assign_new_node": # /api/nodes POST
             return self.assign_new_node(request)
-        elif action == "update_node_status":
+        elif action == "update_node_status": # /api/nodes/{id} PUT OR PATCH ask chatgpt
             return self.update_node_status(request)
-        elif action == "assign_node_gpu":
+        elif action == "assign_node_gpu": # /api/gpus POST
             return self.assign_node_gpu(request)
-        elif action == "update_node_gpu_status":
+        elif action == "update_node_gpu_status": # /api/gpus/{id} PUT or PATCH 
             return self.update_node_gpu_status(request)
         else:
             return Response({"message": "Uknown action."}, status=400)
