@@ -1,9 +1,9 @@
-from manager.models import Gpus, Task
 from django.core.cache import cache, caches
 from django.db import models
 from django.db.models import Case, IntegerField, Q, Value, When
 
 from manager.components.run_task import RunTask
+from manager.models import Gpus, Task
 
 
 class QueueManager:

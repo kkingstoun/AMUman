@@ -1,7 +1,8 @@
-from schedule import Scheduler
 import threading
-import warnings
 import time
+import warnings
+
+from schedule import Scheduler
 
 
 class RepeatTimer(threading.Timer):
@@ -16,7 +17,7 @@ class RepeatTimer(threading.Timer):
             super(RepeatTimer, self).start()
             self.running = True
         else:
-            warnings.warn('Timer is already running, cannot be started again.')
+            warnings.warn("Timer is already running, cannot be started again.")
 
     def cancel(self) -> None:
         """Protect from running stop method multiple times"""
@@ -24,7 +25,7 @@ class RepeatTimer(threading.Timer):
             super(RepeatTimer, self).cancel()
             self.running = False
         else:
-            warnings.warn('Timer is already canceled, cannot be canceled again.')
+            warnings.warn("Timer is already canceled, cannot be canceled again.")
 
     def run(self):
         """Replace run method of timer to run continuously"""
@@ -61,7 +62,9 @@ class ThreadedScheduler(Scheduler):
     def start(self):
         try:
             if not self.thread.is_alive():
-                self.thread = threading.Thread(target=self.run_continuously, daemon=True)
+                self.thread = threading.Thread(
+                    target=self.run_continuously, daemon=True
+                )
                 self.thread.start()
         except AttributeError:
             self.thread = threading.Thread(target=self.run_continuously, daemon=True)
@@ -77,9 +80,6 @@ class ThreadedScheduler(Scheduler):
     def get_instance(cls, *args, **kwargs):
         """Zwróć instancję singletona ThreadedScheduler."""
         return cls(*args, **kwargs)
-
-            
-            
 
 
 # if __name__ == '__main__':

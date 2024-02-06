@@ -1,5 +1,6 @@
-from manager.models import Task  # Załóżmy, że mamy model Task
 from django.test import Client, TestCase
+
+from manager.models import Task  # Załóżmy, że mamy model Task
 
 
 class AddTaskFormTest(TestCase):
