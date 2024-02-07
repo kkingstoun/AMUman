@@ -98,17 +98,17 @@ class NodeClient:
                 async with websockets.connect(
                     f"ws://{self.manager_url}/ws/node"
                 ) as websocket:
-                    self.reconnect_attemps = 10
+                    self.reconnect_attempts = 10
                     await self.register_websocket(websocket)
                     await self.handle_connection(websocket)
             except Exception as e:
                 log.exception(f"WebSocket connection error: {e}")
 
             if self.reconnect_attempts > 0:
-                log.warning(f"{self.reconnect_attemps} reconnection attempts left")
+                log.warning(f"{self.reconnect_attempts} reconnection attempts left")
                 log.warning(f"Reconnecting in {self.reconnect_delay} seconds...")
                 await asyncio.sleep(self.reconnect_delay)
-                self.reconnect_attemps -= 1
+                self.reconnect_attempts -= 1
 
     async def handle_connection(
         self, websocket: websockets.WebSocketClientProtocol
