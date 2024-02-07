@@ -1,4 +1,5 @@
 .direnv
+.mamba
 .envrc
 # Node.js #
 node_modules/
