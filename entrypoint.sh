@@ -23,6 +23,8 @@ if [ "$1" = "manager" ]; then
 
     if [ "$2" = "debug" ]; then
        python -m debugpy --listen 0.0.0.0:5678 --wait-for-client /app/backend/manage.py runserver 0.0.0.0:8000 --settings=amuman.settings_manager
+    elif [ "$2" = "bash" ]; then
+        bash
     else
         python manage.py runserver 0.0.0.0:8000 --settings=amuman.settings_manager
     fi
