@@ -1,0 +1,85 @@
+{% extends "manager/base.html" %}
+
+{% block title %}Manage node {{node_id}}- {{gpu_count}} gpus {% endblock %}
+{% block name %}Manage node {{node_id}} - {{gpu_count}} gpus {% endblock %}
+{% block content %}
+<div class="container">
+    <div class="mb-3">
+        {% if gpu_count > 0 %}
+            <a href="#" id="refresh-button" class="btn btn-success" role="button" >
+                <i class="fas fa-sync-alt"></i> Refresh
+            </a>
+        {% else %}
+            <a href="#" id="refresh-button" class="btn btn-success disabled" role="button" aria-disabled="true">
+                <i class="fas fa-sync-alt"></i> NO GPUS
+            </a>
+        {% endif %}
+    </div>
+    <table id="gpu-table" class="table table-striped table-bordered" data-bs-theme="dark">
+        <thead class="thead-light">
+            <tr>
+                <th>ID</th>
+                <th>Node ID</th>
+                <th>Brand Name</th>
+                <th>GPU Speed</th>
+                <th>GPU Utilization</th>
+                <th>Is Running Amumax</th>
+                <th>Status</th>
+                <th>Last Update</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for gpu in gpus %}
+            <tr>
+                <td>{{ gpu.id }}</td>
+                <td>{{ gpu.node_id.id }}</td>  {# Assuming you want to display the Node ID #}
+                <td>{{ gpu.brand_name }}</td>
+                <td>{{ gpu.gpu_speed }}</td>
+                <td>{{ gpu.gpu_util}}</td>
+                <td>{{ gpu.is_running_amumax }}</td>
+                <td>{{ gpu.status }}</td>
+                <td>{{ gpu.last_update }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="10">There are no active GPUs.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a class="btn btn-primary" href="/manager/nodes/">Back</a>
+
+    
+</div>
+{% endblock %}
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('refresh-button').addEventListener('click', function(e) {
+        e.preventDefault();
+        fetch("{% url 'refresh_gpus_ajax' node_id=node_id %}?action=refresh_gpus_ajax")
+            .then(response => response.json())
+            .then(data => {
+                updateGPUs(data.gpus);
+            })
+            .catch(error => console.error('Error:', error));
+    });
+});
+
+function updateGPUs(gpus) {
+    const tableBody = document.getElementById('gpu-table').getElementsByTagName('tbody')[0];
+    tableBody.innerHTML = ''; // Wyczyść obecną zawartość tabeli
+
+    const keysToShow = ['id', 'node_id', 'brand_name', 'gpu_speed', 'gpu_util', 'is_running_amumax', 'status', 'last_update'];
+
+    gpus.forEach(gpu => {
+        let row = tableBody.insertRow();
+        keysToShow.forEach((key, index) => {
+            let cell = row.insertCell(index);
+            cell.innerHTML = gpu[key] || ''; // Wstawia pusty string, jeśli klucz nie istnieje
+        });
+    });
+}
+
+</script>
+{% endblock %}
