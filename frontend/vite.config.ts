@@ -9,7 +9,7 @@ export default defineConfig({
     devOptions: {
       enabled: true
     },
-    includeAssets: ['background.avif', 'favicon.png'],
+    includeAssets: ['favicon.png'],
 
   })],
 })
