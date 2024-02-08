@@ -1,34 +1,27 @@
 {
   inputs = {
-    nixpkgs.url = "nixpkgs/nixpkgs-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
-    poetry2nix = {
-      url = "github:nix-community/poetry2nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
   };
 
   outputs = {
     self,
     nixpkgs,
-    flake-utils,
-    poetry2nix,
-  }:
-    flake-utils.lib.eachDefaultSystem (
-      system: let
-        pkgs = import nixpkgs {inherit system;};
-        # inherit (poetry2nix.lib.mkPoetry2Nix {inherit pkgs;}) mkPoetryApplication;
-      in {
-        # packages = {
-        #   flameshow = mkPoetryApplication {projectDir = self;};
-        #   default = self.packages.${system}.flameshow;
-        # };
+  }: let
+    system = "x86_64-linux";
+    pkgs = nixpkgs.legacyPackages.${system};
 
-        devShells.default = pkgs.mkShell {
-          packages =
-            (with pkgs; [nil python3 mypy ruff poetry])
-            ++ (with pkgs.python311Packages; [pip python-lsp-server pylsp-mypy python-lsp-ruff]);
-        };
-      }
-    );
+    fhs = pkgs.buildFHSUserEnv {
+      name = "fhs-shell";
+      targetPkgs = pkgs: with pkgs; [micromamba zsh];
+      runScript = ''
+        zsh -c '
+          export MAMBA_ROOT_PREFIX=.mamba
+          eval $(micromamba shell activate env1 --shell bash)
+          exec zsh
+        '
+      '';
+    };
+  in {
+    devShells.${system}.default = fhs.env;
+  };
 }
