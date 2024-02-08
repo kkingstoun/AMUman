@@ -1,3 +1,4 @@
+import logging
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Union
@@ -6,13 +7,25 @@ import httpx
 import toml
 import typer
 from rich import print
-from rich.progress import track
+from rich.logging import RichHandler
 from rich.prompt import Prompt
 from typing_extensions import Annotated
 from xdg_base_dirs import xdg_config_home
 
 app = typer.Typer(rich_markup_mode="rich")
 default_config_path: Path = xdg_config_home().joinpath("amuman/amuman.toml")
+
+
+logging.basicConfig(
+    level="NOTSET",
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler()],
+)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+log = logging.getLogger("rich")
 
 
 class Priority(str, Enum):
@@ -25,6 +38,10 @@ class GPUPartition(str, Enum):
     Fast = "Fast"
     Normal = "Normal"
     Slow = "Slow"
+
+
+def warning(message: str) -> None:
+    print(f"[bold orange1]Warning: {message}[/bold orange1]")
 
 
 def init_config(config_path: Path) -> Dict[str, Union[str, Path]]:
@@ -53,13 +70,18 @@ def init_config(config_path: Path) -> Dict[str, Union[str, Path]]:
 
 
 def read_config(config_path: Path) -> Dict[str, Union[str, Path]]:
-    config: Dict[str, Union[str, Path]] = toml.loads(config_path.read_text())
+    try:
+        config: Dict[str, Union[str, Path]] = toml.loads(config_path.read_text())
+    except FileNotFoundError:
+        print(f"Configuration file not found at {config_path}, initializing...")
+        config = init_config(config_path)
+
     required_keys: List[str] = ["manager_url", "shared_dir_root"]
     missing_keys: List[str] = [key for key in required_keys if key not in config]
     if missing_keys:
         print(f"Missing keys: {missing_keys}")
         config = init_config(config_path)
-    return config  # Type casting might be required if your config has mixed types
+    return config
 
 
 def sanitize_path(path: Path, shared_dir_root: Path) -> Optional[Path]:
@@ -69,10 +91,10 @@ def sanitize_path(path: Path, shared_dir_root: Path) -> Optional[Path]:
         if path.suffix == ".mx3":
             return path
         else:
-            print(f"[bold red]Skipping `{path}`: the path does not end in `.mx3`.")
+            print(f"[bold red] \u274C {path}: the path does not end in `.mx3`.")
     else:
         print(
-            f"[bold red]Skipping `{path}`: the path is not in the shared directory `{shared_dir_root}`."
+            f"[bold red] \u274C {path}: the path is not in the shared directory `{shared_dir_root}`."
         )
     return None
 
@@ -86,13 +108,13 @@ def warning_if_not_mounted(shared_dir_root: Path) -> None:
             ).resolve()  # Type casting might be required
             if shared_dir_root == mount_point:
                 return
-    print(
-        f"[bold red]Warning: the shared directory `{shared_dir_root}` does not appear to be a network drive. It might not be accessible to the nodes."
+    warning(
+        f"the shared directory `{shared_dir_root}` does not appear to be a network drive. It might not be accessible to the nodes."
     )
 
 
 @app.command()
-def queue(
+def queue(  # noqa: C901
     paths: Annotated[
         List[Path],
         typer.Argument(
@@ -121,7 +143,7 @@ def queue(
             help="Job priority in the queue.",
             case_sensitive=False,
         ),
-    ] = Priority.Normal.name,
+    ] = Priority.Normal,
     gpu_partition: Annotated[
         GPUPartition,
         typer.Option(
@@ -130,7 +152,7 @@ def queue(
             help="Speed of GPUs that will run your jobs.",
             case_sensitive=False,
         ),
-    ] = GPUPartition.Normal.name,
+    ] = GPUPartition.Normal,
     estimated_time: Annotated[
         int,
         typer.Option(
@@ -163,7 +185,31 @@ def queue(
             resolve_path=True,
         ),
     ] = None,
+    verbose: Annotated[
+        int,
+        typer.Option(
+            "--verbose",
+            "-v",
+            count=True,
+        ),
+    ] = 0,
+    quiet: Annotated[
+        int,
+        typer.Option(
+            "--quiet",
+            "-q",
+            count=True,
+        ),
+    ] = 0,
 ) -> None:
+    if verbose > 0:
+        log.setLevel("DEBUG")
+    elif quiet == 1:
+        log.setLevel("WARNING")
+    elif quiet > 1:
+        log.setLevel("ERROR")
+    else:
+        log.setLevel("INFO")
     if None in [shared_dir_root_input, manager_url_input]:
         if config_path.is_file():
             config = read_config(config_path)
@@ -181,8 +227,9 @@ def queue(
 
     warning_if_not_mounted(shared_dir_root)
     url = f"{manager_url}/manager/task/add_task/"
-    print(f"[bold green]Submitting jobs to {manager_url}/manager/task/")
-    for input_path in track(paths, description="[bold green]Progress:"):
+    if log.level <= 20:
+        print(f"[bold blue3]Submitting jobs to {manager_url}/manager/task/")
+    for input_path in paths:
         path = sanitize_path(input_path, shared_dir_root)
         if path is None:
             continue
@@ -194,11 +241,19 @@ def queue(
         }
         try:
             response = httpx.post(url, data=data)
-            print(f"Path: {path} - Response Status: {response.status_code}")
-            # print(f"Response Body: {response.text}\n---")
+            if log.level <= 20 and response.status_code < 400:
+                print(f"[bold green] \u2713 {path}")
+            if response.status_code >= 400:
+                print(f"[bold red] \u274C {path}")
+            log.debug(f"Path: {path} - Response Status: {response.status_code}")
         except httpx.HTTPError as e:
-            print(f"An HTTP error occurred for path {path}: {e}")
+            print(f"[bold red] \u274C {path}")
+            log.error(f"An HTTP error occurred: {e}")
 
 
 def entrypoint() -> None:
     app()
+
+
+if __name__ == "__main__":
+    entrypoint()
