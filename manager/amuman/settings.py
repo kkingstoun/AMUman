@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     "rest_framework_swagger",
     "notification",
     "widget_tweaks",
-    "bootstrap5",
     "channels",
     "crispy_bootstrap4",
 ]
