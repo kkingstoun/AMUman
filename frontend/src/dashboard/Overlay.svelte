@@ -1,5 +1,5 @@
-<script>
-	import { closeSidebar, sidebarOpen } from "./store";
+<script lang="ts">
+	import { closeSidebar, sidebarOpen } from '../store';
 </script>
 
 <!-- The overlay will only be visible on small screens to emphasize the focus on the side navigation when it is open.-->
@@ -7,6 +7,6 @@
 <button
 	on:click={closeSidebar}
 	class={$sidebarOpen
-		? "bg-black fixed h-screen left-0 opacity-40 top-0 w-screen z-30 lg:hidden"
-		: ""}
+		? 'bg-black fixed h-screen left-0 opacity-40 top-0 w-screen z-30 lg:hidden'
+		: ''}
 />

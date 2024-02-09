@@ -1,3 +1,13 @@
 import { writable } from 'svelte/store';
 
-export const api = writable<URL>(new URL('./api', window.location.href));
+const sidebarOpen = writable(false);
+
+const openSidebar = () => {
+	sidebarOpen.update(() => true);
+};
+
+const closeSidebar = () => {
+	sidebarOpen.update(() => false);
+};
+
+export { sidebarOpen, openSidebar, closeSidebar };

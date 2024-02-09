@@ -1,38 +1,32 @@
-<script>
-	import "tailwindcss/tailwind.css";
-	// import { page } from "$app/stores";
-	// import { browser } from "$app/environment";
+<script lang="ts">
+	import 'tailwindcss/tailwind.css';
+	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
 
-	import TopBar from "./TopBar.svelte";
-	import Overlay from "./Overlay.svelte";
-	import Sidebar from "./sidebar/Sidebar.svelte";
-	import { closeSidebar, sidebarOpen } from "./store";
+	import TopBar from './TopBar.svelte';
+	import Overlay from './Overlay.svelte';
+	import Sidebar from './Sidebar.svelte';
+	import { closeSidebar, sidebarOpen } from '../store';
+	import Auth from '../components/Auth.svelte';
 
-	// if (browser) {
-	// 	page.subscribe(() => {
-	// 		// close Sidebar on route changes. it's triggered when viewport is less than 1024px
-	// 		if ($sidebarOpen && window.innerWidth < 1024) {
-	// 			closeSidebar();
-	// 		}
-	// 	});
-	// }
+	if (browser) {
+		page.subscribe(() => {
+			// close Sidebar on route changes. it's triggered when viewport is less than 1024px
+			if ($sidebarOpen && window.innerWidth < 1024) {
+				closeSidebar();
+			}
+		});
+	}
 </script>
-
-<!-- lg:w-[calc(100%-16rem)] class get the remained width of the main tag from lg:viewport by subtracting
-(the total width by the width of the Sidebar component which is w-64 = 16rem)-->
 
 <div class="background h-screen overflow-hidden w-full lg:p-4">
 	<div class="content h-screen overflow-hidden relative lg:rounded-2xl">
 		<div class="flex items-start">
 			<Overlay />
 			<Sidebar mobileOrientation="end" />
-			<div
-				class="flex flex-col h-screen pl-0 w-full lg:space-y-4 lg:w-[calc(100%-16rem)]"
-			>
+			<div class="flex flex-col h-screen pl-0 w-full lg:space-y-4 lg:w-[calc(100%-16rem)]">
 				<TopBar />
-				<main
-					class="main h-screen pb-36 pt-4 px-2 md:pb-8 md:px-4 lg:px-6"
-				>
+				<main class="main h-screen pb-36 pt-4 px-2 md:pb-8 md:px-4 lg:px-6">
 					<slot />
 				</main>
 			</div>
@@ -42,7 +36,8 @@
 
 <style>
 	.background {
-		background-image: url("./mac.webp");
+		/* background-image: url('./mac.webp'); */
+		background-color: rgb(43, 43, 56);
 		background-size: cover;
 		background-position: center;
 	}

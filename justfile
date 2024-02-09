@@ -14,7 +14,7 @@ network:
 	sudo docker network create amuman
 
 build:
-	sudo docker build . -t amuman
+	sudo docker build . -f dev.dockerfile -t amuman
 
 staging:
 	podman build backend -f backend/dockerfile -t amuman-staging

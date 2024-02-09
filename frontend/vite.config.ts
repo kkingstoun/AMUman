@@ -1,15 +1,9 @@
-import { defineConfig } from 'vite'
-import { VitePWA } from 'vite-plugin-pwa'
-import { svelte } from '@sveltejs/vite-plugin-svelte'
+import { sveltekit } from '@sveltejs/kit/vite';
+import { defineConfig } from 'vitest/config';
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [svelte(), VitePWA({
-    registerType: 'autoUpdate',
-    devOptions: {
-      enabled: true
-    },
-    includeAssets: ['favicon.png'],
-
-  })],
-})
+	plugins: [sveltekit()],
+	test: {
+		include: ['src/**/*.{test,spec}.{js,ts}']
+	}
+});

@@ -1,8 +1,0 @@
-dev:
-	podman run --rm -it \
-		--network amuman-dev \
-		--name amuman-frontend \
-		-p 6001:6001 \
-		-v .:/app \
-		-w /app \
-		node bash
