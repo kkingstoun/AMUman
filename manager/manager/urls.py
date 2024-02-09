@@ -3,11 +3,9 @@ from django.urls import path
 from . import views, views_frontend
 
 urlpatterns = [
-    path('messages/', views.MessageListView.as_view(), name='message-list'),
-    path('messages/create/', views.MessageCreateView.as_view(), name='message-create'),
-    path('tasks/', views_frontend.TasksListView.as_view(), name='task-list'),
+    path('tasks/', views_frontend.TasksListView.as_view(), name='tasks-list'),
     path('nodes/', views_frontend.NodesListView.as_view(), name='nodes-list'),
-    path('gpus/', views_frontend.GpusListView.as_view(), name='task-list'),
+    path('gpus/', views_frontend.GpusListView.as_view(), name='gpus-list'),
     path("console/", views_frontend.ConsoleView.as_view(), name="console"),
     path("settings/", views_frontend.SettingsView.as_view(), name="managersettings"),
     

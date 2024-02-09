@@ -3,15 +3,12 @@
 # Create your views here.
 
 
-from django.conf import Settings
 from django.db.models import Q
 from django.urls import reverse_lazy
 from django.views.generic import ListView
-from django.views.generic.edit import CreateView
-from django.views.generic.edit import UpdateView
-from django.shortcuts import get_object_or_404
+from django.views.generic.edit import CreateView, UpdateView
 
-from .forms import AddTaskForm, EditTaskForm, SettingsForm, ManagerSettings
+from .forms import AddTaskForm, EditTaskForm, ManagerSettings, SettingsForm
 from .models import Gpus, Nodes, Task
 
 # from .forms import TaskForm, NodeForm
@@ -42,10 +39,6 @@ class TasksListView(BaseListView):
 
         return context
 
-class NodesListView(BaseListView):
-    model = Nodes
-    template_name = 'manager/node_list.html'
-
 class TasksAddView(CreateView):
     model = Task
     form_class = AddTaskForm  # Użyj swojego formularza TaskForm
@@ -69,7 +62,7 @@ class TaskUpdateView(UpdateView):
     def form_valid(self, form):
         # Możesz dodać dodatkową logikę przed zapisem formularza, jeśli jest potrzebna
         return super().form_valid(form)
-    
+
 class NodesListView(BaseListView):
     model = Task
     template_name = 'manager/node_list.html'
@@ -88,7 +81,7 @@ class NodesListView(BaseListView):
         context['finished_tasks'] = Nodes.objects.filter(status='Finished')
 
         return context
-    
+
 class GpusListView(BaseListView):
     model = Task
     template_name = 'manager/gpu_list.html'
@@ -107,7 +100,7 @@ class GpusListView(BaseListView):
         context['finished_tasks'] = Gpus.objects.filter(status='Finished')
 
         return context
-    
+
 class SettingsView(UpdateView):
     model = ManagerSettings
     form_class = SettingsForm
@@ -121,9 +114,10 @@ class SettingsView(UpdateView):
     def form_valid(self, form):
         # Logika po pomyślnym zapisaniu formularza
         from manager.components.scheduler import ThreadedScheduler
+
         from .components.queue import QueueManager
         queue_watchdog_value = form.cleaned_data["queue_watchdog"]
-        if queue_watchdog_value == True:
+        if queue_watchdog_value is True:
             try:
                 scheduler = (
                     ThreadedScheduler.get_instance()
@@ -141,9 +135,8 @@ class SettingsView(UpdateView):
             except Exception as e:
                 print(e)
         return super().form_valid(form)
-    
+
 class ConsoleView(BaseListView):
     model = Task
     template_name = 'manager/console.html'
 
-   

@@ -8,7 +8,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from manager.api import manager_router
+from manager.routing import manager_router
 
 schema_view = get_schema_view(
     openapi.Info(
