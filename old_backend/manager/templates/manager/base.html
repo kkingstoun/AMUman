@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootswatch Darkly Theme for Bootstrap 4.6.2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootswatch@4.6.2/dist/darkly/bootstrap.min.css">
+
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+
+    <!-- jQuery and Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+
+    <!-- Additional Libraries -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <script>
+        $(document).ready(function(){
+            // Lista identyfikatorów tabel
+            var tableIds = ['table_waiting', 'table_running', 'table_finished'];
+        
+            // Iteracja po każdej tabeli
+            tableIds.forEach(function(tableId){
+                var table = $('.' + tableId);
+        
+                table.find('thead th').each(function(index){
+                    var th = $(this);
+                    if (th.text().trim() !== '') {
+                        th.append('<a href="#" class="sort-link" data-column="'+index+'">&#x25B2;</a>');
+        
+                        th.find('.sort-link').click(function(e){
+                            e.preventDefault();
+                            var column = $(this).data('column');
+                            var direction = th.hasClass('asc') ? 'desc' : 'asc';
+        
+                            table.find('thead th').removeClass('asc desc');
+                            th.addClass(direction);
+        
+                            var rows = table.find('tbody tr');
+                            rows.sort(function(a, b){
+                                var aValue = $(a).find('td:eq('+column+')').text();
+                                var bValue = $(b).find('td:eq('+column+')').text();
+                                if (direction === 'asc') {
+                                    return aValue.localeCompare(bValue);
+                                } else {
+                                    return bValue.localeCompare(aValue);
+                                }
+                            });
+        
+                            table.find('tbody').empty();
+                            rows.each(function(){
+                                table.find('tbody').append($(this));
+                            });
+                        });
+                    }
+                });
+            });
+        });        
+        </script>
+        <style>
+            .table {
+                max-width: 100%;
+            }
+            .container {
+                max-width: 100%; /* Ustawić odpowiednią szerokość kontenera */
+            }
+        </style>
+    </head>
+    <body class="container-fluid" data-bs-theme="dark">
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+            <a class="navbar-brand" href="#">A<sup>MU</sup>man</a>
+            
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+                aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+                <ul class="navbar-nav">
+                    <li class="nav-item {% if request.path == '/manager/tasks/' %}active{% endif %}">
+                        <a class="nav-link" href="/manager/task/">Task List</a>
+                    </li>
+                    <li class="nav-item {% if request.path == '/manager/task/add_task/' %}active{% endif %}">
+                        <a class="nav-link" href="/manager/task/add_task/">Add Task</a>
+                    </li>
+                    <li class="nav-item {% if request.path == '/manager/nodes/' %}active{% endif %}">
+                        <a class="nav-link" href="/manager/nodes/">Node List</a>
+                    </li>
+                    <li class="nav-item {% if request.path == '/manager/gpus/' %}active{% endif %}">
+                        <a class="nav-link" href="/manager/gpus/">GPUs List</a>
+                    </li>
+                    <li class="nav-item {% if request.path == '/manager/console/' %}active{% endif %}">
+                        <a class="nav-link" href="/manager/console/">Websocket Monitor</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ml-auto"> <!-- This will push the settings to the right -->
+                    <li class="nav-item {% if request.path == '/manager/settings/' %}active{% endif %}">
+                        <a class="nav-link" href="/manager/settings/">
+                            <span class="icon"><i class="fas fa-cog"></i></span> Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        
+        <main role="main" class="container relative" style="margin-top: 5rem;">
+
+            <div id="content" class="container">
+        
+                <div class="row">
+                    <div class="col-lg-12">
+                        <p class="page-title lead">
+                            {% block name %}{% endblock %}
+                        </p>
+                    </div>
+                </div>
+        
+                <div class="row">
+                    <div class="col-lg-12">
+                        {% block content %}{% endblock %}
+                    </div>
+                </div>
+            </div>
+        
+        </main>
+    {% block javascript %}{% endblock %}
+    </body>
+</html>

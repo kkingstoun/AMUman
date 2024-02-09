@@ -1,14 +1,15 @@
 {% extends "manager/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block title %}Edit task{% endblock %}
 {% block name %}Edit task {{ task.id }}:{% endblock %}
 {% block content %}
 <div class="container mt-3">
-    <form method="post" action="{% url 'task_action_id' 'edit_task' task.id %}">
+    <form method="post" action="{% url 'task-edit' pk=task.id %}">
         {% csrf_token %}
         {{ form.as_p }} <!-- Renderuje każde pole formularza w paragrafie -->
         <button type="submit" class="btn btn-primary">Submit</button>
-        <a href="{% url 'task_list' %}" class="btn btn-secondary">Cancel</a>
+        <a href="/tasks/" class="btn btn-danger">Cancel</a>
     </form>    
 </div>
 {% endblock %}

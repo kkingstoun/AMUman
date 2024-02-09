@@ -1,7 +1,6 @@
 dev cmd="None":
 	podman build . -f dev.dockerfile -t amuman
 	podman run --rm -it \
-		--network amuman-dev \
 		--name amuman-manager \
 		-p 8000:8000 \
 		-p 5678:5678 \

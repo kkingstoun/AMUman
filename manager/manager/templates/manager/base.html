@@ -81,25 +81,25 @@
             
             <div class="collapse navbar-collapse" id="navbarsExampleDefault">
                 <ul class="navbar-nav">
-                    <li class="nav-item {% if request.path == '/manager/tasks/' %}active{% endif %}">
-                        <a class="nav-link" href="/manager/task/">Task List</a>
+                    <li class="nav-item {% if request.path == '/tasks/' %}active{% endif %}">
+                        <a class="nav-link" href="/tasks/">Task List</a>
                     </li>
-                    <li class="nav-item {% if request.path == '/manager/task/add_task/' %}active{% endif %}">
-                        <a class="nav-link" href="/manager/task/add_task/">Add Task</a>
+                    <li class="nav-item {% if request.path == '/tasks/add/' %}active{% endif %}">
+                        <a class="nav-link" href="/tasks/add/">Add Task</a>
                     </li>
-                    <li class="nav-item {% if request.path == '/manager/nodes/' %}active{% endif %}">
-                        <a class="nav-link" href="/manager/nodes/">Node List</a>
+                    <li class="nav-item {% if request.path == '/nodes/' %}active{% endif %}">
+                        <a class="nav-link" href="/nodes/">Node List</a>
                     </li>
-                    <li class="nav-item {% if request.path == '/manager/gpus/' %}active{% endif %}">
-                        <a class="nav-link" href="/manager/gpus/">GPUs List</a>
+                    <li class="nav-item {% if request.path == '/gpus/' %}active{% endif %}">
+                        <a class="nav-link" href="/gpus/">GPUs List</a>
                     </li>
-                    <li class="nav-item {% if request.path == '/manager/console/' %}active{% endif %}">
-                        <a class="nav-link" href="/manager/console/">Websocket Monitor</a>
+                    <li class="nav-item {% if request.path == '/console/' %}active{% endif %}">
+                        <a class="nav-link" href="/console/">Websocket Monitor</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav ml-auto"> <!-- This will push the settings to the right -->
-                    <li class="nav-item {% if request.path == '/manager/settings/' %}active{% endif %}">
-                        <a class="nav-link" href="/manager/settings/">
+                    <li class="nav-item {% if request.path == '/settings/' %}active{% endif %}">
+                        <a class="nav-link" href="/settings/">
                             <span class="icon"><i class="fas fa-cog"></i></span> Settings
                         </a>
                     </li>

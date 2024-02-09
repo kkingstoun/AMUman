@@ -10,23 +10,20 @@ fi
 
 if [ "$1" = "manager" ]; then
     echo "Running the manager"
-    cd /app/backend
+    cd /app/manager
     rm -rfd *.sqlite3
     find . -type d -name "__pycache__" -exec rm -rdf {} +
     find . -type d -name "migrations" -exec rm -rdf {} +
     redis-server /etc/redis/redis.conf
 
-    python manage.py makemigrations 
-    python manage.py migrate 
     python manage.py makemigrations manager
-    python manage.py migrate --settings=amuman.settings_manager
+    python manage.py migrate manager
+    python manage.py migrate 
 
     if [ "$2" = "debug" ]; then
-       python -m debugpy --listen 0.0.0.0:5678 --wait-for-client /app/backend/manage.py runserver 0.0.0.0:8000 --settings=amuman.settings_manager
-    elif [ "$2" = "bash" ]; then
-        bash
+       python -m debugpy --listen 0.0.0.0:5678 --wait-for-client /app/manager/manage.py runserver 0.0.0.0:8000 
     else
-        python manage.py runserver 0.0.0.0:8000 --settings=amuman.settings_manager
+        python manage.py runserver 0.0.0.0:8000
     fi
 
 elif [ "$1" = "node" ]; then

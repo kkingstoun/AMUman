@@ -3,22 +3,12 @@ from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
-from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from django.views.generic import TemplateView
 
-import manager.urls as manager_urls
-from manager.views import (
-    GpusViewSet,
-    ManagerSettingsViewSet,
-    NodesViewSet,
-    TasksViewSet,
-)
-
-from manager.api import manager_router
+from manager.routing import manager_router
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -32,10 +22,6 @@ schema_view = get_schema_view(
     public=True,
     permission_classes=(permissions.AllowAny,),
 )
- 
-
-
-
 
 urlpatterns = [
     # Dokumentacja API
