@@ -1,0 +1,79 @@
+{% extends "manager/base.html" %}
+
+{% block title %}Tasks list{% endblock %}
+{% block name %}Tasks list{% endblock %}
+
+{% block content %}
+<div class="tasks-container">
+    <table class="table table_waiting table-striped table-dark table-bordered table-fit table-hover table-sm">
+        <thead class="thead-dark align-middle">
+            <tr>
+                <th style="width:30px">N</th>
+                <th style="width:30px">ID</th>
+                <th>User</th>
+                <th>Path</th>
+                <th>Node Name</th>
+                <th>Port</th>
+                <th>Submit Time</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Error Time</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Est. Sim. time</th>
+                <th>Assigned node</th>
+                <th>Assigned gpu</th>
+                <th>Output</th>
+                <th>Remove permanenty task</th>
+                <th>Edit</th>
+                <th>Run</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in waiting_tasks %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ task.id }}</td>
+                <td>{{ task.user }}</td>
+                <td style="width:250px">{{ task.path }}</td>
+                <td>{{ task.node_name }}</td>
+                <td>{{ task.port }}</td>
+                <td>{{ task.submit_time }}</td>
+                <td>{{ task.start_time }}</td>
+                <td>{{ task.end_time }}</td>
+                <td>{{ task.error_time }}</td>
+                <td>{{ task.priority }}</td>
+                <td>{{ task.status }}</td>
+                <td>{{ task.est }}</td>
+                <td>{{task.assigned_node_id}}</td>
+                <td>{{task.assigned_gpu_id}}</td>
+                <td>
+                    <a href="{% url 'task-output' task.id %}" class="btn btn-info btn-sm">Output</a>
+                </td>                
+                <td>
+                    <a href="{% url 'task-remove' task.id %}" class="btn btn-danger btn-sm">Remove</a>
+                </td>
+                <td>
+                    <a href="{% url 'task-edit' pk=task.id %}" class="btn btn-info btn-sm">Edit</a>
+                    
+                </td>
+                <td>
+                    <a href="{% url 'task-run' task.pk %}" class="btn btn-success btn-sm">Run</a>
+                </td> 
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+
+<script>
+    window.addEventListener('load', (event) => {
+        {% if messages %}
+            {% for message in messages %}
+                alert("{{ message }}");
+            {% endfor %}
+        {% endif %}
+    });
+</script>

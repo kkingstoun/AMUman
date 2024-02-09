@@ -63,8 +63,10 @@ class NodeClient:
         log.debug(f"Registering data: {data=}")
 
         try:
+            log.debug(data)
+            log.debug(f"http://{self.manager_url}/api/nodes")
             response = requests.post(
-                f"http://{self.manager_url}/manager/node-management/", json=data
+                f"http://{self.manager_url}/api/nodes", json=data
             )
             if response.status_code in [200, 201]:
                 self.node_id = int(response.json().get("id"))
