@@ -14,4 +14,22 @@ network:
 	sudo docker network create amuman
 
 build:
-	sudo docker build . -t amuman
+	sudo docker build . -f dev.dockerfile -t amuman
+
+staging:
+	podman build backend -f backend/dockerfile -t amuman-staging
+	podman run --rm -it \
+		--name amuman-staging \
+		--network amuman-proxy \
+		-e SECRET_KEY=qweert \
+		-e SMB_MOUNT_POINT=/nas \
+		-v /nas:/nas \
+		amuman-staging
+
+deploy:
+	podman run --rm -it \
+		--name amuman-staging \
+		--network amuman-proxy \
+		-v ./manager_config:/app \
+		-v /nas:/shared \
+		ghcr.io/kkingstoun/amuman:0.0.4
