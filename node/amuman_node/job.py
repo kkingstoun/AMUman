@@ -14,7 +14,7 @@ class Job:
     path: str
     node_name: str
     port: int
-    submit_time: str
+    submit_time: str 
     start_time: str
     priority: str
     gpu_partition: str

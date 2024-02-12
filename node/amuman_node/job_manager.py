@@ -10,7 +10,7 @@ from .job import Job
 log = logging.getLogger("rich")
 
 
-class JobManager:
+class JobManager:  
     def __init__(self, node_id: int, manager_url: str) -> None:
         self.node_id: int = node_id
         self.manager_url: str = manager_url

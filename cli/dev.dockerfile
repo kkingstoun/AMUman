@@ -9,13 +9,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     cifs-utils \
-    redis-server \
     python${PYTHON_VER} python${PYTHON_VER}-dev python3-pip python-is-python3 && \
     pip install --upgrade pip
 
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-ENV SMB_MOUNT_POINT=/mnt/smb
+COPY pyproject.toml .
+RUN pip install . && pip uninstall -y amuman-cli
 COPY ./entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
+CMD bash

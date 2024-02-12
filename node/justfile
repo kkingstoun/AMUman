@@ -1,0 +1,25 @@
+dev cmd="bash":
+	sudo docker network ls | grep amuman-dev || sudo docker network create amuman-dev
+	sudo docker build . -f dev.dockerfile -t amuman-node-dev
+	sudo docker run --rm -it \
+		--name amuman-node-dev \
+		--network amuman-dev \
+		-v .:/app \
+		--gpus all \
+		-e MANAGER_URL=amuman-manager-dev:8000 \
+		-e NODE_NAME=test_node  \
+		--env-file ../.env \
+		--cap-add SYS_ADMIN \
+		--cap-add DAC_READ_SEARCH \
+		amuman-node-dev {{cmd}}
+
+staging:
+	sudo docker build . -t amuman-node-staging
+	sudo docker run --rm -it \
+		--name amuman-node-staging \
+		--network amuman-dev \
+		--gpus all \
+		--env-file ../.env \
+		--cap-add SYS_ADMIN \
+		--cap-add DAC_READ_SEARCH \
+		amuman-node-staging

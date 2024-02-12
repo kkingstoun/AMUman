@@ -10,16 +10,16 @@ authors = [
 name = "amuman-cli"
 requires-python = ">=3.8"
 dependencies = [
-    "httpx==0.26.0",
-    "typer==0.9.0",
-    "rich==13.7.0",
-    "xdg-base-dirs==6.0.1",
-    "toml==0.10.2",
+  "httpx==0.26.0",
+  "typer==0.9.0",
+  "rich==13.7.0",
+  "xdg-base-dirs==6.0.1",
+  "toml==0.10.2",
 ]
 version = "0.0.1"
 
 [project.scripts]
-amuman-cli="amuman_cli.main:entrypoint"
+amuman-cli = "amuman_cli.main:entrypoint"
 
 [tool.mypy]
 ignore_missing_imports = true

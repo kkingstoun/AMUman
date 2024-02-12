@@ -9,23 +9,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     cifs-utils \
-    redis-server \
     python${PYTHON_VER} python${PYTHON_VER}-dev python3-pip python-is-python3 && \
-    pip install --upgrade pip &&\
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    pip install --upgrade pip
 
 # amumax
 RUN curl -Ls https://github.com/mathieumoalic/amumax/releases/latest/download/amumax > /bin/amumax && \
     curl -Ls https://github.com/mathieumoalic/amumax/releases/latest/download/libcufft.so.10 > /bin/libcufft.so.10 && \
     curl -Ls https://github.com/mathieumoalic/amumax/releases/latest/download/libcurand.so.10 > /bin/libcurand.so.10 && \
     chmod +x /bin/amumax
-
+    
 WORKDIR /app
-COPY ./requirements.txt .
-RUN pip install -r requirements.txt
-RUN pip install debugpy
+COPY pyproject.toml .
+RUN pip install . && pip uninstall -y amuman-node
+ENV SMB_MOUNT_POINT=/mnt/smb
 COPY ./entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
-CMD bash
