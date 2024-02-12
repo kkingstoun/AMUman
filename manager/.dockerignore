@@ -1,6 +1,4 @@
-.direnv
-.mamba
-.envrc
+**/*.sqlite3
 # Node.js #
 node_modules/
 npm-debug.log*
@@ -15,7 +13,6 @@ lerna-debug.log*
 /cypress/videos/
 /cypress/screenshots/
 backend/master
-backend/node2
 # Build outputs #
 dist/
 dist-ssr/
@@ -93,4 +90,3 @@ venv.bak/
 /site
 /src/plugins/iconify/icons.css
 *.zarr
-**/.svelte-kit
