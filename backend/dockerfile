@@ -11,10 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cifs-utils \
     redis-server \
     python${PYTHON_VER} python${PYTHON_VER}-dev python3-pip python-is-python3 && \
-    pip install --upgrade pip &&\
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    pip install --upgrade pip
 
 WORKDIR /app
 COPY ./requirements.txt .

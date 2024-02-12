@@ -1,0 +1,37 @@
+dev cmd="None":
+	sudo docker network ls | grep amuman-dev || sudo docker network create amuman-dev
+	sudo docker build . -f dev.dockerfile -t amuman
+	sudo docker run --rm -it \
+		--name amuman-manager-dev \
+		--network amuman-dev \
+		-p 8000:8000 \
+		-p 5678:5678 \
+		-v .:/app \
+		amuman {{cmd}}
+
+staging:
+	sudo docker network ls | grep amuman-proxy || sudo docker network create amuman-proxy
+	sudo docker build . -t amuman-manager-staging
+	sudo docker run --rm -it \
+		--name amuman-staging \
+		--network amuman-proxy \
+		--env-file ../.env \
+		--cap-add SYS_ADMIN \
+		--cap-add DAC_READ_SEARCH \
+		amuman-manager-staging
+
+deploy:
+	sudo docker run --rm -it \
+		--name amuman-staging \
+		--network amuman-proxy \
+		-v ./manager_config:/app \
+		--cap-add SYS_ADMIN \
+		--cap-add DAC_READ_SEARCH \
+		-e SMB_USER=smb_user \
+		-e SMB_PASSWORD=smb_pw \
+		-e SMB_URL=some_url \
+		-e SECRET_KEY=changeme \
+		-e DJANGO_SUPERUSER_EMAIL=admin@pm.me \
+		-e DJANGO_SUPERUSER_USERNAME=admin \
+		-e DJANGO_SUPERUSER_PASSWORD=changeme \
+		ghcr.io/kkingstoun/amuman:0.0.4

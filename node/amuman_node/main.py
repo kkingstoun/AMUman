@@ -12,8 +12,10 @@ from rich.logging import RichHandler
 from .gpu_monitor import GPUMonitor
 from .job_manager import JobManager
 
+LOGLEVEL = os.environ.get("LOGLEVEL", "DEBUG").upper()
+
 logging.basicConfig(
-    level="DEBUG",
+    level=LOGLEVEL,
     format="%(message)s",
     datefmt="[%X]",
     handlers=[
@@ -40,8 +42,24 @@ class NodeClient:
         self.gpm: Optional[GPUMonitor] = None
 
     async def start(self) -> None:
-        self.register_with_manager()
-        await self.connect_to_manager()
+        self.authenticate()
+        if self.register_with_manager():
+            await self.connect_to_manager()
+
+    def authenticate(self) -> None:
+        try:
+            response = requests.post(
+                f"http://{self.manager_url}/api/token/",
+                json={
+                    "username": "admin",
+                    "password": "admin",
+                },
+            )
+            log.debug(
+                f"Authentication response: {response.status_code=}, {response.json()=}"
+            )
+        except requests.exceptions.RequestException as e:
+            log.exception(f"Error authenticating the node: {e}")
 
     def get_own_ip(self) -> str:
         try:
@@ -52,7 +70,7 @@ class NodeClient:
             log.exception(f"Unable to get the external IP: {err}")
             return "error"
 
-    def register_with_manager(self) -> None:
+    def register_with_manager(self) -> bool:
         data: dict[str, Any] = {
             "action": "assign_new_node",
             "node_name": self.node_name,
@@ -63,9 +81,10 @@ class NodeClient:
         log.debug(f"Registering data: {data=}")
 
         try:
-            response = requests.post(
-                f"http://{self.manager_url}/manager/node-management/", json=data
-            )
+            log.debug(f"Registering with the manager: {self.manager_url}")
+            response = requests.post(f"http://{self.manager_url}/api/nodes/", json=data)
+            # log error message if the url is wrong
+            log.debug(f"Response: {response.status_code=}, {response.json()=}")
             if response.status_code in [200, 201]:
                 self.node_id = int(response.json().get("id"))
                 log.debug(f"Node registered: {self.node_id=}")
@@ -76,8 +95,13 @@ class NodeClient:
                 # 201 = exists and modified ?
                 elif response.status_code == 201:
                     self.gpm.api_post("update")
+                return True
+
+        except requests.exceptions.ConnectionError:
+            log.error(f"Couldn't connect to the manager ({self.manager_url})")
         except requests.exceptions.RequestException as e:
             log.exception(f"Error registering the node: {e}")
+        return False
 
     async def register_websocket(self, ws: websockets.WebSocketClientProtocol) -> None:
         await ws.send(
@@ -98,11 +122,13 @@ class NodeClient:
                 async with websockets.connect(
                     f"ws://{self.manager_url}/ws/node"
                 ) as websocket:
-                    self.reconnect_attempts = 10
+                    log.debug(f"Registering with the manager: {self.manager_url}")
                     await self.register_websocket(websocket)
+                    log.debug(f"Registered with the manager: {self.manager_url}")
                     await self.handle_connection(websocket)
-            except Exception as e:
-                log.exception(f"WebSocket connection error: {e}")
+            except Exception:
+                log.warning("WebSocket connection error")
+                # log.exception(f"WebSocket connection error: {e}")
 
             if self.reconnect_attempts > 0:
                 log.warning(f"{self.reconnect_attempts} reconnection attempts left")
