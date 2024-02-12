@@ -1,0 +1,15 @@
+dev:
+	sudo docker network ls | grep amuman-dev || sudo docker network create amuman-dev
+	sudo docker run --rm -it \
+		--name amuman-frontend-dev \
+		--network amuman-dev \
+		-p 5173:5173 \
+		-v .:/app \
+		-w /app \
+		docker.io/node:21 npm i && npx update-browserslist-db@latest && npm run dev
+
+build:
+	sudo docker run --rm -it \
+		-v .:/app \
+		-w /app \
+		docker.io/node:21 npm i && npm run build
