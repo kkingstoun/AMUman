@@ -81,10 +81,9 @@ class NodeClient:
         log.debug(f"Registering data: {data=}")
 
         try:
-            log.debug(f"Registering with the manager: {self.manager_url}")
-            response = requests.post(f"http://{self.manager_url}/api/nodes/", json=data)
-            # log error message if the url is wrong
-            log.debug(f"Response: {response.status_code=}, {response.json()=}")
+            log.debug(data)
+            log.debug(f"http://{self.manager_url}/api/nodes")
+            response = requests.post(f"http://{self.manager_url}/api/nodes", json=data)
             if response.status_code in [200, 201]:
                 self.node_id = int(response.json().get("id"))
                 log.debug(f"Node registered: {self.node_id=}")

@@ -16,7 +16,6 @@ export DJANGO_SUPERUSER_USERNAME=admin
 export DJANGO_SUPERUSER_PASSWORD=admin
 python3 manage.py createsuperuser --noinput
 
-
 if [ "$1" = "debug" ]; then
     python -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000
 elif [ "$1" = "bash" ]; then

@@ -94,3 +94,5 @@ venv.bak/
 /src/plugins/iconify/icons.css
 *.zarr
 **/.svelte-kit
+**/dev-dist
+manager/db.sqlite3-journal
