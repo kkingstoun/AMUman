@@ -40,13 +40,14 @@ class NodeClient:
         self.reconnect_attempts: int = 10
         self.reconnect_delay: int = 30
         self.gpm: Optional[GPUMonitor] = None
+        self.access_token: Optional[str] = None
+        self.refresh_token: Optional[str] = None
 
     async def start(self) -> None:
-        self.authenticate()
         if self.register_with_manager():
-            await self.connect_to_manager()
+            await self.websocket_loop()
 
-    def authenticate(self) -> None:
+    def authenticate(self) -> True:
         try:
             response = requests.post(
                 f"http://{self.manager_url}/api/token/",
@@ -60,6 +61,14 @@ class NodeClient:
             )
         except requests.exceptions.RequestException as e:
             log.exception(f"Error authenticating the node: {e}")
+            return False
+        try:
+            self.access_token = response.json()["access"]
+            self.refresh_token = response.json()["refresh"]
+            return True
+        except (KeyError, TypeError):
+            log.error("Unable to authenticate with the manager")
+        return False
 
     def get_own_ip(self) -> str:
         try:
@@ -71,6 +80,8 @@ class NodeClient:
             return "error"
 
     def register_with_manager(self) -> bool:
+        if not self.authenticate():
+            return False
         data: dict[str, Any] = {
             "action": "assign_new_node",
             "node_name": self.node_name,
@@ -82,8 +93,12 @@ class NodeClient:
 
         try:
             log.debug(data)
-            log.debug(f"http://{self.manager_url}/api/nodes")
-            response = requests.post(f"http://{self.manager_url}/api/nodes", json=data)
+            log.debug(f"http://{self.manager_url}/api/nodes/")
+            response = requests.post(
+                f"http://{self.manager_url}/api/nodes/",
+                json=data,
+                headers={"Authorization": f"Bearer {self.access_token}"},
+            )
             if response.status_code in [200, 201]:
                 self.node_id = int(response.json().get("id"))
                 log.debug(f"Node registered: {self.node_id=}")
@@ -115,7 +130,7 @@ class NodeClient:
         )
         log.info("Websocket connection started.")
 
-    async def connect_to_manager(self) -> None:
+    async def websocket_loop(self) -> None:
         while True:
             try:
                 async with websockets.connect(
