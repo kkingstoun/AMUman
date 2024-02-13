@@ -10,9 +10,35 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import logging
+import logging.config
 import os
 from datetime import timedelta
 from pathlib import Path
+
+from rich.logging import RichHandler
+
+LOGLEVEL = os.environ.get("LOGLEVEL", "DEBUG").upper()
+
+
+logging.basicConfig(
+    level=LOGLEVEL,
+    format="%(name)s - %(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True)],
+)
+
+log = logging.getLogger("rich")
+logging.getLogger("django.utils.autoreload").setLevel(logging.WARNING)
+logging.getLogger("django.channels.server").setLevel(logging.WARNING)
+logging.getLogger("django.request").setLevel(logging.WARNING)
+logging.getLogger("django.db.backends").setLevel(logging.WARNING)
+logging.getLogger("asyncio").setLevel(logging.WARNING)
+logging.getLogger("daphne.server").setLevel(logging.WARNING)
+logging.getLogger("daphne.ws_protocol").setLevel(logging.WARNING)
+logging.getLogger("daphne.http_protocol").setLevel(logging.WARNING)
+
+log.debug("Django settings.py")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,15 +68,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "crispy_forms",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
     "drf_yasg",
     "rest_framework_swagger",
-    "notification",
-    "widget_tweaks",
     "channels",
-    "crispy_bootstrap4",
 ]
 
 CHANNEL_LAYERS = {
@@ -153,9 +175,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 STATIC_URL = "/static/"
 
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "manager/static"),
-]
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, "manager/static"),
+# ]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 

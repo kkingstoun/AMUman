@@ -1,29 +1,27 @@
-redis==5.0.1
-Django > 2.2
+Django==5.0.2
+daphne==4.1.0
 django-cors-headers==4.3.1
-django-crispy-forms==2.1
-django-debug-toolbar==1.11.1
-django-environ==0.4.4
-django-picklefield==3.1
-django-q
-django-redis
-django-widget-tweaks==1.4.1
-django-rest-swagger==2.2.0
+rich==13.7.0
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.3.1
-channels-redis
-channels==4.0.0
-websocat==1.12.0
-websocket-client==1.6.2
-websockets==12.0
-notification==0.2.1
-daphne==4.0.0
-python-dotenv==1.0.1
-requests==2.31.0
-psycopg2-binary==2.9.9
-httpx==0.26.0
+django-rest-swagger==2.2.0
 drf-yasg==1.21.7
-django-crispy-forms==2.1
-crispy-bootstrap4==2023.1
+redis==5.0.1
+django-redis==5.4.0
+channels==4.0.0
 schedule==1.2.1
-rich==13.7.0
+tzdata==2024.1
+channels-redis==4.2.0
+# django-debug-toolbar==1.11.1
+# django-environ==0.4.4
+# django-picklefield==3.1
+# django-q
+# django-widget-tweaks==1.4.1
+# websocat==1.12.0
+# websocket-client==1.6.2
+# websockets==12.0
+# notification==0.2.1
+# python-dotenv==1.0.1
+# requests==2.31.0
+# psycopg2-binary==2.9.9
+# httpx==0.26.0

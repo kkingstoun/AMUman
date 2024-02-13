@@ -3,7 +3,7 @@ from django.db import models
 from django.utils import timezone
 
 
-class Task(models.Model):
+class Job(models.Model):
     id = models.AutoField(
         primary_key=True, unique=True
     )  # Auto-generowany unikalny klucz
@@ -101,12 +101,12 @@ class Gpus(models.Model):
 
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Waiting")
     last_update = models.DateTimeField(default=timezone.now, null=True, blank=True)
-    task_id = models.ForeignKey(
-        Task,
+    job_id = models.ForeignKey(
+        Job,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="gpu_tasks",  # Changed related_name to avoid conflict
+        related_name="gpu_jobs",  # Changed related_name to avoid conflict
     )
 
     def __str__(self):

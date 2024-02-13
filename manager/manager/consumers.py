@@ -12,7 +12,7 @@ class ManagerConsumer(AsyncWebsocketConsumer):
         await self.accept()
         # Wysyłanie testowej wiadomości po nawiązaniu połączenia
 
-    async def disconnect(self, close_code):
+    async def disconnect(self, _close_code):
         await self.channel_layer.group_discard("nodes_group", self.channel_name)
 
     @database_sync_to_async
