@@ -10,7 +10,7 @@ from .job import Job
 log = logging.getLogger("rich")
 
 
-class JobManager:  
+class JobManager:
     def __init__(self, node_id: int, manager_url: str) -> None:
         self.node_id: int = node_id
         self.manager_url: str = manager_url
@@ -30,7 +30,7 @@ class JobManager:
         job.status = "Finished"
 
     async def post_updated_job_to_manager(self, job: Job) -> None:
-        url: str = f"http://{self.manager_url}/manager/api/tasks/{job.id}/"
+        url: str = f"http://{self.manager_url}/api/tasks/{job.id}/"
 
         data: Dict[str, Any] = asdict(job)
         try:
@@ -47,7 +47,7 @@ class JobManager:
             log.exception(f"Error sending updated job to manager: {e}")
 
     async def fetch_job_from_manager(self, job_id: int) -> Job:
-        url: str = f"http://{self.manager_url}/manager/api/tasks/{job_id}/"
+        url: str = f"http://{self.manager_url}/api/tasks/{job_id}/"
         job_data: Dict[
             str, Any
         ] = {}  # Initialize job_data to prevent reference before assignment

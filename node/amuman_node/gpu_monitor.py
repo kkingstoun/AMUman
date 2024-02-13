@@ -109,9 +109,6 @@ class GPUMonitor:
     def __init__(self, node_id: int, manager_url: str) -> None:
         self.node_id: int = node_id
         self.manager_url: str = manager_url
-        self.node_management_url: str = (
-            f"http://{self.manager_url}/manager/node-management/"
-        )
         self.gpus: List[GPU] = self.get_gpus()
 
     def get_gpus(self) -> List[GPU]:
@@ -134,7 +131,10 @@ class GPUMonitor:
             try:
                 data = gpu.to_dict()
                 log.debug(f"Sending {data}")
-                response = requests.post(self.node_management_url, json=gpu.to_dict())
+                response = requests.post(
+                    f"http://{self.manager_url}/api/nodes/",
+                    json=gpu.to_dict(),
+                )
                 if response.status_code in [200, 201]:
                     log.info(
                         f"Successfully {action_word} GPU:{gpu.id} ({gpu.name}) to node {self.node_id}."
