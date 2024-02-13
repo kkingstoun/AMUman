@@ -50,21 +50,11 @@
 					/>
 				</div>
 			</div>
-			<Auth />
 
 			<div
 				class="flex items-center justify-end ml-5 p-1 relative w-9/12 sm:mr-0 sm:right-auto md:w-1/4"
 			>
-				<span class="block pr-1 text-white">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						class="h-6 w-6"
-						viewBox="0 0 20 20"
-						fill="currentColor"
-					>
-						<path d="M5.5 16a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 16h-8z" />
-					</svg>
-				</span>
+
 				<span class="block inline-block px-3 py-2 relative rounded text-white">
 					<span>
 						<svg
@@ -85,11 +75,8 @@
 					</span>
 				</span>
 				<span class="block pl-5 relative">
-					<img
-						alt="Enoch Ndika"
-						src="/images/1.jpg"
-						class="h-10 mx-auto object-cover rounded-full w-10"
-					/>
+					<Auth />
+
 				</span>
 			</div>
 		</div>
