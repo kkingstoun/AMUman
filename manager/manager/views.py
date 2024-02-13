@@ -1,19 +1,49 @@
 # Create your views here.
+import logging
 from typing import ClassVar
 
-from rest_framework import permissions, viewsets
+from rest_framework import permissions, status, viewsets
+from rest_framework.response import Response
 
 from .models import Gpus, Job, ManagerSettings, Nodes
 from .serializers import GpusSerializer, JobSerializer, MSSerializer, NodesSerializer
 
+log = logging.getLogger("rich")
+
 
 class JobsViewSet(viewsets.ModelViewSet):
+    http_method_names = ["get", "post"]
     queryset = Job.objects.all()
     serializer_class = JobSerializer
-    permission_classes: ClassVar = [permissions.IsAuthenticated]
+    # permission_classes: ClassVar = [permissions.IsAuthenticated]
+
+    def list(self, request, *_args, **_kwargs):
+        max_id = request.query_params.get("max_id")
+        if max_id is not None:
+            queryset = self.queryset.filter(id__lt=max_id)
+        else:
+            queryset = self.get_queryset()
+        serializer = JobSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, _request, *_args, **_kwargs):
+        data = JobSerializer(instance=self.get_object()).data
+        data["user"] = "hsi"
+        return Response(data)
+
+    def create(self, request, *_args, **_kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        log.debug(f"Job created: {serializer.data}")
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
 
 class GpusViewSet(viewsets.ModelViewSet):
+    http_method_names = ["get"]
     queryset = Gpus.objects.all()
     serializer_class = GpusSerializer
     permission_classes: ClassVar = [permissions.IsAuthenticated]
