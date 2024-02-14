@@ -8,6 +8,7 @@
 	export let job_status = '';
 	onMount(async () => {
 		activeJobs = await getJobs(job_status);
+		console.log(activeJobs);
 	});
 </script>
 
@@ -28,13 +29,13 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#if activeJobs.length === 0}
+						<!-- {#if activeJobs.length === 0}
 							<tr>
 								<td class="table-cell" colspan="6">
 									<p class="whitespace-no-wrap">No active jobs</p>
 								</td>
 							</tr>
-						{/if}
+						{/if} -->
 						{#each activeJobs as job}
 							<tr>
 								<td class="table-cell">
