@@ -23,7 +23,8 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"test:unit": "vitest",
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
-		"format": "prettier --plugin-search-dir . --write ."
+		"format": "prettier --plugin-search-dir . --write .",
+		"gen-api": "npx swagger-typescript-api -p ../manager/schema.yml -o ./src"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^2.0.0",
