@@ -12,7 +12,6 @@ log = logging.getLogger("rich")
 
 
 class JobsViewSet(viewsets.ModelViewSet):
-    http_method_names = ["get", "post"]
     queryset = Job.objects.all()
     serializer_class = JobSerializer
     # permission_classes: ClassVar = [permissions.IsAuthenticated]
@@ -23,8 +22,7 @@ class JobsViewSet(viewsets.ModelViewSet):
             queryset = self.queryset.filter(id__lt=max_id)
         else:
             queryset = self.get_queryset()
-        serializer = JobSerializer(queryset, many=True)
-        return Response(serializer.data)
+        return Response(JobSerializer(queryset, many=True).data)
 
     def retrieve(self, _request, *_args, **_kwargs):
         data = JobSerializer(instance=self.get_object()).data

@@ -7,17 +7,18 @@ find . -type d -name "migrations" -exec rm -rdf {} +
 redis-server /etc/redis/redis.conf
 
 export SECRET_KEY=secret
-python manage.py makemigrations manager
-python manage.py migrate manager
-python manage.py makemigrations 
-python manage.py migrate 
+./manage.py makemigrations manager
+./manage.py migrate manager
+./manage.py makemigrations 
+./manage.py migrate 
 export DJANGO_SUPERUSER_EMAIL=admin@pm.me 
 export DJANGO_SUPERUSER_USERNAME=admin 
 export DJANGO_SUPERUSER_PASSWORD=admin
-python3 manage.py createsuperuser --noinput
+./manage.py createsuperuser --noinput
+./manage.py spectacular --validate --color --file schema.yml
 
 amuman-manager() {
-    python manage.py runserver 0.0.0.0:8000
+    ./manage.py runserver 0.0.0.0:8000
 }
 export -f amuman-manager
 if [ "$1" = "debug" ]; then
@@ -25,5 +26,5 @@ if [ "$1" = "debug" ]; then
 elif [ "$1" = "bash" ]; then
     bash
 else
-    python manage.py runserver 0.0.0.0:8000
+    ./manage.py runserver 0.0.0.0:8000
 fi
