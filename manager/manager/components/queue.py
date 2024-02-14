@@ -2,45 +2,45 @@ from django.core.cache import cache, caches
 from django.db import models
 from django.db.models import Case, IntegerField, Q, Value, When
 
-from manager.components.run_task import RunTask
-from manager.models import Gpus, Task
+from manager.components.run_job import RunJob
+from manager.models import Gpu, Job
 
 
 class QueueManager:
     """
-    This class is responsible for managing the queue of tasks and assigning GPUs to tasks.
+    This class is responsible for managing the queue of jobs and assigning GPUs to jobs.
 
     Attributes:
         None
 
     Methods:
-        ordered_tasks(self)
-            Returns a list of tasks ordered by decreasing priority, decreasing GPU partition, and increasing submission time.
+        ordered_jobs(self)
+            Returns a list of jobs ordered by decreasing priority, decreasing GPU partition, and increasing submission time.
 
         waiting_gpus(self)
             Get the first available GPU from the waiting GPUs.
 
             The GPUs are ordered based on their speed, with fast GPUs coming first.
 
-        schedule_tasks(self)
-            For each task in the ordered tasks:
+        schedule_jobs(self)
+            For each job in the ordered jobs:
                 Check if there is an available GPU.
-                If there is, run the task on the GPU.
+                If there is, run the job on the GPU.
     """
 
     def __init__(self) -> None:
         # Ustawienie flagi
-        cache.set("schedule_tasks", False)
+        cache.set("schedule_jobs", False)
 
     @property
-    def ordered_tasks(self) -> models.QuerySet:
+    def ordered_jobs(self) -> models.QuerySet:
         """
-        Returns a list of tasks ordered by decreasing priority, decreasing GPU partition, and increasing submission time.
+        Returns a list of jobs ordered by decreasing priority, decreasing GPU partition, and increasing submission time.
 
         Returns:
-            A list of tasks ordered by decreasing priority, decreasing GPU partition, and increasing submission time.
+            A list of jobs ordered by decreasing priority, decreasing GPU partition, and increasing submission time.
         """
-        return Task.objects.filter(
+        return Job.objects.filter(
             Q(status="Waiting") | Q(status="Interrupted")
         ).order_by("-priority", "-gpu_partition", "submit_time")
 
@@ -63,36 +63,36 @@ class QueueManager:
         )
 
         gpus = (
-            Gpus.objects.filter(status="Waiting")
+            Gpu.objects.filter(status="Waiting")
             .annotate(speed_as_number=speed_order)
             .order_by("-speed_as_number")
         )
 
         return gpus.first()
 
-    def pause_tasks(self):
+    def pause_jobs(self):
         import time
 
         """
-        Pause all tasks in the queue.
+        Pause all jobs in the queue.
         """
-        while caches["schedule_tasks"] == True:
+        while caches["schedule_jobs"] == True:
             time.sleep(10)
 
-    def schedule_tasks(self):
+    def schedule_jobs(self):
         """
-        Schedule tasks to run on available GPUs.
+        Schedule jobs to run on available GPUs.
 
-        This method iterates over the ordered tasks and assigns them to available GPUs.
-        If there are no available GPUs, the tasks will remain in the queue until a GPU becomes available.
+        This method iterates over the ordered jobs and assigns them to available GPUs.
+        If there are no available GPUs, the jobs will remain in the queue until a GPU becomes available.
         """
-        for task in self.ordered_tasks:
-            if cache.get("schedule_tasks", default=False) == False:
+        for job in self.ordered_jobs:
+            if cache.get("schedule_jobs", default=False) == False:
                 available_gpu = self.waiting_gpus
                 if available_gpu:
-                    print(f"Run task {task.id} on GPU {available_gpu.id}")
-                    cache.set("schedule_tasks", False, timeout=300)
-                    rt = RunTask()
-                    rt.run_task(task, available_gpu)
+                    print(f"Run job {job.id} on GPU {available_gpu.id}")
+                    cache.set("schedule_jobs", False, timeout=300)
+                    rt = RunJob()
+                    rt.run_job(job, available_gpu)
             else:
-                self.pause_tasks()
+                self.pause_jobs()

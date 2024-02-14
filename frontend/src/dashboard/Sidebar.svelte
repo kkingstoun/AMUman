@@ -1,77 +1,48 @@
 <script lang="ts">
 	import { sidebarOpen } from '../store';
-	import { page } from '$app/stores';
-	import UxIcon from './icons/UxIcon.svelte';
-	import ArIcon from './icons/ArIcon.svelte';
-	import VideosIcon from './icons/VideosIcon.svelte';
 	import AllAppsIcon from './icons/AllAppsIcon.svelte';
-	import UpdatesIcon from './icons/UpdatesIcon.svelte';
-	import PhotographyIcon from './icons/PhotographyIcon.svelte';
-	import IllustrationIcon from './icons/IllustrationIcon.svelte';
-	import GraphicDesignIcon from './icons/GraphicDesignIcon.svelte';
-	import DocumentationIcon from './icons/DocumentationIcon.svelte';
 
 	const data = [
 		{
-			section: 'Apps',
+			section: 'Jobs',
 			content: [
 				{
-					title: 'All Apps',
+					title: 'All',
 					icon: AllAppsIcon,
-					link: '/'
+					link: '/jobs'
 				},
 				{
-					title: 'Updates',
-					icon: UpdatesIcon,
-					link: '/admin/updates'
-				}
+					title: 'Running',
+					icon: AllAppsIcon,
+					link: '/jobs/active'
+				},
+				{
+					title: 'Queued',
+					icon: AllAppsIcon,
+					link: '/jobs/queued'
+				},
+				{
+					title: 'Finished',
+					icon: AllAppsIcon,
+					link: '/jobs/finished'
+				},
 			]
 		},
 		{
-			section: 'Categories',
+			section: 'Others',
 			content: [
 				{
-					title: 'Photography',
-					icon: PhotographyIcon,
-					link: '/admin/photography'
+					title: 'Nodes',
+					icon: AllAppsIcon,
+					link: '/nodes'
 				},
 				{
-					title: 'Graphic Design',
-					icon: GraphicDesignIcon,
-					link: '/admin/graphic-design'
+					title: 'GPUs',
+					icon: AllAppsIcon,
+					link: '/gpus'
 				},
-				{
-					title: 'Videos',
-					icon: VideosIcon,
-					link: '/admin/videos'
-				},
-				{
-					title: 'Illustrations',
-					icon: IllustrationIcon,
-					link: '/admin/illustration'
-				},
-				{
-					title: 'UI/UX',
-					icon: UxIcon,
-					link: '/admin/ux'
-				},
-				{
-					title: '3D/AR',
-					icon: ArIcon,
-					link: '/admin/ar'
-				}
 			]
 		},
-		{
-			section: 'Guides',
-			content: [
-				{
-					title: 'Documentation',
-					icon: DocumentationIcon,
-					link: '/admin/documentation'
-				}
-			]
-		}
 	];
 	type MobileOrientationKey = 'start' | 'end';
 	const style = {
@@ -92,6 +63,15 @@
    `}
 >
 	<div class="pb-32 lg:pb-6">
+        <div class="flex justify-center">
+			<a href="/">
+				<img
+				alt="amuman logo"
+				src="/images/logo.png"
+				class="h-40 mx-auto object-cover rounded-full w-40"
+				/>
+			</a>
+        </div>
 		<ul class="mt-6 md:pl-6">
 			<li>
 				{#each data as { section, content } (section)}
@@ -100,10 +80,7 @@
 						{#each content as item (item.title)}
 							<a
 								href={item.link}
-								class={`flex items-center justify-start my-1 p-3 text-white w-full ${
-									item.link === $page.url.pathname &&
-									'border-white lg:border-red-300 border-l-4 lg:border-l-0 lg:border-r-4'
-								}`}
+								class="flex items-center justify-start my-1 p-3 text-white w-full"
 							>
 								<span><svelte:component this={item.icon} /></span>
 								<span class="mx-4 text-sm">{item.title}</span>

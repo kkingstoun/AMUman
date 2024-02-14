@@ -3,55 +3,13 @@ from django.db import models
 from django.utils import timezone
 
 
-class Task(models.Model):
-    id = models.AutoField(
-        primary_key=True, unique=True
-    )  # Auto-generowany unikalny klucz
-    user = models.CharField(max_length=100, null=True, blank=True)
-    path = models.CharField(max_length=500, null=True, blank=True)
-    node_name = models.CharField(max_length=100, null=True, blank=True)
-    port = models.IntegerField(null=True, blank=True)
-    submit_time = models.DateTimeField(null=True, blank=True)
-    start_time = models.DateTimeField(null=True, blank=True)
-    end_time = models.DateTimeField(null=True, blank=True)
-    error_time = models.DateTimeField(null=True, blank=True)
-
-    PRIORITY_CHOICES = [("Slow", "Slow"), ("Normal", "Normal"), ("Fast", "Fast")]
-    priority = models.CharField(
-        max_length=6, choices=PRIORITY_CHOICES, default="normal"
-    )
-
-    GPU_PARTITION_CHOICES = [("Slow", "Slow"), ("Normal", "Normal"), ("Fast", "Fast")]
-    gpu_partition = models.CharField(
-        max_length=6, choices=GPU_PARTITION_CHOICES, default="normal"
-    )
-    est = models.CharField(max_length=100, null=True, blank=True)
-    STATUS_CHOICES = [
-        ("Waiting", "Waiting"),
-        ("Pending", "Pending"),
-        ("Running", "Running"),
-        ("Finished", "Finished"),
-        ("Interrupted", "Interrupted"),
-    ]
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Waiting")
-    assigned_node_id = models.CharField(max_length=10, null=True, blank=True)
-    assigned_gpu_id = models.CharField(max_length=10, null=True, blank=True)
-    output = models.TextField(null=True, blank=True)
-    error = models.TextField(null=True, blank=True)
-    flags = models.JSONField(
-        default=dict
-    )  # Używamy uniwersalnego JSONField z django.db.models
-
-
-class Nodes(models.Model):
-    id = models.AutoField(primary_key=True)  # Auto-generowany unikalny klucz
+class Node(models.Model):
+    # id = models.AutoField(primary_key=True, unique=True)
     ip = models.CharField(max_length=15)  # Przykładowy format IPv4
-    name = models.CharField(
-        max_length=15, unique=True, null=True, blank=True
-    )  # Przykładowy format IPv4
-    port = models.IntegerField(null=True, blank=True)
-    number_of_gpus = models.CharField(max_length=15, null=True, blank=True)
-    gpu_info = models.TextField(null=True, blank=True)
+    name = models.CharField(max_length=15, unique=True)  # Przykładowy format IPv4
+    # port = models.IntegerField(null=True, blank=True)
+    number_of_gpus = models.CharField(max_length=15)
+    # gpu_info = models.TextField(null=True, blank=True)
     STATUS_CHOICES = [
         ("Waiting", "Waiting"),
         ("Running", "Running"),
@@ -64,33 +22,69 @@ class Nodes(models.Model):
         ("Disconnected", "Disconnected"),
     ]
     connection_status = models.CharField(
-        max_length=50, choices=CONNECTION_CHOICES, default="Waiting"
+        max_length=50, choices=CONNECTION_CHOICES, default="Connected"
     )
-    last_seen = models.DateTimeField(default=timezone.now, null=True, blank=True)
+    last_seen = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"{self.ip}:{self.port} - {self.status}"
+        return self.name
 
 
-class Gpus(models.Model):
-    id = models.AutoField(primary_key=True, unique=True)
-    no = models.IntegerField(null=True, blank=True, default=0)
-    gpu_uuid = models.TextField(unique=True, null=True, blank=True)
-    node_id = models.ForeignKey(Nodes, on_delete=models.CASCADE)
-    brand_name = models.TextField(null=True, blank=True)
+class Job(models.Model):
+    # id = models.AutoField(primary_key=True, unique=True)
+    user = models.CharField(max_length=100, null=True, blank=True)
+    path = models.CharField(max_length=500)
+    node_name = models.CharField(max_length=100, null=True, blank=True)
+    port = models.IntegerField(null=True, blank=True)
+    submit_time = models.DateTimeField(null=True, blank=True)
+    start_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    error_time = models.DateTimeField(null=True, blank=True)
 
+    PRIORITY_CHOICES = [("Low", "Low"), ("Normal", "Normal"), ("High", "High")]
+    priority = models.CharField(
+        max_length=6, choices=PRIORITY_CHOICES, default="Normal"
+    )
+
+    GPU_PARTITION_CHOICES = [("Slow", "Slow"), ("Normal", "Normal"), ("Fast", "Fast")]
+    gpu_partition = models.CharField(
+        max_length=6, choices=GPU_PARTITION_CHOICES, default="Normal"
+    )
+    estimated_simulation_time = models.IntegerField(default=1)
+    STATUS_CHOICES = [
+        ("Waiting", "Waiting"),
+        ("Pending", "Pending"),
+        ("Running", "Running"),
+        ("Finished", "Finished"),
+        ("Interrupted", "Interrupted"),
+    ]
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Waiting")
+    assigned_gpu_id = models.CharField(max_length=10, null=True, blank=True)
+    node = models.ForeignKey(Node, on_delete=models.SET_NULL, null=True, blank=True)
+    output = models.TextField(null=True, blank=True)
+    error = models.TextField(null=True, blank=True)
+    flags = models.JSONField(default=dict, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user}:{self.path[-50:]}"
+
+
+class Gpu(models.Model):
+    # id = models.AutoField(primary_key=True, unique=True)
+    device_id = models.IntegerField(unique=True)
+    uuid = models.TextField(unique=True)
+    node = models.ForeignKey(Node, on_delete=models.CASCADE)
+    model = models.TextField()
     STATUS_CHOICES = [
         ("Slow", "Slow"),
         ("Normal", "Normal"),
         ("Fast", "Fast"),
     ]
-    gpu_speed = models.CharField(
-        max_length=50, choices=STATUS_CHOICES, default="Normal"
-    )
+    speed = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Normal")
 
-    gpu_util = models.TextField(null=True, blank=True)
-    is_running_amumax = models.TextField(null=True, blank=True)
-    gpu_info = models.TextField(null=True, blank=True)
+    util = models.IntegerField()
+    is_running_amumax = models.BooleanField()
+    # info = models.TextField(null=True, blank=True)
 
     STATUS_CHOICES = [
         ("Waiting", "Waiting"),
@@ -100,22 +94,15 @@ class Gpus(models.Model):
     ]
 
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Waiting")
-    last_update = models.DateTimeField(default=timezone.now, null=True, blank=True)
-    task_id = models.ForeignKey(
-        Task,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="gpu_tasks",  # Changed related_name to avoid conflict
+    last_update = models.DateTimeField(default=timezone.now)
+    job = models.ForeignKey(
+        Job, on_delete=models.SET_NULL, null=True, blank=True, related_name="gpu"
     )
 
     def __str__(self):
-        return f"GPU-{self.id}, {self.node_id}/{self.id}"
+        return f"GPU-{self.id}, {self.node}/{self.id}"
 
 
 class ManagerSettings(models.Model):
-    id = models.AutoField(primary_key=True, unique=True)
+    # id = models.AutoField(primary_key=True, unique=True)
     queue_watchdog = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"GPU-{self.id}, {self.queue_watchdog}"

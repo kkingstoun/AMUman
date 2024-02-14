@@ -1,4 +1,4 @@
-dev:
+dev cmd="bash -c 'npm i && npx -y update-browserslist-db@latest && npm run dev'":
 	sudo docker network ls | grep amuman-dev || sudo docker network create amuman-dev
 	sudo docker run --rm -it \
 		--name amuman-frontend-dev \
@@ -6,9 +6,9 @@ dev:
 		-p 5173:5173 \
 		-v .:/app \
 		-w /app \
-		docker.io/node:21 npm i && npx update-browserslist-db@latest && npm run dev
+		docker.io/node:21 {{cmd}}
 
-build:
+build: 
 	sudo docker run --rm -it \
 		-v .:/app \
 		-w /app \

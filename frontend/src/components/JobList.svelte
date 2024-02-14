@@ -1,73 +1,19 @@
 <script lang="ts">
-	var activeTasks: {
-		number: number;
-		id: string;
-		path: string;
-		nodeName: string;
-		port: number;
-		submitTime: string;
-	}[] = [
-		{
-			number: 1,
-			id: '1',
-			path: '/path/to/file',
-			nodeName: 'node1',
-			port: 8080,
-			submitTime: '2022-01-01 00:00:00'
-		},
-		{
-			number: 2,
-			id: '2',
-			path: '/path/to/file',
-			nodeName: 'node2',
-			port: 8081,
-			submitTime: '2022-01-01 00:00:01'
-		},
-		{
-			number: 3,
-			id: '3',
-			path: '/path/to/file',
-			nodeName: 'node3',
-			port: 8082,
-			submitTime: '2022-01-01 00:00:02'
-		}
-	];
+	import type { Job } from '../types';
+
+	var activeJobs: Job[] = [];
 	import { onMount } from 'svelte';
 	import OpenButton from './OpenButton.svelte';
-	// import { getTasks } from '../api';
-
+	import { getJobs } from '../api';
+	export let job_status = '';
 	onMount(async () => {
-		// activeTasks = await getTasks();
-		activeTasks = [
-			{
-				number: 1,
-				id: '1',
-				path: '/path/to/file',
-				nodeName: 'node1',
-				port: 8080,
-				submitTime: '2022-01-01 00:00:00'
-			},
-			{
-				number: 2,
-				id: '2',
-				path: '/path/to/file',
-				nodeName: 'node2',
-				port: 8081,
-				submitTime: '2022-01-01 00:00:01'
-			},
-			{
-				number: 3,
-				id: '3',
-				path: '/path/to/file',
-				nodeName: 'node3',
-				port: 8082,
-				submitTime: '2022-01-01 00:00:02'
-			}
-		];
+		activeJobs = await getJobs(job_status);
+		console.log(activeJobs);
 	});
 </script>
 
 <section>
+	<div class="mt-6 mb-3 text-gray-400">{job_status} jobs</div>
 	<div class="mt-8 rounded-2xl" style="background: rgb(146 151 179 / 13%)">
 		<div class="container mx-auto">
 			<div class="max-w-full overflow-x-auto rounded-lg">
@@ -83,17 +29,23 @@
 						</tr>
 					</thead>
 					<tbody>
-						{#each activeTasks as task}
+						<!-- {#if activeJobs.length === 0}
+							<tr>
+								<td class="table-cell" colspan="6">
+									<p class="whitespace-no-wrap">No active jobs</p>
+								</td>
+							</tr>
+						{/if} -->
+						{#each activeJobs as job}
 							<tr>
 								<td class="table-cell">
-									<!-- <p class="whitespace-no-wrap">{task.number}</p> -->
-									{task.number}
+									{job.id}
 								</td>
 								<td class="table-cell">
-									<p class="whitespace-no-wrap">{task.id}</p>
+									<p class="whitespace-no-wrap">{job.id}</p>
 								</td>
 								<td class="table-cell">
-									<p class="whitespace-no-wrap">{task.path}</p>
+									<p class="whitespace-no-wrap">{job.path}</p>
 								</td>
 								<td class="table-cell">
 									<span class="relative inline-block px-3 py-1 font-semibold leading-tight">
@@ -107,7 +59,7 @@
 									<p class="whitespace-no-wrap"><OpenButton /></p>
 								</td>
 								<td class="table-cell">
-									<p class="whitespace-no-wrap">{task.submitTime}</p>
+									<p class="whitespace-no-wrap">{job.submit_time}</p>
 								</td>
 							</tr>
 						{/each}

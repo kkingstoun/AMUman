@@ -7,32 +7,32 @@ from django.utils import timezone
 from rest_framework.response import Response
 
 
-class RunTask:
+class RunJob:
     def __init__(self) -> None:
         self.time_break = 5
         pass
 
-    def run_task(self, task=None, gpu=None, request=None):
+    def run_job(self, job=None, gpu=None, request=None):
         try:
             gpu.status = "Running"
-            gpu.task_id = task
+            gpu.job_id = job
             gpu.last_update = timezone.now()
             gpu.save()
 
-            # Update task with assigned GPU and status
-            task.assigned_gpu_id = gpu.no
-            task.assigned_node_id = gpu.node_id.id
-            task.status = "Running"
-            task.submit_time = timezone.now()
-            task.save()
+            # Update job with assigned GPU and status
+            job.assigned_gpu_id = gpu.no
+            job.assigned_node_id = gpu.node_id.id
+            job.status = "Running"
+            job.submit_time = timezone.now()
+            job.save()
 
-            # Send task run command to the node managing the selected GPU
-            self.send_run_command(task, gpu)
+            # Send job run command to the node managing the selected GPU
+            self.send_run_command(job, gpu)
             time.sleep(3)
             if request is not None:
                 return self.handle_response(
                     request,
-                    f"Task {gpu.task_id.id} is running on GPU {gpu.id}.",
+                    f"Job {gpu.job_id.id} is running on GPU {gpu.id}.",
                     "success",
                     200,
                 )
@@ -43,19 +43,19 @@ class RunTask:
             if request is not None:
                 return self.handle_response(request, str(e), "danger", 400)
             else:
-                print(f"run_task: {e}")
+                print(f"run_job: {e}")
                 logger.error(e)
 
-    def send_run_command(self, task, gpu):
+    def send_run_command(self, job, gpu):
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             "nodes_group",  # Assume a group name for nodes
             {
                 "type": "node.command",
-                "command": "run_task",
-                "node_id": task.assigned_node_id,
-                "task_id": task.id,
-                "gpu_id": task.assigned_gpu_id,
+                "command": "run_job",
+                "node_id": job.assigned_node_id,
+                "job_id": job.id,
+                "gpu_id": job.assigned_gpu_id,
             },
         )
 

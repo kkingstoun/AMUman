@@ -1,8 +1,9 @@
 <script lang="ts">
-	import Content from '../components/Content.svelte';
+	import JobList from '../components/JobList.svelte';
 </script>
 
 <svelte:head>
 	<title>Amuman</title>
 </svelte:head>
-<Content />
+
+<JobList />

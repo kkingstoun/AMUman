@@ -1,11 +1,11 @@
 
 let api = "http://localhost:8000";
-export async function getTasks(): Promise<any> {
+export async function getJobs(status: string): Promise<any> {
     try {
-        const data = await authFetch("/tasks/");
+        const data = await authFetch("/api/jobs/" + status);
         return data;
     } catch (error) {
-        console.error("Failed to fetch task data:", error);
+        console.error("Failed to fetch job data:", error);
     }
 }
 
@@ -47,13 +47,14 @@ async function refreshToken(): Promise<boolean> {
     try {
         // Implement your token refresh logic here
         // This example uses a fictional API endpoint '/api/token/refresh'
-        const refreshResponse = await fetch(api + '/api/token/refresh', {
+        const refreshResponse = await fetch(api + '/api/token/refresh/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ refresh_token: localStorage.getItem('refresh_token') }), // Use your actual refresh token key
+            body: JSON.stringify({ refresh: localStorage.getItem('refresh_token') }), // Use your actual refresh token key
         });
 
         if (!refreshResponse.ok) {
+            console.log('Failed to refresh token:', refreshResponse.status, refreshResponse.statusText);
             throw new Error('Failed to refresh token');
         }
 

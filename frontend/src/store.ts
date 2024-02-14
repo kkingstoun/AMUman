@@ -11,3 +11,4 @@ const closeSidebar = () => {
 };
 
 export { sidebarOpen, openSidebar, closeSidebar };
+
