@@ -3,7 +3,7 @@ import json
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
-from manager.models import Nodes
+from manager.models import Node
 
 
 class ManagerConsumer(AsyncWebsocketConsumer):
@@ -17,7 +17,7 @@ class ManagerConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def update_node_status(self, node_id, name, connection_status):
-        return Nodes.objects.filter(id=node_id).update(
+        return Node.objects.filter(id=node_id).update(
             name=name, connection_status=connection_status
         )
 

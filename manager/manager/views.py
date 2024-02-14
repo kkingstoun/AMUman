@@ -5,7 +5,7 @@ from typing import ClassVar
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 
-from .models import Gpus, Job, ManagerSettings, Nodes
+from .models import Gpu, Job, ManagerSettings, Node
 from .serializers import GpusSerializer, JobSerializer, MSSerializer, NodesSerializer
 
 log = logging.getLogger("rich")
@@ -42,13 +42,13 @@ class JobsViewSet(viewsets.ModelViewSet):
 
 class GpusViewSet(viewsets.ModelViewSet):
     http_method_names = ["get"]
-    queryset = Gpus.objects.all()
+    queryset = Gpu.objects.all()
     serializer_class = GpusSerializer
     permission_classes: ClassVar = [permissions.IsAuthenticated]
 
 
 class NodesViewSet(viewsets.ModelViewSet):
-    queryset = Nodes.objects.all()
+    queryset = Node.objects.all()
     serializer_class = NodesSerializer
     permission_classes: ClassVar = [permissions.IsAuthenticated]
 

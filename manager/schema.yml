@@ -28,7 +28,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this gpus.
+        description: A unique integer value identifying this gpu.
         required: true
       tags:
       - gpus
@@ -389,7 +389,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this nodes.
+        description: A unique integer value identifying this node.
         required: true
       tags:
       - nodes
@@ -410,7 +410,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this nodes.
+        description: A unique integer value identifying this node.
         required: true
       tags:
       - nodes
@@ -443,7 +443,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this nodes.
+        description: A unique integer value identifying this node.
         required: true
       tags:
       - nodes
@@ -475,7 +475,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this nodes.
+        description: A unique integer value identifying this node.
         required: true
       tags:
       - nodes
@@ -686,72 +686,16 @@ paths:
           description: ''
 components:
   schemas:
-    ConnectionStatusEnum:
-      enum:
-      - Connected
-      - Disconnected
-      type: string
-      description: |-
-        * `Connected` - Connected
-        * `Disconnected` - Disconnected
-    GpuPartitionEnum:
-      enum:
-      - Slow
-      - Normal
-      - Fast
-      type: string
-      description: |-
-        * `Slow` - Slow
-        * `Normal` - Normal
-        * `Fast` - Fast
     Gpus:
       type: object
       properties:
-        id:
+        device_id:
           type: integer
-          readOnly: true
-        'no':
-          type: integer
-          nullable: true
-        gpu_uuid:
+        uuid:
           type: string
-          nullable: true
-        node_id:
-          type: integer
-        brand_name:
-          type: string
-          nullable: true
-        gpu_speed:
-          $ref: '#/components/schemas/GpuPartitionEnum'
-        gpu_util:
-          type: string
-          nullable: true
-        is_running_amumax:
-          type: string
-          nullable: true
-        gpu_info:
-          type: string
-          nullable: true
-        status:
-          $ref: '#/components/schemas/StatusD12Enum'
-        last_update:
-          type: string
-          format: date-time
-          nullable: true
-        job_id:
-          type: integer
-          nullable: true
-        gpu_speed_display:
-          type: string
-          readOnly: true
-        status_display:
-          type: string
-          readOnly: true
       required:
-      - gpu_speed_display
-      - id
-      - node_id
-      - status_display
+      - device_id
+      - uuid
     Job:
       type: object
       properties:
@@ -762,126 +706,25 @@ components:
           type: string
           nullable: true
           maxLength: 100
-        path:
-          type: string
-          nullable: true
-          maxLength: 500
-        node_name:
-          type: string
-          nullable: true
-          maxLength: 100
-        port:
-          type: integer
-          nullable: true
-        submit_time:
-          type: string
-          format: date-time
-          nullable: true
-        start_time:
-          type: string
-          format: date-time
-          nullable: true
-        end_time:
-          type: string
-          format: date-time
-          nullable: true
-        error_time:
-          type: string
-          format: date-time
-          nullable: true
-        priority:
-          $ref: '#/components/schemas/GpuPartitionEnum'
-        gpu_partition:
-          $ref: '#/components/schemas/GpuPartitionEnum'
-        est:
-          type: string
-          nullable: true
-          maxLength: 100
-        status:
-          $ref: '#/components/schemas/JobStatusEnum'
-        assigned_node_id:
-          type: string
-          nullable: true
-          maxLength: 10
-        assigned_gpu_id:
-          type: string
-          nullable: true
-          maxLength: 10
-        output:
-          type: string
-          nullable: true
-        error:
-          type: string
-          nullable: true
-        flags: {}
       required:
       - id
-    JobStatusEnum:
-      enum:
-      - Waiting
-      - Pending
-      - Running
-      - Finished
-      - Interrupted
-      type: string
-      description: |-
-        * `Waiting` - Waiting
-        * `Pending` - Pending
-        * `Running` - Running
-        * `Finished` - Finished
-        * `Interrupted` - Interrupted
     MS:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         queue_watchdog:
           type: boolean
-      required:
-      - id
     Nodes:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         ip:
           type: string
           maxLength: 15
         name:
           type: string
-          nullable: true
           maxLength: 15
-        port:
-          type: integer
-          nullable: true
-        number_of_gpus:
-          type: string
-          nullable: true
-          maxLength: 15
-        gpu_info:
-          type: string
-          nullable: true
-        status:
-          $ref: '#/components/schemas/StatusD12Enum'
-        connection_status:
-          $ref: '#/components/schemas/ConnectionStatusEnum'
-        last_seen:
-          type: string
-          format: date-time
-          nullable: true
-        status_display:
-          type: string
-          readOnly: true
-        connection_status_display:
-          type: string
-          readOnly: true
       required:
-      - connection_status_display
-      - id
       - ip
-      - status_display
+      - name
     PatchedJob:
       type: object
       properties:
@@ -892,115 +735,20 @@ components:
           type: string
           nullable: true
           maxLength: 100
-        path:
-          type: string
-          nullable: true
-          maxLength: 500
-        node_name:
-          type: string
-          nullable: true
-          maxLength: 100
-        port:
-          type: integer
-          nullable: true
-        submit_time:
-          type: string
-          format: date-time
-          nullable: true
-        start_time:
-          type: string
-          format: date-time
-          nullable: true
-        end_time:
-          type: string
-          format: date-time
-          nullable: true
-        error_time:
-          type: string
-          format: date-time
-          nullable: true
-        priority:
-          $ref: '#/components/schemas/GpuPartitionEnum'
-        gpu_partition:
-          $ref: '#/components/schemas/GpuPartitionEnum'
-        est:
-          type: string
-          nullable: true
-          maxLength: 100
-        status:
-          $ref: '#/components/schemas/JobStatusEnum'
-        assigned_node_id:
-          type: string
-          nullable: true
-          maxLength: 10
-        assigned_gpu_id:
-          type: string
-          nullable: true
-          maxLength: 10
-        output:
-          type: string
-          nullable: true
-        error:
-          type: string
-          nullable: true
-        flags: {}
     PatchedMS:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         queue_watchdog:
           type: boolean
     PatchedNodes:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
         ip:
           type: string
           maxLength: 15
         name:
           type: string
-          nullable: true
           maxLength: 15
-        port:
-          type: integer
-          nullable: true
-        number_of_gpus:
-          type: string
-          nullable: true
-          maxLength: 15
-        gpu_info:
-          type: string
-          nullable: true
-        status:
-          $ref: '#/components/schemas/StatusD12Enum'
-        connection_status:
-          $ref: '#/components/schemas/ConnectionStatusEnum'
-        last_seen:
-          type: string
-          format: date-time
-          nullable: true
-        status_display:
-          type: string
-          readOnly: true
-        connection_status_display:
-          type: string
-          readOnly: true
-    StatusD12Enum:
-      enum:
-      - Waiting
-      - Running
-      - Reserved
-      - Unavailable
-      type: string
-      description: |-
-        * `Waiting` - Waiting
-        * `Running` - Running
-        * `Reserved` - Reserved
-        * `Unavailable` - Unavailable
     TokenObtainPair:
       type: object
       properties:

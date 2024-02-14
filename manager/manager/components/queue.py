@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models import Case, IntegerField, Q, Value, When
 
 from manager.components.run_job import RunJob
-from manager.models import Gpus, Job
+from manager.models import Gpu, Job
 
 
 class QueueManager:
@@ -63,7 +63,7 @@ class QueueManager:
         )
 
         gpus = (
-            Gpus.objects.filter(status="Waiting")
+            Gpu.objects.filter(status="Waiting")
             .annotate(speed_as_number=speed_order)
             .order_by("-speed_as_number")
         )
