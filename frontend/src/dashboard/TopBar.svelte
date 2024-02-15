@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { openSidebar } from '../store';
-	import Auth from '../components/Auth.svelte';
+	import { isAuthenticated } from '../store';
+
+	function handleLogout() {
+		localStorage.removeItem('access_token');
+		localStorage.removeItem('refresh_token');
+		isAuthenticated.set(false);
+	}
 </script>
 
 <header class="h-16 md:h-20 items-center relative w-full z-10">
@@ -54,7 +60,6 @@
 			<div
 				class="flex items-center justify-end ml-5 p-1 relative w-9/12 sm:mr-0 sm:right-auto md:w-1/4"
 			>
-
 				<span class="block inline-block px-3 py-2 relative rounded text-white">
 					<span>
 						<svg
@@ -74,10 +79,16 @@
 						3
 					</span>
 				</span>
-				<span class="block pl-5 relative">
-					<Auth />
-
-				</span>
+			</div>
+			<div class="mt-2 ml-8">
+				<button
+					type="button"
+					on:click={handleLogout}
+					class="hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+					style="background: var(--accent-color)"
+				>
+					Logout
+				</button>
 			</div>
 		</div>
 	</div>

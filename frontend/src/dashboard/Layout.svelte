@@ -6,8 +6,10 @@
 	import TopBar from './TopBar.svelte';
 	import Overlay from './Overlay.svelte';
 	import Sidebar from './Sidebar.svelte';
+	import Login from '../components/Login.svelte';
 	import { closeSidebar, sidebarOpen } from '../store';
-	import Auth from '../components/Auth.svelte';
+	import { isAuthenticated } from '../store';
+	import { SvelteToast } from '@zerodevx/svelte-toast';
 
 	if (browser) {
 		page.subscribe(() => {
@@ -16,20 +18,30 @@
 				closeSidebar();
 			}
 		});
+		// page.subscribe(() => {
+		// 	if (!$isAuthenticated) {
+		// 		closeSidebar();
+		// 	}
+		// });
 	}
 </script>
 
+<SvelteToast />
 <div class="background h-screen overflow-hidden w-full lg:p-4">
 	<div class="content h-screen overflow-hidden relative lg:rounded-2xl">
 		<div class="flex items-start">
-			<Overlay />
-			<Sidebar mobileOrientation="end" />
-			<div class="flex flex-col h-screen pl-0 w-full lg:space-y-4 lg:w-[calc(100%-16rem)]">
-				<TopBar />
-				<main class="main h-screen pb-36 pt-4 px-2 md:pb-8 md:px-4 lg:px-6">
-					<slot />
-				</main>
-			</div>
+			{#if $isAuthenticated}
+				<Overlay />
+				<Sidebar mobileOrientation="end" />
+				<div class="flex flex-col h-screen pl-0 w-full lg:space-y-4 lg:w-[calc(100%-16rem)]">
+					<TopBar />
+					<main class="main h-screen pb-36 pt-4 px-2 md:pb-8 md:px-4 lg:px-6">
+						<slot />
+					</main>
+				</div>
+			{:else}
+				<Login />
+			{/if}
 		</div>
 	</div>
 </div>

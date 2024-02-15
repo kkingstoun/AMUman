@@ -1,19 +1,26 @@
 <script lang="ts">
-	import type { Job } from '../types';
-
+	import type { Job } from '../Api';
+	import { api } from '../store';
+	import { errorToast } from './Toast';
+	// export let jobStatus: 'running' | 'queued' | 'finished' = 'running';
 	var activeJobs: Job[] = [];
 	import { onMount } from 'svelte';
 	import OpenButton from './OpenButton.svelte';
-	import { getJobs } from '../api';
-	export let job_status = '';
+
 	onMount(async () => {
-		activeJobs = await getJobs(job_status);
-		console.log(activeJobs);
+		api
+			.jobsList()
+			.then((res) => {
+				activeJobs = res.data;
+			})
+			.catch((err) => {
+				console.error(err);
+				errorToast('Failed to fetch jobs');
+			});
 	});
 </script>
 
 <section>
-	<div class="mt-6 mb-3 text-gray-400">{job_status} jobs</div>
 	<div class="mt-8 rounded-2xl" style="background: rgb(146 151 179 / 13%)">
 		<div class="container mx-auto">
 			<div class="max-w-full overflow-x-auto rounded-lg">
@@ -29,15 +36,8 @@
 						</tr>
 					</thead>
 					<tbody>
-						<!-- {#if activeJobs.length === 0}
-							<tr>
-								<td class="table-cell" colspan="6">
-									<p class="whitespace-no-wrap">No active jobs</p>
-								</td>
-							</tr>
-						{/if} -->
 						{#each activeJobs as job}
-							<tr>
+							<tr class="hover:bg-gray-700">
 								<td class="table-cell">
 									{job.id}
 								</td>
@@ -45,7 +45,7 @@
 									<p class="whitespace-no-wrap">{job.id}</p>
 								</td>
 								<td class="table-cell">
-									<p class="whitespace-no-wrap">{job.path}</p>
+									<p class="whitespace-no-wrap">path</p>
 								</td>
 								<td class="table-cell">
 									<span class="relative inline-block px-3 py-1 font-semibold leading-tight">
@@ -59,7 +59,7 @@
 									<p class="whitespace-no-wrap"><OpenButton /></p>
 								</td>
 								<td class="table-cell">
-									<p class="whitespace-no-wrap">{job.submit_time}</p>
+									<p class="whitespace-no-wrap">submit_time</p>
 								</td>
 							</tr>
 						{/each}
