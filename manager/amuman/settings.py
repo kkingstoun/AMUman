@@ -119,6 +119,9 @@ TEMPLATES = [
     },
 ]
 
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [BASE_DIR / "amuman" / "static"]
+
 WSGI_APPLICATION = "amuman.wsgi.application"
 
 

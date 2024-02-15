@@ -598,6 +598,7 @@ paths:
           - tr
           - tt
           - udm
+          - ug
           - uk
           - ur
           - uz
@@ -691,6 +692,9 @@ components:
       properties:
         device_id:
           type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
         uuid:
           type: string
       required:
