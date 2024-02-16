@@ -6,7 +6,7 @@
 	import TopBar from './TopBar.svelte';
 	import Overlay from './Overlay.svelte';
 	import Sidebar from './Sidebar.svelte';
-	import Login from '../components/Login.svelte';
+	import Login from '../lib/Login.svelte';
 	import { closeSidebar, sidebarOpen } from '../store';
 	import { isAuthenticated } from '../store';
 	import { SvelteToast } from '@zerodevx/svelte-toast';

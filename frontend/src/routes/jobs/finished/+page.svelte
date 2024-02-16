@@ -1,5 +1,5 @@
 <script lang="ts">
-	import JobList from '../../../components/JobList.svelte';
+	import JobList from '$lib/JobList.svelte';
 </script>
 
 <JobList />

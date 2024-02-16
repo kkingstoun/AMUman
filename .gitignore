@@ -20,7 +20,6 @@ backend/node2
 dist/
 dist-ssr/
 build/
-lib/
 lib64/
 *.egg-info/
 *.whl

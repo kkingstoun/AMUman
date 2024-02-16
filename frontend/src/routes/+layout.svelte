@@ -9,5 +9,6 @@
 <style>
 	:global(:root) {
 		--accent-color: #3d1999;
+		--accent-color-hover: #2f0e6e;
 	}
 </style>

@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { sidebarOpen, activePage } from '../store';
 	import AllAppsIcon from './icons/AllAppsIcon.svelte';
-	import { get } from 'svelte/store';
 
 	const data = [
 		{
@@ -43,6 +42,16 @@
 					link: '/gpus'
 				}
 			]
+		},
+		{
+			section: 'Settings',
+			content: [
+				{
+					title: 'Settings',
+					icon: AllAppsIcon,
+					link: '/settings'
+				}
+			]
 		}
 	];
 	type MobileOrientationKey = 'start' | 'end';
@@ -73,7 +82,7 @@
 				/>
 			</a>
 		</div>
-		<ul class="mt-6 md:pl-6">
+		<ul class="mt-6 md:pl-6 pr-5">
 			<li>
 				{#each data as { section, content } (section)}
 					<div class="mb-10">
@@ -84,7 +93,7 @@
 								on:click={() => {
 									activePage.set(item.title.toLowerCase());
 								}}
-								class={`flex items-center justify-start my-1 p-3 text-white w-full ${
+								class={`flex items-center justify-start my-1 p-3 text-white w-full rounded ${
 									$activePage === item.title ? 'bg-gray-700' : 'hover:bg-gray-700'
 								}`}
 							>
