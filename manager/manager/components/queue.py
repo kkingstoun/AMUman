@@ -76,7 +76,7 @@ class QueueManager:
         """
         Pause all jobs in the queue.
         """
-        while caches["schedule_jobs"] == True:
+        while caches["schedule_jobs"]:
             time.sleep(10)
 
     def schedule_jobs(self):
@@ -87,7 +87,7 @@ class QueueManager:
         If there are no available GPUs, the jobs will remain in the queue until a GPU becomes available.
         """
         for job in self.ordered_jobs:
-            if cache.get("schedule_jobs", default=False) == False:
+            if not cache.get("schedule_jobs", default=False):
                 available_gpu = self.waiting_gpus
                 if available_gpu:
                     print(f"Run job {job.id} on GPU {available_gpu.id}")
