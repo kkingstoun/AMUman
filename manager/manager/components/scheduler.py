@@ -1,6 +1,5 @@
 import threading
 import time
-import warnings
 
 from schedule import Scheduler
 
@@ -14,18 +13,18 @@ class RepeatTimer(threading.Timer):
     def start(self) -> None:
         """Protect from running start method multiple times"""
         if not self.running:
-            super(RepeatTimer, self).start()
+            super().start()
             self.running = True
         else:
-            warnings.warn("Timer is already running, cannot be started again.")
+            print("Timer is already running, cannot be started again.")
 
     def cancel(self) -> None:
         """Protect from running stop method multiple times"""
         if self.running:
-            super(RepeatTimer, self).cancel()
+            super().cancel()
             self.running = False
         else:
-            warnings.warn("Timer is already canceled, cannot be canceled again.")
+            print("Timer is already canceled, cannot be canceled again.")
 
     def run(self):
         """Replace run method of timer to run continuously"""
@@ -37,7 +36,7 @@ class ThreadedScheduler(Scheduler):
     _instance = None
     _lock = threading.Lock()
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *_args, **_kwargs):
         with cls._lock:
             if cls._instance is None:
                 cls._instance = super().__new__(cls)

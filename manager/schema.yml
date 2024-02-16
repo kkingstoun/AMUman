@@ -21,6 +21,33 @@ paths:
                 items:
                   $ref: '#/components/schemas/Gpus'
           description: ''
+    post:
+      operationId: gpus_create
+      tags:
+      - gpus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Gpus'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Gpus'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Gpus'
+        required: true
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gpus'
+          description: ''
   /api/gpus/{id}/:
     get:
       operationId: gpus_retrieve
@@ -44,6 +71,91 @@ paths:
               schema:
                 $ref: '#/components/schemas/Gpus'
           description: ''
+    put:
+      operationId: gpus_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this gpu.
+        required: true
+      tags:
+      - gpus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Gpus'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Gpus'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Gpus'
+        required: true
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gpus'
+          description: ''
+    patch:
+      operationId: gpus_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this gpu.
+        required: true
+      tags:
+      - gpus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedGpus'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedGpus'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedGpus'
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gpus'
+          description: ''
+    delete:
+      operationId: gpus_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this gpu.
+        required: true
+      tags:
+      - gpus
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
   /api/jobs/:
     get:
       operationId: jobs_list
@@ -77,6 +189,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/Job'
+        required: true
       security:
       - basicAuth: []
       - jwtAuth: []
@@ -133,6 +246,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/Job'
+        required: true
       security:
       - basicAuth: []
       - jwtAuth: []
@@ -701,18 +815,62 @@ paths:
           description: ''
 components:
   schemas:
+    ConnectionStatusEnum:
+      enum:
+      - CONNECTED
+      - DISCONNECTED
+      type: string
+      description: |-
+        * `CONNECTED` - Connected
+        * `DISCONNECTED` - Disconnected
+    GpuPartitionEnum:
+      enum:
+      - SLOW
+      - NORMAL
+      - FAST
+      type: string
+      description: |-
+        * `SLOW` - Slow
+        * `NORMAL` - Normal
+        * `FAST` - Fast
     Gpus:
       type: object
       properties:
+        id:
+          type: integer
+          readOnly: true
         device_id:
           type: integer
           maximum: 9223372036854775807
-          minimum: -9223372036854775808
+          minimum: 0
           format: int64
         uuid:
           type: string
+          format: uuid
+        model:
+          type: string
+        speed:
+          $ref: '#/components/schemas/SpeedEnum'
+        util:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        is_running_amumax:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/StatusAfaEnum'
+        last_update:
+          type: string
+          format: date-time
+        node:
+          type: integer
       required:
       - device_id
+      - id
+      - model
+      - node
+      - util
       - uuid
     Job:
       type: object
@@ -720,53 +878,272 @@ components:
         id:
           type: integer
           readOnly: true
-        user:
+        path:
+          type: string
+          maxLength: 500
+        port:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        submit_time:
+          type: string
+          format: date-time
+          nullable: true
+        start_time:
+          type: string
+          format: date-time
+          nullable: true
+        end_time:
+          type: string
+          format: date-time
+          nullable: true
+        error_time:
+          type: string
+          format: date-time
+          nullable: true
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        gpu_partition:
+          $ref: '#/components/schemas/GpuPartitionEnum'
+        estimated_simulation_time:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        status:
+          $ref: '#/components/schemas/JobStatusEnum'
+        assigned_gpu_id:
           type: string
           nullable: true
-          maxLength: 100
+          maxLength: 10
+        output:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
+        flags:
+          type: string
+          maxLength: 150
+        node:
+          type: integer
+          nullable: true
+        gpu:
+          type: integer
+          nullable: true
       required:
       - id
+      - path
+    JobStatusEnum:
+      enum:
+      - WAITING
+      - PENDING
+      - RUNNING
+      - FINISHED
+      - INTERRUPTED
+      type: string
+      description: |-
+        * `WAITING` - Waiting
+        * `PENDING` - Pending
+        * `RUNNING` - Running
+        * `FINISHED` - Finished
+        * `INTERRUPTED` - Interrupted
     MS:
       type: object
       properties:
+        id:
+          type: integer
+          readOnly: true
         queue_watchdog:
           type: boolean
+      required:
+      - id
     Nodes:
       type: object
       properties:
+        id:
+          type: integer
+          readOnly: true
         ip:
           type: string
-          maxLength: 15
         name:
           type: string
           maxLength: 15
+        number_of_gpus:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        status:
+          $ref: '#/components/schemas/StatusAfaEnum'
+        connection_status:
+          $ref: '#/components/schemas/ConnectionStatusEnum'
+        last_seen:
+          type: string
+          format: date-time
       required:
+      - id
       - ip
       - name
+      - number_of_gpus
+    PatchedGpus:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        device_id:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        uuid:
+          type: string
+          format: uuid
+        model:
+          type: string
+        speed:
+          $ref: '#/components/schemas/SpeedEnum'
+        util:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        is_running_amumax:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/StatusAfaEnum'
+        last_update:
+          type: string
+          format: date-time
+        node:
+          type: integer
     PatchedJob:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
-        user:
+        path:
+          type: string
+          maxLength: 500
+        port:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        submit_time:
+          type: string
+          format: date-time
+          nullable: true
+        start_time:
+          type: string
+          format: date-time
+          nullable: true
+        end_time:
+          type: string
+          format: date-time
+          nullable: true
+        error_time:
+          type: string
+          format: date-time
+          nullable: true
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        gpu_partition:
+          $ref: '#/components/schemas/GpuPartitionEnum'
+        estimated_simulation_time:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        status:
+          $ref: '#/components/schemas/JobStatusEnum'
+        assigned_gpu_id:
           type: string
           nullable: true
-          maxLength: 100
+          maxLength: 10
+        output:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
+        flags:
+          type: string
+          maxLength: 150
+        node:
+          type: integer
+          nullable: true
+        gpu:
+          type: integer
+          nullable: true
     PatchedMS:
       type: object
       properties:
+        id:
+          type: integer
+          readOnly: true
         queue_watchdog:
           type: boolean
     PatchedNodes:
       type: object
       properties:
+        id:
+          type: integer
+          readOnly: true
         ip:
           type: string
-          maxLength: 15
         name:
           type: string
           maxLength: 15
+        number_of_gpus:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        status:
+          $ref: '#/components/schemas/StatusAfaEnum'
+        connection_status:
+          $ref: '#/components/schemas/ConnectionStatusEnum'
+        last_seen:
+          type: string
+          format: date-time
+    PriorityEnum:
+      enum:
+      - LOW
+      - NORMAL
+      - HIGH
+      type: string
+      description: |-
+        * `LOW` - Low
+        * `NORMAL` - Normal
+        * `HIGH` - High
+    SpeedEnum:
+      enum:
+      - SLOW
+      - NORMAL
+      - FAST
+      type: string
+      description: |-
+        * `SLOW` - Slow
+        * `NORMAL` - Normal
+        * `FAST` - Fast
+    StatusAfaEnum:
+      enum:
+      - WAITING
+      - RUNNING
+      - RESERVED
+      - UNAVAILABLE
+      type: string
+      description: |-
+        * `WAITING` - Waiting
+        * `RUNNING` - Running
+        * `RESERVED` - Reserved
+        * `UNAVAILABLE` - Unavailable
     TokenObtainPair:
       type: object
       properties:

@@ -46,7 +46,7 @@ class RunJob:
                 print(f"run_job: {e}")
                 logger.error(e)
 
-    def send_run_command(self, job, gpu):
+    def send_run_command(self, job, _gpu):
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             "nodes_group",  # Assume a group name for nodes
