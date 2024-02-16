@@ -1,4 +1,4 @@
-
+import { isAuthenticated } from "./store";
 let api = "http://localhost:8000";
 export async function getJobs(status: string): Promise<any> {
     try {
@@ -79,10 +79,42 @@ export async function login(username: string, password: string) {
 
     if (response.ok) {
         const data = await response.json();
-        console.log("Login successful:", data);
+        isAuthenticated.set(true);
         localStorage.setItem("access_token", data.access);
         localStorage.setItem("refresh_token", data.refresh);
-    } else {
+        console.log(isTokenValid(data.access));
+    } else if (response.status === 401) {
+        console.error("Invalid credentials");
         console.error("Login failed");
+        console.error(response);
+
+
+    }
+}
+
+export function isTokenValid(token: string): boolean {
+    try {
+        // Split the token into its parts
+        const base64Url = token.split('.')[1]; // Access the payload part of the token
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/'); // Replace URL-safe base64 encoding characters
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+            // Decode base64 and URI-encoding
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        // Parse the payload as JSON and access the exp property
+        const { exp } = JSON.parse(jsonPayload);
+
+        if (!exp) {
+            // If there's no exp field, assume the token is invalid
+            return false;
+        }
+        console.log(exp);
+
+        const now = Math.floor(Date.now() / 1000); // Get current time in Unix timestamp
+        return now < exp; // Check if the current time is before the expiration time
+    } catch (e) {
+        // If an error occurs (e.g., invalid token format), assume the token is invalid
+        return false;
     }
 }

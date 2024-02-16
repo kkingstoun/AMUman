@@ -1,10 +1,14 @@
 <script lang="ts">
-	import Layout from "../dashboard/Layout.svelte";
-    import { SvelteToast } from '@zerodevx/svelte-toast'
-
+	import Layout from '../dashboard/Layout.svelte';
 </script>
 
 <Layout>
-	<SvelteToast />
 	<slot />
 </Layout>
+
+<style>
+	:global(:root) {
+		--accent-color: #3d1999;
+		--accent-color-hover: #2f0e6e;
+	}
+</style>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { sidebarOpen } from '../store';
+	import { sidebarOpen, activePage } from '../store';
 	import AllAppsIcon from './icons/AllAppsIcon.svelte';
 
 	const data = [
@@ -14,7 +14,7 @@
 				{
 					title: 'Running',
 					icon: AllAppsIcon,
-					link: '/jobs/active'
+					link: '/jobs/running'
 				},
 				{
 					title: 'Queued',
@@ -25,7 +25,7 @@
 					title: 'Finished',
 					icon: AllAppsIcon,
 					link: '/jobs/finished'
-				},
+				}
 			]
 		},
 		{
@@ -40,9 +40,19 @@
 					title: 'GPUs',
 					icon: AllAppsIcon,
 					link: '/gpus'
-				},
+				}
 			]
 		},
+		{
+			section: 'Settings',
+			content: [
+				{
+					title: 'Settings',
+					icon: AllAppsIcon,
+					link: '/settings'
+				}
+			]
+		}
 	];
 	type MobileOrientationKey = 'start' | 'end';
 	const style = {
@@ -57,22 +67,22 @@
 
 <aside
 	class={`top-0 scrollbar bg-gray-900 h-screen overflow-y-auto
-      lg:bg-transparent lg:block lg:relative lg:w-64 lg:z-auto 
+      lg:bg-transparent lg:block lg:relative lg:w-40 lg:z-auto 
       ${style.mobileOrientation[mobileOrientation]}
       ${$sidebarOpen ? 'absolute w-8/12 z-40 sm:w-5/12' : 'hidden'}
    `}
 >
 	<div class="pb-32 lg:pb-6">
-        <div class="flex justify-center">
+		<div class="flex justify-center">
 			<a href="/">
 				<img
-				alt="amuman logo"
-				src="/images/logo.png"
-				class="h-40 mx-auto object-cover rounded-full w-40"
+					alt="amuman logo"
+					src="/images/logo.png"
+					class="h-40 mx-auto object-cover rounded-full w-40"
 				/>
 			</a>
-        </div>
-		<ul class="mt-6 md:pl-6">
+		</div>
+		<ul class="mt-6 md:pl-6 pr-5">
 			<li>
 				{#each data as { section, content } (section)}
 					<div class="mb-10">
@@ -80,7 +90,12 @@
 						{#each content as item (item.title)}
 							<a
 								href={item.link}
-								class="flex items-center justify-start my-1 p-3 text-white w-full"
+								on:click={() => {
+									activePage.set(item.title.toLowerCase());
+								}}
+								class={`flex items-center justify-start my-1 p-3 text-white w-full rounded ${
+									$activePage === item.title ? 'bg-gray-700' : 'hover:bg-gray-700'
+								}`}
 							>
 								<span><svelte:component this={item.icon} /></span>
 								<span class="mx-4 text-sm">{item.title}</span>
