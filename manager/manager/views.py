@@ -1,8 +1,8 @@
 # Create your views here.
 import logging
-from typing import ClassVar
 
-from rest_framework import permissions, status, viewsets
+# from rest_framework import permissions
+from rest_framework import status, viewsets
 from rest_framework.response import Response
 
 from .models import Gpu, Job, ManagerSettings, Node
@@ -41,19 +41,19 @@ class JobsViewSet(viewsets.ModelViewSet):
 
 
 class GpusViewSet(viewsets.ModelViewSet):
-    http_method_names = ["get"]
+    # http_method_names = ["get"]
     queryset = Gpu.objects.all()
     serializer_class = GpusSerializer
-    permission_classes: ClassVar = [permissions.IsAuthenticated]
+    # permission_classes: ClassVar = [permissions.IsAuthenticated]
 
 
 class NodesViewSet(viewsets.ModelViewSet):
     queryset = Node.objects.all()
     serializer_class = NodesSerializer
-    permission_classes: ClassVar = [permissions.IsAuthenticated]
+    # permission_classes: ClassVar = [permissions.IsAuthenticated]
 
 
 class ManagerSettingsViewSet(viewsets.ModelViewSet):
     queryset = ManagerSettings.objects.all()
     serializer_class = MSSerializer
-    permission_classes: ClassVar = [permissions.IsAuthenticated]
+    # permission_classes: ClassVar = [permissions.IsAuthenticated]
