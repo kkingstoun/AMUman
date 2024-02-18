@@ -97,6 +97,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "manager.middleware.scheduler_middleware.SchedulerMiddleware",
+    'manager.middleware.generate_initial_data.GenerateRandomJobsMiddleware',
 ]
 
 ROOT_URLCONF = "amuman.urls"

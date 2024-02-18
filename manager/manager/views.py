@@ -3,6 +3,7 @@ import logging
 
 # from rest_framework import permissions
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import Gpu, Job, ManagerSettings, Node
@@ -39,6 +40,16 @@ class JobsViewSet(viewsets.ModelViewSet):
             serializer.data, status=status.HTTP_201_CREATED, headers=headers
         )
 
+    @action(detail=True, methods=['post'])
+    def start(self, request, pk=None):
+        try:
+            job = self.get_object()
+            job.status = Job.JobStatus.RUNNING.name
+            job.save()
+            return Response({"message": f"Job {pk} started successfully."}, status=status.HTTP_200_OK)
+        except Job.DoesNotExist:
+            return Response({"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND)
+
 
 class GpusViewSet(viewsets.ModelViewSet):
     # http_method_names = ["get"]
@@ -57,3 +68,4 @@ class ManagerSettingsViewSet(viewsets.ModelViewSet):
     queryset = ManagerSettings.objects.all()
     serializer_class = MSSerializer
     # permission_classes: ClassVar = [permissions.IsAuthenticated]
+
