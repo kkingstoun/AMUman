@@ -1,127 +1,122 @@
 <script lang="ts">
 	import type { Job } from '../Api';
+	import { onMount } from 'svelte';
 	import { api } from '../store';
 	import { errorToast } from './Toast';
-	// export let jobStatus: 'running' | 'queued' | 'finished' = 'running';
-	var activeJobs: Job[] = [];
-	import { onMount } from 'svelte';
-	import OpenButton from './OpenButton.svelte';
-	import { AccordionItem, Accordion } from 'flowbite-svelte';
+	import Status from './Status.svelte';
+	import moment from 'moment';
+	import Priority from './Priority.svelte';
 
+	let activeJobs: Job[] = [];
+	type TableHeader = {
+		key: keyof Job;
+		label: string;
+		format: 'datetime' | '';
+	};
+	let tableHeaders: TableHeader[] = [
+		{ key: 'id', label: 'ID', format: '' },
+		{ key: 'path', label: 'Path', format: '' },
+		// { key: 'port', label: 'Port', format: '' },
+		{ key: 'submit_time', label: 'Submit Time', format: 'datetime' },
+		{ key: 'start_time', label: 'Start Time', format: 'datetime' },
+		{ key: 'end_time', label: 'End Time', format: 'datetime' },
+		{ key: 'error_time', label: 'Error Time', format: 'datetime' },
+		{ key: 'priority', label: 'Priority', format: '' },
+		// { key: 'estimated_simulation_time', label: 'Estimated Duration', format: '' },
+		{ key: 'status', label: 'Status', format: '' },
+		{ key: 'output', label: 'Output', format: '' },
+		// { key: 'error', label: 'Error', format: '' },
+		// { key: 'flags', label: 'Flags', format: '' },
+		{ key: 'node', label: 'Node', format: '' }
+	];
+	interface SortState {
+		column: keyof Job;
+		direction: 1 | -1; // 1 for ascending, -1 for descending
+	}
+	let sortState: SortState = {
+		column: 'id',
+		direction: 1
+	};
 	onMount(async () => {
 		api
 			.jobsList()
 			.then((res) => {
 				activeJobs = res.data;
+				sortJobs();
 			})
 			.catch((err) => {
 				console.error(err);
 				errorToast('Failed to fetch jobs');
 			});
 	});
+	$: sortState, sortJobs();
+
+	function sortJobs(): void {
+		activeJobs.sort((a, b) => {
+			const aValue = a[sortState.column];
+			const bValue = b[sortState.column];
+
+			if (aValue == null || bValue == null) return 0; // Handle null or undefined values
+
+			if (aValue < bValue) return -1 * sortState.direction;
+			if (aValue > bValue) return 1 * sortState.direction;
+			return 0;
+		});
+		activeJobs = activeJobs; // Trigger reactivity
+	}
+
+	const formatValue = (job: Job, key: string, format?: string) => {
+		const value = job[key as keyof Job];
+		if (format === 'datetime') {
+			if (!value) return '-';
+			return moment(value).fromNow();
+		}
+		return value;
+	};
+	function updateSortState(column: keyof Job): void {
+		if (sortState.column === column) {
+			sortState.direction *= -1; // Toggle direction
+		} else {
+			sortState.column = column;
+			sortState.direction = 1; // Default to ascending for a new column
+		}
+	}
 </script>
 
 <section>
 	<div class="mt-8 rounded-2xl" style="background: rgb(146 151 179 / 13%)">
 		<div class="container mx-auto">
 			<div class="max-w-full overflow-x-auto rounded-lg">
-				<script>
-					import { AccordionItem, Accordion } from 'flowbite-svelte';
-				</script>
-
-				<Accordion>
-					<AccordionItem>
-						<span slot="header">My Header 1</span>
-						<p class="mb-2 text-gray-500 dark:text-gray-400">
-							Lorem ipsum dolor sit amet, consectetur adipisicing elit. Illo ab necessitatibus sint
-							explicabo ...
-						</p>
-						<p class="text-gray-500 dark:text-gray-400">
-							Check out this guide to learn how to <a
-								href="/"
-								target="_blank"
-								rel="noreferrer"
-								class="text-blue-600 dark:text-blue-500 hover:underline"
-							>
-								get started
-							</a>
-							and start developing websites even faster with components on top of Tailwind CSS.
-						</p>
-					</AccordionItem>
-					<AccordionItem>
-						<span slot="header">My Header 2</span>
-						<p class="mb-2 text-gray-500 dark:text-gray-400">
-							Lorem ipsum dolor sit amet, consectetur adipisicing elit. Illo ab necessitatibus sint
-							explicabo ...
-						</p>
-						<p class="mb-2 text-gray-500 dark:text-gray-400">
-							Lorem ipsum dolor sit amet, consectetur adipisicing elit. Illo ab necessitatibus sint
-							explicabo ...
-						</p>
-						<p class="mb-2 text-gray-500 dark:text-gray-400">
-							Learn more about these technologies:
-						</p>
-						<ul class="list-disc ps-5 dark:text-gray-400 text-gray-500">
-							<li>
-								<a
-									href="/"
-									target="_blank"
-									rel="noreferrer"
-									class="text-blue-600 dark:text-blue-500 hover:underline"
-								>
-									Lorem ipsum
-								</a>
-							</li>
-							<li>
-								<a
-									href="https://tailwindui.com/"
-									rel="noreferrer"
-									target="_blank"
-									class="text-blue-600 dark:text-blue-500 hover:underline"
-								>
-									Tailwind UI
-								</a>
-							</li>
-						</ul>
-					</AccordionItem>
-				</Accordion>
 				<table class="w-full leading-normal text-white">
 					<thead>
 						<tr>
-							<th class="table-header"> User </th>
-							<th class="table-header"> Role </th>
-							<th class="table-header"> Created_at </th>
-							<th class="table-header"> status </th>
-							<th class="table-header"> status </th>
-							<th class="table-header"> status </th>
+							{#each tableHeaders as { key, label }}
+								<th
+									class="px-5 py-3 border-b border-gray-200 text-left text-sm uppercase font-normal cursor-pointer"
+									on:click={() => updateSortState(key)}
+								>
+									{label}
+									{sortState.column === key ? (sortState.direction === 1 ? ' 🔼' : ' 🔽') : ''}
+								</th>
+							{/each}
 						</tr>
 					</thead>
 					<tbody>
 						{#each activeJobs as job}
 							<tr class="hover:bg-gray-700">
-								<td class="table-cell">
-									{job.id}
-								</td>
-								<td class="table-cell">
-									<p class="whitespace-no-wrap">{job.id}</p>
-								</td>
-								<td class="table-cell">
-									<p class="whitespace-no-wrap">path</p>
-								</td>
-								<td class="table-cell">
-									<span class="relative inline-block px-3 py-1 font-semibold leading-tight">
-										<span
-											aria-hidden="true"
-											class="absolute inset-0 bg-green-200 opacity-50 rounded-full"
-										/> <span class="relative">active</span>
-									</span>
-								</td>
-								<td class="table-cell">
-									<p class="whitespace-no-wrap"><OpenButton /></p>
-								</td>
-								<td class="table-cell">
-									<p class="whitespace-no-wrap">submit_time</p>
-								</td>
+								{#each tableHeaders as { key, format }}
+									<td class="px-5 py-5 border-b border-gray-200 text-sm">
+										<p class="whitespace-no-wrap">
+											{#if key === 'status'}
+												<Status status={job.status} />
+											{:else if key === 'priority'}
+												<Priority priority={job.priority} />
+											{:else}
+												{formatValue(job, key, format)}
+											{/if}
+										</p>
+									</td>
+								{/each}
 							</tr>
 						{/each}
 					</tbody>
@@ -130,12 +125,3 @@
 		</div>
 	</div>
 </section>
-
-<style>
-	.table-header {
-		@apply px-5 py-3 border-b border-gray-200 text-left text-sm uppercase font-normal;
-	}
-	.table-cell {
-		@apply px-5 py-5 border-b border-gray-200 text-sm;
-	}
-</style>
