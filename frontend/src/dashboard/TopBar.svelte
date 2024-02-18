@@ -26,7 +26,7 @@
 				</div>
 				<div class="group h-full hidden items-center relative w-full md:flex lg:w-64">
 					<div
-						class="absolute block cursor-pointer flex items-center justify-center p-3 pr-2 text-gray-500 text-sm uppercase sm:hidden"
+						class="absolute block cursor-pointer items-center justify-center p-3 pr-2 text-gray-500 text-sm uppercase sm:hidden"
 					>
 						<svg
 							fill="none"
