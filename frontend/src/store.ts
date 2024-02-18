@@ -6,7 +6,7 @@ export const isAuthenticated = writable<boolean>(true);
 export const activePage = writable<string>('Running');
 
 export const api = new Api<string>({ baseUrl: 'http://localhost:8000' }).api;
-
+export const refreshInterval = writable(60 * 1000);
 
 const sidebarOpen = writable(false);
 

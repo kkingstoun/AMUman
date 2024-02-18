@@ -25,6 +25,11 @@
 					title: 'Finished',
 					icon: AllAppsIcon,
 					link: '/jobs/finished'
+				},
+				{
+					title: 'New',
+					icon: AllAppsIcon,
+					link: '/jobs/new'
 				}
 			]
 		},
@@ -91,10 +96,10 @@
 							<a
 								href={item.link}
 								on:click={() => {
-									activePage.set(item.title.toLowerCase());
+									activePage.set(item.title);
 								}}
 								class={`flex items-center justify-start my-1 p-3 text-white w-full rounded ${
-									$activePage === item.title ? 'bg-gray-700' : 'hover:bg-gray-700'
+									$activePage === item.title ? 'bg-gray-700' : 'hover:bg-gray-600'
 								}`}
 							>
 								<span><svelte:component this={item.icon} /></span>
