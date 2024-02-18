@@ -4,12 +4,12 @@ dev cmd="bash -c 'npm i && npx -y update-browserslist-db@latest && npm run dev'"
 		--name amuman-frontend-dev \
 		--network amuman-dev \
 		-p 5173:5173 \
-		-v .:/app \
-		-w /app \
+		-v ./..:/app \
+		-w /app/frontend \
 		docker.io/node:21 {{cmd}}
 
 build: 
 	sudo docker run --rm -it \
-		-v .:/app \
-		-w /app \
+		-v ./..:/app \
+		-w /app/frontend \
 		docker.io/node:21 npm i && npm run build

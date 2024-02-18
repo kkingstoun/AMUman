@@ -6,7 +6,8 @@ dev cmd="None":
 		--network amuman-dev \
 		-p 8000:8000 \
 		-p 5678:5678 \
-		-v .:/app \
+		-v ./..:/app \
+		-w /app/manager \
 		amuman {{cmd}}
 
 staging:

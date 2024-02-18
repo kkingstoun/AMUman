@@ -4,7 +4,8 @@ dev cmd="bash":
 	sudo docker run --rm -it \
 		--name amuman-node-dev \
 		--network amuman-dev \
-		-v .:/app \
+		-v ./..:/app \
+		-w /app/node \
 		--gpus all \
 		-e MANAGER_URL=amuman-manager-dev:8000 \
 		-e NODE_NAME=test_node  \

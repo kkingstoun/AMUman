@@ -4,7 +4,8 @@ dev cmd="None":
 	sudo docker run --rm -it \
 		--name amuman-cli \
 		--network amuman-dev \
-		-v .:/app \
+		-v ./..:/app \
+		-w /app/cli \
 		--env-file ../.env \
 		--cap-add SYS_ADMIN \
 		--cap-add DAC_READ_SEARCH \
