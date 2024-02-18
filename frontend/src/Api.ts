@@ -9,48 +9,318 @@
  * ---------------------------------------------------------------
  */
 
+/**
+ * * `CONNECTED` - Connected
+ * * `DISCONNECTED` - Disconnected
+ */
+export enum ConnectionStatusEnum {
+	CONNECTED = 'CONNECTED',
+	DISCONNECTED = 'DISCONNECTED'
+}
+
+/**
+ * * `SLOW` - Slow
+ * * `NORMAL` - Normal
+ * * `FAST` - Fast
+ */
+export enum GpuPartitionEnum {
+	SLOW = 'SLOW',
+	NORMAL = 'NORMAL',
+	FAST = 'FAST'
+}
+
 export interface Gpus {
+	id: number;
 	/**
 	 * @format int64
-	 * @min -9223372036854776000
+	 * @min 0
 	 * @max 9223372036854776000
 	 */
 	device_id: number;
+	/** @format uuid */
 	uuid: string;
+	model: string;
+	/**
+	 * * `SLOW` - Slow
+	 * * `NORMAL` - Normal
+	 * * `FAST` - Fast
+	 */
+	speed?: SpeedEnum;
+	/**
+	 * @format int64
+	 * @min 0
+	 * @max 9223372036854776000
+	 */
+	util: number;
+	is_running_amumax?: boolean;
+	/**
+	 * * `WAITING` - Waiting
+	 * * `RUNNING` - Running
+	 * * `RESERVED` - Reserved
+	 * * `UNAVAILABLE` - Unavailable
+	 */
+	status?: StatusAfaEnum;
+	/** @format date-time */
+	last_update?: string;
+	node: number;
 }
 
 export interface Job {
 	id: number;
-	/** @maxLength 100 */
-	user?: string | null;
+	/** @maxLength 500 */
+	path: string;
+	/**
+	 * @format int64
+	 * @min 0
+	 * @max 9223372036854776000
+	 */
+	port?: number | null;
+	/** @format date-time */
+	submit_time?: string | null;
+	/** @format date-time */
+	start_time?: string | null;
+	/** @format date-time */
+	end_time?: string | null;
+	/** @format date-time */
+	error_time?: string | null;
+	/**
+	 * * `LOW` - Low
+	 * * `NORMAL` - Normal
+	 * * `HIGH` - High
+	 */
+	priority?: PriorityEnum;
+	/**
+	 * * `SLOW` - Slow
+	 * * `NORMAL` - Normal
+	 * * `FAST` - Fast
+	 */
+	gpu_partition?: GpuPartitionEnum;
+	/**
+	 * @format int64
+	 * @min 0
+	 * @max 9223372036854776000
+	 */
+	estimated_simulation_time?: number;
+	/**
+	 * * `WAITING` - Waiting
+	 * * `PENDING` - Pending
+	 * * `RUNNING` - Running
+	 * * `FINISHED` - Finished
+	 * * `INTERRUPTED` - Interrupted
+	 */
+	status?: JobStatusEnum;
+	/** @maxLength 10 */
+	assigned_gpu_id?: string | null;
+	output?: string | null;
+	error?: string | null;
+	/** @maxLength 150 */
+	flags?: string;
+	node?: number | null;
+	gpu?: number | null;
+}
+
+/**
+ * * `WAITING` - Waiting
+ * * `PENDING` - Pending
+ * * `RUNNING` - Running
+ * * `FINISHED` - Finished
+ * * `INTERRUPTED` - Interrupted
+ */
+export enum JobStatusEnum {
+	WAITING = 'WAITING',
+	PENDING = 'PENDING',
+	RUNNING = 'RUNNING',
+	FINISHED = 'FINISHED',
+	INTERRUPTED = 'INTERRUPTED'
 }
 
 export interface MS {
+	id: number;
 	queue_watchdog?: boolean;
 }
 
 export interface Nodes {
-	/** @maxLength 15 */
+	id: number;
 	ip: string;
 	/** @maxLength 15 */
 	name: string;
+	/**
+	 * @format int64
+	 * @min 0
+	 * @max 9223372036854776000
+	 */
+	number_of_gpus: number;
+	/**
+	 * * `WAITING` - Waiting
+	 * * `RUNNING` - Running
+	 * * `RESERVED` - Reserved
+	 * * `UNAVAILABLE` - Unavailable
+	 */
+	status?: StatusAfaEnum;
+	/**
+	 * * `CONNECTED` - Connected
+	 * * `DISCONNECTED` - Disconnected
+	 */
+	connection_status?: ConnectionStatusEnum;
+	/** @format date-time */
+	last_seen?: string;
+}
+
+export interface PatchedGpus {
+	id?: number;
+	/**
+	 * @format int64
+	 * @min 0
+	 * @max 9223372036854776000
+	 */
+	device_id?: number;
+	/** @format uuid */
+	uuid?: string;
+	model?: string;
+	/**
+	 * * `SLOW` - Slow
+	 * * `NORMAL` - Normal
+	 * * `FAST` - Fast
+	 */
+	speed?: SpeedEnum;
+	/**
+	 * @format int64
+	 * @min 0
+	 * @max 9223372036854776000
+	 */
+	util?: number;
+	is_running_amumax?: boolean;
+	/**
+	 * * `WAITING` - Waiting
+	 * * `RUNNING` - Running
+	 * * `RESERVED` - Reserved
+	 * * `UNAVAILABLE` - Unavailable
+	 */
+	status?: StatusAfaEnum;
+	/** @format date-time */
+	last_update?: string;
+	node?: number;
 }
 
 export interface PatchedJob {
 	id?: number;
-	/** @maxLength 100 */
-	user?: string | null;
+	/** @maxLength 500 */
+	path?: string;
+	/**
+	 * @format int64
+	 * @min 0
+	 * @max 9223372036854776000
+	 */
+	port?: number | null;
+	/** @format date-time */
+	submit_time?: string | null;
+	/** @format date-time */
+	start_time?: string | null;
+	/** @format date-time */
+	end_time?: string | null;
+	/** @format date-time */
+	error_time?: string | null;
+	/**
+	 * * `LOW` - Low
+	 * * `NORMAL` - Normal
+	 * * `HIGH` - High
+	 */
+	priority?: PriorityEnum;
+	/**
+	 * * `SLOW` - Slow
+	 * * `NORMAL` - Normal
+	 * * `FAST` - Fast
+	 */
+	gpu_partition?: GpuPartitionEnum;
+	/**
+	 * @format int64
+	 * @min 0
+	 * @max 9223372036854776000
+	 */
+	estimated_simulation_time?: number;
+	/**
+	 * * `WAITING` - Waiting
+	 * * `PENDING` - Pending
+	 * * `RUNNING` - Running
+	 * * `FINISHED` - Finished
+	 * * `INTERRUPTED` - Interrupted
+	 */
+	status?: JobStatusEnum;
+	/** @maxLength 10 */
+	assigned_gpu_id?: string | null;
+	output?: string | null;
+	error?: string | null;
+	/** @maxLength 150 */
+	flags?: string;
+	node?: number | null;
+	gpu?: number | null;
 }
 
 export interface PatchedMS {
+	id?: number;
 	queue_watchdog?: boolean;
 }
 
 export interface PatchedNodes {
-	/** @maxLength 15 */
+	id?: number;
 	ip?: string;
 	/** @maxLength 15 */
 	name?: string;
+	/**
+	 * @format int64
+	 * @min 0
+	 * @max 9223372036854776000
+	 */
+	number_of_gpus?: number;
+	/**
+	 * * `WAITING` - Waiting
+	 * * `RUNNING` - Running
+	 * * `RESERVED` - Reserved
+	 * * `UNAVAILABLE` - Unavailable
+	 */
+	status?: StatusAfaEnum;
+	/**
+	 * * `CONNECTED` - Connected
+	 * * `DISCONNECTED` - Disconnected
+	 */
+	connection_status?: ConnectionStatusEnum;
+	/** @format date-time */
+	last_seen?: string;
+}
+
+/**
+ * * `LOW` - Low
+ * * `NORMAL` - Normal
+ * * `HIGH` - High
+ */
+export enum PriorityEnum {
+	LOW = 'LOW',
+	NORMAL = 'NORMAL',
+	HIGH = 'HIGH'
+}
+
+/**
+ * * `SLOW` - Slow
+ * * `NORMAL` - Normal
+ * * `FAST` - Fast
+ */
+export enum SpeedEnum {
+	SLOW = 'SLOW',
+	NORMAL = 'NORMAL',
+	FAST = 'FAST'
+}
+
+/**
+ * * `WAITING` - Waiting
+ * * `RUNNING` - Running
+ * * `RESERVED` - Reserved
+ * * `UNAVAILABLE` - Unavailable
+ */
+export enum StatusAfaEnum {
+	WAITING = 'WAITING',
+	RUNNING = 'RUNNING',
+	RESERVED = 'RESERVED',
+	UNAVAILABLE = 'UNAVAILABLE'
 }
 
 export interface TokenObtainPair {
@@ -314,6 +584,25 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		 * No description
 		 *
 		 * @tags gpus
+		 * @name GpusCreate
+		 * @request POST:/api/gpus/
+		 * @secure
+		 */
+		gpusCreate: (data: Gpus, params: RequestParams = {}) =>
+			this.request<Gpus, any>({
+				path: `/api/gpus/`,
+				method: 'POST',
+				body: data,
+				secure: true,
+				type: ContentType.Json,
+				format: 'json',
+				...params
+			}),
+
+		/**
+		 * No description
+		 *
+		 * @tags gpus
 		 * @name GpusRetrieve
 		 * @request GET:/api/gpus/{id}/
 		 * @secure
@@ -324,6 +613,60 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 				method: 'GET',
 				secure: true,
 				format: 'json',
+				...params
+			}),
+
+		/**
+		 * No description
+		 *
+		 * @tags gpus
+		 * @name GpusUpdate
+		 * @request PUT:/api/gpus/{id}/
+		 * @secure
+		 */
+		gpusUpdate: (id: number, data: Gpus, params: RequestParams = {}) =>
+			this.request<Gpus, any>({
+				path: `/api/gpus/${id}/`,
+				method: 'PUT',
+				body: data,
+				secure: true,
+				type: ContentType.Json,
+				format: 'json',
+				...params
+			}),
+
+		/**
+		 * No description
+		 *
+		 * @tags gpus
+		 * @name GpusPartialUpdate
+		 * @request PATCH:/api/gpus/{id}/
+		 * @secure
+		 */
+		gpusPartialUpdate: (id: number, data: PatchedGpus, params: RequestParams = {}) =>
+			this.request<Gpus, any>({
+				path: `/api/gpus/${id}/`,
+				method: 'PATCH',
+				body: data,
+				secure: true,
+				type: ContentType.Json,
+				format: 'json',
+				...params
+			}),
+
+		/**
+		 * No description
+		 *
+		 * @tags gpus
+		 * @name GpusDestroy
+		 * @request DELETE:/api/gpus/{id}/
+		 * @secure
+		 */
+		gpusDestroy: (id: number, params: RequestParams = {}) =>
+			this.request<void, any>({
+				path: `/api/gpus/${id}/`,
+				method: 'DELETE',
+				secure: true,
 				...params
 			}),
 

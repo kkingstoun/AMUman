@@ -108,7 +108,6 @@ class Job(models.Model):
         choices=[(choice.name, choice.value) for choice in JobStatus],
         default=JobStatus.WAITING.name,
     )
-    assigned_gpu_id = models.CharField(max_length=10, null=True, blank=True)
     node = models.ForeignKey(
         Node, on_delete=models.SET_NULL, null=True, blank=True, related_name="node"
     )
@@ -117,7 +116,7 @@ class Job(models.Model):
     )
     output = models.TextField(null=True, blank=True)
     error = models.TextField(null=True, blank=True)
-    flags = models.CharField(max_length=150, default="")
+    flags = models.CharField(max_length=150, null=True, blank=True)
 
     def __str__(self):
         return f"{self.id}:{self.path[-50:]}"
