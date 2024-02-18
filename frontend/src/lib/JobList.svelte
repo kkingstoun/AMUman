@@ -1,13 +1,12 @@
 <script lang="ts">
 	import type { Job } from '../Api';
-	import { onMount } from 'svelte';
-	import { api } from '../store';
-	import { errorToast } from './Toast';
+	import { onDestroy, onMount } from 'svelte';
+	import { api, refreshInterval, activePage } from '../store';
+	import { errorToast, successToast } from './Toast';
 	import Status from './Status.svelte';
 	import moment from 'moment';
 	import Priority from './Priority.svelte';
 
-	let activeJobs: Job[] = [];
 	type TableHeader = {
 		key: keyof Job;
 		label: string;
@@ -29,6 +28,7 @@
 		// { key: 'flags', label: 'Flags', format: '' },
 		{ key: 'node', label: 'Node', format: '' }
 	];
+
 	interface SortState {
 		column: keyof Job;
 		direction: 1 | -1; // 1 for ascending, -1 for descending
@@ -37,18 +37,30 @@
 		column: 'id',
 		direction: 1
 	};
+
+	let intervalId: ReturnType<typeof setInterval>;
 	onMount(async () => {
-		api
-			.jobsList()
-			.then((res) => {
-				activeJobs = res.data;
-				sortJobs();
-			})
-			.catch((err) => {
-				console.error(err);
-				errorToast('Failed to fetch jobs');
-			});
+		await fetchJobs();
+		intervalId = setInterval(fetchJobs, $refreshInterval); // Refresh every minute
 	});
+
+	onDestroy(() => {
+		clearInterval(intervalId); // Clear the interval when the component is destroyed
+	});
+
+	let activeJobs: Job[] = [];
+	let lastFetchTime: number = Date.now();
+	async function fetchJobs() {
+		try {
+			const res = await api.jobsList();
+			activeJobs = res.data;
+			sortJobs();
+			lastFetchTime = Date.now();
+		} catch (err) {
+			console.error(err);
+			errorToast('Failed to fetch jobs');
+		}
+	}
 	$: sortState, sortJobs();
 
 	function sortJobs(): void {
@@ -65,14 +77,14 @@
 		activeJobs = activeJobs; // Trigger reactivity
 	}
 
-	const formatValue = (job: Job, key: string, format?: string) => {
+	function formatValue(job: Job, key: string, format?: string): string | number | null | undefined {
 		const value = job[key as keyof Job];
 		if (format === 'datetime') {
 			if (!value) return '-';
 			return moment(value).fromNow();
 		}
 		return value;
-	};
+	}
 	function updateSortState(column: keyof Job): void {
 		if (sortState.column === column) {
 			sortState.direction *= -1; // Toggle direction
@@ -84,6 +96,29 @@
 </script>
 
 <section>
+	<div class="flex justify-between items-center">
+		<h1 class="text-3xl font-bold text-white">Jobs</h1>
+		<div class="flex items-center">
+			<p class="text-white text-sm">
+				Last fetched: {moment(lastFetchTime).format('YYYY-MM-DD HH:mm:ss')} ({moment(
+					lastFetchTime
+				).fromNow()})
+			</p>
+			<button
+				class="ml-4 bg-violet-900 hover:bg-violet-950 text-white font-bold py-2 px-4 rounded"
+				on:click={fetchJobs}
+			>
+				Refresh
+			</button>
+		</div>
+		<div>
+			<a href="/jobs/new">
+				<button class="bg-violet-900 hover:bg-violet-950 text-white font-bold py-2 px-4 rounded">
+					New Job
+				</button>
+			</a>
+		</div>
+	</div>
 	<div class="mt-8 rounded-2xl" style="background: rgb(146 151 179 / 13%)">
 		<div class="container mx-auto">
 			<div class="max-w-full overflow-x-auto rounded-lg">
