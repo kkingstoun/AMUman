@@ -7,6 +7,7 @@
 	import Overlay from './Overlay.svelte';
 	import Sidebar from './Sidebar.svelte';
 	import Login from '../lib/Login.svelte';
+	import Footer from './Footer.svelte';
 	import { closeSidebar, sidebarOpen } from '../store';
 	import { isAuthenticated } from '../store';
 	import { SvelteToast } from '@zerodevx/svelte-toast';
@@ -27,15 +28,15 @@
 </script>
 
 <SvelteToast />
-<div class="background h-screen overflow-hidden w-full lg:p-4">
-	<div class="content h-screen overflow-hidden relative lg:rounded-2xl">
-		<div class="flex items-start">
+<div class="background overflow-hidden w-full lg:p-4">
+	<div class="content flex flex-col justify-between overflow-hidden relative lg:rounded-2xl">
+		<div class="flex items-start flex-1">
 			{#if $isAuthenticated}
 				<Overlay />
 				<Sidebar mobileOrientation="end" />
-				<div class="flex flex-col h-screen pl-0 w-full lg:space-y-4 lg:w-[calc(100%-16rem)]">
+				<div class="flex flex-col flex-1 pl-0 w-full lg:space-y-4 lg:w-[calc(100%-16rem)]">
 					<TopBar />
-					<main class="main h-screen pb-36 pt-4 px-2 md:pb-8 md:px-4 lg:px-6">
+					<main class="main flex-1 overflow-y-auto pb-36 pt-4 px-2 md:pb-8 md:px-4 lg:px-6">
 						<slot />
 					</main>
 				</div>
@@ -43,6 +44,7 @@
 				<Login />
 			{/if}
 		</div>
+		<Footer />
 	</div>
 </div>
 
