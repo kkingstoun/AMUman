@@ -59,7 +59,7 @@ async function refreshToken(): Promise<boolean> {
         }
 
         const data = await refreshResponse.json();
-        localStorage.setItem('token', data.access); // Update with new token
+        localStorage.setItem('access_token', data.access); // Update with new token
         return true;
     } catch (error) {
         console.error('Refresh token error:', error);

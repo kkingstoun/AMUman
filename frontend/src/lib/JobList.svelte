@@ -1,31 +1,34 @@
 <script lang="ts">
 	import type { Job } from '../Api';
 	import { onDestroy, onMount } from 'svelte';
-	import { api, refreshInterval, activePage } from '../store';
-	import { errorToast, successToast } from './Toast';
+	import { api, refreshInterval, shownColumns } from '../store';
+	import { errorToast } from './Toast';
 	import Status from './Status.svelte';
 	import moment from 'moment';
 	import Priority from './Priority.svelte';
+	import ColumnHider from './ColumnHider.svelte';
+	import { Dropdown, Checkbox, Button } from 'flowbite-svelte';
 
 	type TableHeader = {
 		key: keyof Job;
 		label: string;
 		format: 'datetime' | '';
 	};
+
 	let tableHeaders: TableHeader[] = [
 		{ key: 'id', label: 'ID', format: '' },
 		{ key: 'path', label: 'Path', format: '' },
-		// { key: 'port', label: 'Port', format: '' },
+		{ key: 'port', label: 'Port', format: '' },
 		{ key: 'submit_time', label: 'Submit Time', format: 'datetime' },
 		{ key: 'start_time', label: 'Start Time', format: 'datetime' },
 		{ key: 'end_time', label: 'End Time', format: 'datetime' },
 		{ key: 'error_time', label: 'Error Time', format: 'datetime' },
 		{ key: 'priority', label: 'Priority', format: '' },
-		// { key: 'estimated_simulation_time', label: 'Estimated Duration', format: '' },
+		{ key: 'estimated_simulation_time', label: 'Estimated Duration', format: '' },
 		{ key: 'status', label: 'Status', format: '' },
 		{ key: 'output', label: 'Output', format: '' },
-		// { key: 'error', label: 'Error', format: '' },
-		// { key: 'flags', label: 'Flags', format: '' },
+		{ key: 'error', label: 'Error', format: '' },
+		{ key: 'flags', label: 'Flags', format: '' },
 		{ key: 'node', label: 'Node', format: '' }
 	];
 
@@ -98,24 +101,18 @@
 <section>
 	<div class="flex justify-between items-center">
 		<h1 class="text-3xl font-bold text-white">Jobs</h1>
+		<ColumnHider />
 		<div class="flex items-center">
 			<p class="text-white text-sm">
 				Last fetched: {moment(lastFetchTime).format('YYYY-MM-DD HH:mm:ss')} ({moment(
 					lastFetchTime
 				).fromNow()})
 			</p>
-			<button
-				class="ml-4 bg-violet-900 hover:bg-violet-950 text-white font-bold py-2 px-4 rounded"
-				on:click={fetchJobs}
-			>
-				Refresh
-			</button>
 		</div>
+		<Button class="font-extrabold" on:click={fetchJobs}>Refresh</Button>
 		<div>
 			<a href="/jobs/new">
-				<button class="bg-violet-900 hover:bg-violet-950 text-white font-bold py-2 px-4 rounded">
-					New Job
-				</button>
+				<Button class="font-extrabold">New Job</Button>
 			</a>
 		</div>
 	</div>
@@ -126,13 +123,15 @@
 					<thead>
 						<tr>
 							{#each tableHeaders as { key, label }}
-								<th
-									class="px-5 py-3 border-b border-gray-200 text-left text-sm uppercase font-normal cursor-pointer"
-									on:click={() => updateSortState(key)}
-								>
-									{label}
-									{sortState.column === key ? (sortState.direction === 1 ? ' 🔼' : ' 🔽') : ''}
-								</th>
+								{#if $shownColumns.includes(key)}
+									<th
+										class="px-5 py-3 border-b border-gray-200 text-left text-sm uppercase font-normal cursor-pointer"
+										on:click={() => updateSortState(key)}
+									>
+										{label}
+										{sortState.column === key ? (sortState.direction === 1 ? ' 🔼' : ' 🔽') : ''}
+									</th>
+								{/if}
 							{/each}
 						</tr>
 					</thead>
@@ -140,17 +139,19 @@
 						{#each activeJobs as job}
 							<tr class="hover:bg-gray-700">
 								{#each tableHeaders as { key, format }}
-									<td class="px-5 py-5 border-b border-gray-200 text-sm">
-										<p class="whitespace-no-wrap">
-											{#if key === 'status'}
-												<Status status={job.status} />
-											{:else if key === 'priority'}
-												<Priority priority={job.priority} />
-											{:else}
-												{formatValue(job, key, format)}
-											{/if}
-										</p>
-									</td>
+									{#if $shownColumns.includes(key)}
+										<td class="px-5 py-5 border-b border-gray-200 text-sm">
+											<p class="whitespace-no-wrap">
+												{#if key === 'status'}
+													<Status status={job.status} />
+												{:else if key === 'priority'}
+													<Priority priority={job.priority} />
+												{:else}
+													{formatValue(job, key, format)}
+												{/if}
+											</p>
+										</td>
+									{/if}
 								{/each}
 							</tr>
 						{/each}
