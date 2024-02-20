@@ -23,18 +23,6 @@ export const shownColumns = writable<(keyof Job)[]>([
 	'status'
 ]);
 
-const sidebarOpen = writable(false);
-
-const openSidebar = () => {
-	sidebarOpen.update(() => true);
-};
-
-const closeSidebar = () => {
-	sidebarOpen.update(() => false);
-};
-
-export { sidebarOpen, openSidebar, closeSidebar };
-
 interface SortState {
 	column: keyof Job;
 	direction: 1 | -1; // 1 for ascending, -1 for descending
