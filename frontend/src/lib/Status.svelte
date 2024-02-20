@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { JobStatusEnum } from '../Api';
+	import { JobStatusEnum } from '../api/Api';
 
 	export let status: JobStatusEnum | undefined;
 

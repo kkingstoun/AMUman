@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Layout from '../dashboard/Layout.svelte';
+	import Layout from '$dashboard/Layout.svelte';
 	import { onMount } from 'svelte';
 	onMount(() => {
 		document.documentElement.classList.add('dark');

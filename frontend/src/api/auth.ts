@@ -1,12 +1,25 @@
-import { isAuthenticated } from "./store";
-let api = "http://localhost:8000";
-export async function getJobs(status: string): Promise<any> {
-    try {
-        const data = await authFetch("/api/jobs/" + status);
-        return data;
-    } catch (error) {
-        console.error("Failed to fetch job data:", error);
-    }
+import { isAuthenticated, api } from '$stores/store';
+import { successToast, errorToast } from '$lib/Toast';
+
+
+export async function handleLogin(username: string, password: string) {
+    api
+        .tokenCreate({ username, password, access: '', refresh: '' })
+        .then((res) => {
+            if (res.data.access && isTokenValid(res.data.access)) {
+                isAuthenticated.set(true);
+                localStorage.setItem('access_token', res.data.access);
+                localStorage.setItem('refresh_token', res.data.refresh);
+                successToast('Login successful!');
+            } else {
+                throw new Error('Invalid token');
+            }
+        })
+        .catch((res) => {
+            const errorMessage = res.status === 401 ? 'Invalid credentials!' : 'Login failed!';
+            errorToast(errorMessage);
+            console.error(errorMessage, res);
+        });
 }
 
 export async function authFetch(path: string, options: RequestInit = {}): Promise<Response> {

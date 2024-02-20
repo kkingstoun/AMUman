@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { closeSidebar, sidebarOpen } from '../store';
+	import { closeSidebar, sidebarOpen } from '$stores/store';
 </script>
 
 <!-- The overlay will only be visible on small screens to emphasize the focus on the side navigation when it is open.-->

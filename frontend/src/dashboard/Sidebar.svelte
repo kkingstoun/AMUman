@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { sidebarOpen, activePage } from '../store';
+	import { sidebarOpen, activePage } from '$stores/store';
 	import AllAppsIcon from './icons/AllAppsIcon.svelte';
 
 	const data = [

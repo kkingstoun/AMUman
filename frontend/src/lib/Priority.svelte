@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { PriorityEnum } from '../Api';
+	import { PriorityEnum } from '../api/Api';
 
 	export let priority: PriorityEnum | undefined;
 

@@ -1,13 +1,20 @@
 <script lang="ts">
-	import type { Job } from '../Api';
 	import { onDestroy, onMount } from 'svelte';
-	import { api, refreshInterval, shownColumns } from '../store';
-	import { errorToast } from './Toast';
-	import Status from './Status.svelte';
 	import moment from 'moment';
+	import {
+		Table,
+		TableBody,
+		TableBodyCell,
+		TableBodyRow,
+		TableHead,
+		TableHeadCell
+	} from 'flowbite-svelte';
+
+	import type { Job } from '$api/Api';
+	import { fetchJobs, sortJobs } from '$api/jobs';
+	import { shownColumns, refreshInterval, activeJobs, sortState } from '$stores/store';
+	import Status from './Status.svelte';
 	import Priority from './Priority.svelte';
-	import ColumnHider from './ColumnHider.svelte';
-	import { Dropdown, Checkbox, Button } from 'flowbite-svelte';
 
 	type TableHeader = {
 		key: keyof Job;
@@ -32,53 +39,16 @@
 		{ key: 'node', label: 'Node', format: '' }
 	];
 
-	interface SortState {
-		column: keyof Job;
-		direction: 1 | -1; // 1 for ascending, -1 for descending
-	}
-	let sortState: SortState = {
-		column: 'id',
-		direction: 1
-	};
-
 	let intervalId: ReturnType<typeof setInterval>;
 	onMount(async () => {
 		await fetchJobs();
+		sortJobs();
 		intervalId = setInterval(fetchJobs, $refreshInterval); // Refresh every minute
 	});
 
 	onDestroy(() => {
 		clearInterval(intervalId); // Clear the interval when the component is destroyed
 	});
-
-	let activeJobs: Job[] = [];
-	let lastFetchTime: number = Date.now();
-	async function fetchJobs() {
-		try {
-			const res = await api.jobsList();
-			activeJobs = res.data;
-			sortJobs();
-			lastFetchTime = Date.now();
-		} catch (err) {
-			console.error(err);
-			errorToast('Failed to fetch jobs');
-		}
-	}
-	$: sortState, sortJobs();
-
-	function sortJobs(): void {
-		activeJobs.sort((a, b) => {
-			const aValue = a[sortState.column];
-			const bValue = b[sortState.column];
-
-			if (aValue == null || bValue == null) return 0; // Handle null or undefined values
-
-			if (aValue < bValue) return -1 * sortState.direction;
-			if (aValue > bValue) return 1 * sortState.direction;
-			return 0;
-		});
-		activeJobs = activeJobs; // Trigger reactivity
-	}
 
 	function formatValue(job: Job, key: string, format?: string): string | number | null | undefined {
 		const value = job[key as keyof Job];
@@ -89,75 +59,43 @@
 		return value;
 	}
 	function updateSortState(column: keyof Job): void {
-		if (sortState.column === column) {
-			sortState.direction *= -1; // Toggle direction
+		if ($sortState.column === column) {
+			$sortState.direction *= -1; // Toggle direction
 		} else {
-			sortState.column = column;
-			sortState.direction = 1; // Default to ascending for a new column
+			$sortState.column = column;
+			$sortState.direction = 1; // Default to ascending for a new column
 		}
+		sortJobs();
 	}
 </script>
 
-<section>
-	<div class="flex justify-between items-center">
-		<h1 class="text-3xl font-bold text-white">Jobs</h1>
-		<ColumnHider />
-		<div class="flex items-center">
-			<p class="text-white text-sm">
-				Last fetched: {moment(lastFetchTime).format('YYYY-MM-DD HH:mm:ss')} ({moment(
-					lastFetchTime
-				).fromNow()})
-			</p>
-		</div>
-		<Button class="font-extrabold" on:click={fetchJobs}>Refresh</Button>
-		<div>
-			<a href="/jobs/new">
-				<Button class="font-extrabold">New Job</Button>
-			</a>
-		</div>
-	</div>
-	<div class="mt-8 rounded-2xl" style="background: rgb(146 151 179 / 13%)">
-		<div class="container mx-auto">
-			<div class="max-w-full overflow-x-auto rounded-lg">
-				<table class="w-full leading-normal text-white">
-					<thead>
-						<tr>
-							{#each tableHeaders as { key, label }}
-								{#if $shownColumns.includes(key)}
-									<th
-										class="px-5 py-3 border-b border-gray-200 text-left text-sm uppercase font-normal cursor-pointer"
-										on:click={() => updateSortState(key)}
-									>
-										{label}
-										{sortState.column === key ? (sortState.direction === 1 ? ' 🔼' : ' 🔽') : ''}
-									</th>
-								{/if}
-							{/each}
-						</tr>
-					</thead>
-					<tbody>
-						{#each activeJobs as job}
-							<tr class="hover:bg-gray-700">
-								{#each tableHeaders as { key, format }}
-									{#if $shownColumns.includes(key)}
-										<td class="px-5 py-5 border-b border-gray-200 text-sm">
-											<p class="whitespace-no-wrap">
-												{#if key === 'status'}
-													<Status status={job.status} />
-												{:else if key === 'priority'}
-													<Priority priority={job.priority} />
-												{:else}
-													{formatValue(job, key, format)}
-												{/if}
-											</p>
-										</td>
-									{/if}
-								{/each}
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
-		</div>
-	</div>
-</section>
+<Table shadow>
+	<TableHead>
+		{#each tableHeaders as { key, label }}
+			{#if $shownColumns.includes(key)}
+				<TableHeadCell on:click={() => updateSortState(key)}>
+					{label}
+				</TableHeadCell>
+			{/if}
+		{/each}
+	</TableHead>
+	<TableBody>
+		{#each $activeJobs as job}
+			<TableBodyRow>
+				{#each tableHeaders as { key, format }}
+					{#if $shownColumns.includes(key)}
+						<TableBodyCell>
+							{#if key === 'status'}
+								<Status status={job.status} />
+							{:else if key === 'priority'}
+								<Priority priority={job.priority} />
+							{:else}
+								{formatValue(job, key, format)}
+							{/if}
+						</TableBodyCell>
+					{/if}
+				{/each}
+			</TableBodyRow>
+		{/each}
+	</TableBody>
+</Table>

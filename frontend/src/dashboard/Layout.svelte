@@ -3,13 +3,13 @@
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 
-	import TopBar from './TopBar.svelte';
+	import TopBar from './NavBar.svelte';
 	import Overlay from './Overlay.svelte';
 	import Sidebar from './Sidebar.svelte';
-	import Login from '../lib/Login.svelte';
+	import Login from '$lib/Login.svelte';
 	import Footer from './Footer.svelte';
-	import { closeSidebar, sidebarOpen } from '../store';
-	import { isAuthenticated } from '../store';
+	import { closeSidebar, sidebarOpen } from '$stores/store';
+	import { isAuthenticated } from '$stores/store';
 	import { SvelteToast } from '@zerodevx/svelte-toast';
 
 	if (browser) {
@@ -28,25 +28,25 @@
 </script>
 
 <SvelteToast />
-<div class="background overflow-hidden w-full lg:p-4">
-	<div class="content flex flex-col justify-between overflow-hidden relative lg:rounded-2xl">
-		<div class="flex items-start flex-1">
-			{#if $isAuthenticated}
+{#if $isAuthenticated}
+	<TopBar />
+	<div class="background overflow-hidden w-full lg:p-4">
+		<div class="content flex flex-col justify-between overflow-hidden relative lg:rounded-2xl">
+			<div class="flex items-start flex-1">
 				<Overlay />
 				<Sidebar mobileOrientation="end" />
 				<div class="flex flex-col flex-1 pl-0 w-full lg:space-y-4 lg:w-[calc(100%-16rem)]">
-					<TopBar />
 					<main class="main flex-1 overflow-y-auto pb-36 pt-4 px-2 md:pb-8 md:px-4 lg:px-6">
 						<slot />
 					</main>
 				</div>
-			{:else}
-				<Login />
-			{/if}
+			</div>
+			<Footer />
 		</div>
-		<Footer />
 	</div>
-</div>
+{:else}
+	<Login />
+{/if}
 
 <style>
 	.background {
