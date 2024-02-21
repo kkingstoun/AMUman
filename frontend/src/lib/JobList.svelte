@@ -72,7 +72,7 @@
 	}
 </script>
 
-<Table shadow>
+<Table shadow hoverable={true}>
 	<TableHead>
 		{#each tableHeaders as { key, label }}
 			{#if $shownColumns.includes(key)}
@@ -89,7 +89,7 @@
 			<TableBodyRow>
 				{#each tableHeaders as { key, format }}
 					{#if $shownColumns.includes(key)}
-						<TableBodyCell>
+						<TableBodyCell class="hover:underline">
 							{#if key === 'status'}
 								<Status status={job.status} />
 							{:else if key === 'priority'}
