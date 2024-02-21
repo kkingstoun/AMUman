@@ -2,13 +2,13 @@
 	import { onDestroy, onMount } from 'svelte';
 	import moment from 'moment';
 	import {
-		Button,
 		Table,
 		TableBody,
 		TableBodyCell,
 		TableBodyRow,
 		TableHead,
-		TableHeadCell
+		TableHeadCell,
+		Checkbox
 	} from 'flowbite-svelte';
 
 	import type { Job } from '$api/Api';
@@ -18,6 +18,7 @@
 	import Priority from './Priority.svelte';
 	import OutputDrawer from './OutputDrawer.svelte';
 	import DeleteJob from './DeleteJob.svelte';
+	import RunJob from './RunJob.svelte';
 
 	type TableHeader = {
 		key: keyof Job;
@@ -74,6 +75,9 @@
 
 <Table shadow hoverable={true}>
 	<TableHead>
+		<TableHeadCell class="!p-4">
+			<Checkbox />
+		</TableHeadCell>
 		{#each tableHeaders as { key, label }}
 			{#if $shownColumns.includes(key)}
 				<TableHeadCell on:click={() => updateSortState(key)}>
@@ -83,10 +87,14 @@
 		{/each}
 		<TableHeadCell>Output</TableHeadCell>
 		<TableHeadCell>Delete</TableHeadCell>
+		<TableHeadCell>Run</TableHeadCell>
 	</TableHead>
 	<TableBody>
 		{#each $activeJobs as job}
 			<TableBodyRow>
+				<TableBodyCell class="!p-4">
+					<Checkbox />
+				</TableBodyCell>
 				{#each tableHeaders as { key, format }}
 					{#if $shownColumns.includes(key)}
 						<TableBodyCell class="hover:underline">
@@ -105,6 +113,9 @@
 				</TableBodyCell>
 				<TableBodyCell>
 					<DeleteJob {job} />
+				</TableBodyCell>
+				<TableBodyCell>
+					<RunJob {job} />
 				</TableBodyCell>
 			</TableBodyRow>
 		{/each}
