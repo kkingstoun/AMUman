@@ -2,6 +2,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import moment from 'moment';
 	import {
+		Button,
 		Table,
 		TableBody,
 		TableBodyCell,
@@ -15,6 +16,8 @@
 	import { shownColumns, refreshInterval, activeJobs, sortState } from '$stores/store';
 	import Status from './Status.svelte';
 	import Priority from './Priority.svelte';
+	import OutputDrawer from './OutputDrawer.svelte';
+	import DeleteJob from './DeleteJob.svelte';
 
 	type TableHeader = {
 		key: keyof Job;
@@ -78,6 +81,8 @@
 				</TableHeadCell>
 			{/if}
 		{/each}
+		<TableHeadCell>Output</TableHeadCell>
+		<TableHeadCell>Delete</TableHeadCell>
 	</TableHead>
 	<TableBody>
 		{#each $activeJobs as job}
@@ -95,6 +100,12 @@
 						</TableBodyCell>
 					{/if}
 				{/each}
+				<TableBodyCell>
+					<OutputDrawer {job} />
+				</TableBodyCell>
+				<TableBodyCell>
+					<DeleteJob {job} />
+				</TableBodyCell>
 			</TableBodyRow>
 		{/each}
 	</TableBody>
