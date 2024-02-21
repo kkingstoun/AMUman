@@ -7,12 +7,13 @@
 	import { onMount, onDestroy } from 'svelte';
 
 	let intervalId: ReturnType<typeof setInterval>;
-	let timeSinceLastFetch = moment($lastFetchTime).fromNow();
+	let timeSinceLastFetch = '';
 
 	function refreshTimeSinceLastFetch() {
 		timeSinceLastFetch = moment($lastFetchTime).fromNow();
 	}
 	onMount(() => {
+		refreshTimeSinceLastFetch();
 		intervalId = setInterval(refreshTimeSinceLastFetch, 1000 * 60);
 	});
 
