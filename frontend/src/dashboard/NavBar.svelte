@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { Navbar, NavBrand, NavUl, NavHamburger } from 'flowbite-svelte';
-	import ColumnFilters from './navbar/ColumnFiters.svelte';
+	import { Navbar, NavBrand, NavUl, NavHamburger, NavLi } from 'flowbite-svelte';
 	import Logout from './navbar/Logout.svelte';
-	import Refresh from './navbar/Refresh.svelte';
 	import Github from './navbar/Github.svelte';
 </script>
 
@@ -13,9 +11,11 @@
 	</NavBrand>
 	<NavHamburger />
 	<NavUl>
-		<Github />
-		<Refresh />
-		<ColumnFilters />
+		<NavLi href="/jobs">Jobs</NavLi>
+		<NavLi href="/nodes">Nodes</NavLi>
+		<NavLi href="/gpus">GPUs</NavLi>
+		<NavLi href="/settings">Settings</NavLi>
 		<Logout />
+		<Github />
 	</NavUl>
 </Navbar>

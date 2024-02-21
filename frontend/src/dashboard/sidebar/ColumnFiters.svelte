@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { shownColumns } from '$stores/store';
-	import { Dropdown, Checkbox, NavLi } from 'flowbite-svelte';
-	import { ChevronDownOutline } from 'flowbite-svelte-icons';
+	import { Checkbox, Heading } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import type { Job } from '$api/Api';
 
@@ -27,6 +26,13 @@
 		'node',
 		'gpu'
 	];
+	function formatString(input: string): string {
+		const replacedString = input.replace(/_/g, ' ');
+		const capitalizedString = replacedString.charAt(0).toUpperCase() + replacedString.slice(1);
+
+		return capitalizedString;
+	}
+
 	onMount(() => {
 		const savedColumns = localStorage.getItem('shownColumns');
 		if (savedColumns) {
@@ -37,12 +43,9 @@
 	});
 </script>
 
-<NavLi class="cursor-pointer">
-	Column filters<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
-</NavLi>
-
-<Dropdown class="w-54 p-3 space-y-3 text-sm">
-	{#each allColumns as column}
-		<Checkbox bind:group={$shownColumns} on:change={saveToCache} value={column}>{column}</Checkbox>
-	{/each}
-</Dropdown>
+<Heading tag="h3">Columns</Heading>
+{#each allColumns as column}
+	<Checkbox bind:group={$shownColumns} on:change={saveToCache} value={column}
+		>{formatString(column)}</Checkbox
+	>
+{/each}
