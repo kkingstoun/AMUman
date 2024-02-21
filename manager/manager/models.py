@@ -1,11 +1,12 @@
 from enum import Enum
 
-from django.db import models
-from django.utils import timezone
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
 
 class Node(models.Model):
     class NodeStatus(Enum):
@@ -38,16 +39,16 @@ class Node(models.Model):
 
 
 class Gpu(models.Model):
-    class GPUStatus(Enum):
-        WAITING = "Waiting"
-        RUNNING = "Running"
-        RESERVED = "Reserved"
-        UNAVAILABLE = "Unavailable"
+    class GPUStatus(models.TextChoices):
+        WAITING = 'Waiting', _('Waiting')
+        RUNNING = 'Running', _('Running')
+        RESERVED = 'Reserved', _('Reserved')
+        UNAVAILABLE = 'Unavailable', _('Unavailable')
 
-    class GPUSpeed(Enum):
-        SLOW = "Slow"
-        NORMAL = "Normal"
-        FAST = "Fast"
+    class GPUSpeed(models.TextChoices):
+        SLOW = 'Slow', _('Slow')
+        NORMAL = 'Normal', _('Normal')
+        FAST = 'Fast', _('Fast')
 
     device_id = models.PositiveSmallIntegerField()
     uuid = models.UUIDField(unique=True)

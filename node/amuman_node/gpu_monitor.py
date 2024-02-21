@@ -11,27 +11,28 @@ log = logging.getLogger("rich")
 
 @dataclass
 class GPU:
-    id: int
+    device_id: int
     node_id: int
-    name: str = field(init=False)
-    uuid: str = field(init=False)
-    gpu_util: int = field(init=False)
-    mem_util: int = field(init=False)
-    status: str = field(init=False)
-    is_running_amumax: bool = field(init=False)
-    refresh_time: str = field(init=False)
-
+    model: str = field(default="Unknown")  # Renamed from name to model
+    uuid: str = field(default="")
+    gpu_util: int = field(default=0)
+    mem_util: int = field(default=0)
+    status: str = field(default="Waiting")  # Use default value from GPUStatus
+    is_running_amumax: bool = field(default=False)
+    refresh_time: datetime = field(default_factory=lambda: datetime.now())  # Use default_factory
+    speed: str = field(default="Normal")  # Add speed field
     # Do we want it to run when the GPU class is created?
     def __post_init__(self) -> None:
         self.update_status()
 
     def update_status(self) -> None:
-        log.info(f"GPU {self.id} updating status")
-        self.name = self.get_name()
+        log.info(f"GPU {self.device_id} updating status")
+        self.model = self.get_model()
         self.uuid = self.get_uuid()
         self.gpu_util = self.get_gpu_util()
         self.mem_util = self.get_mem_util()
         self.status = self.get_gpu_load_status()
+        self.speed = self.get_gpu_performance_category()
         self.is_running_amumax = self.check_is_amumax_running()
         self.refresh_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -42,7 +43,7 @@ class GPU:
                     [
                         "nvidia-smi",
                         "-i",
-                        str(self.id),
+                        str(self.device_id),
                         query,
                         "--format=csv,noheader,nounits",
                     ]
@@ -52,9 +53,9 @@ class GPU:
             )
             return output
         except subprocess.CalledProcessError as e:
-            log.error(f"Error running nvidia-smi for GPU {self.id}: {e}")
+            log.error(f"Error running nvidia-smi for GPU {self.device_id}: {e}")
         except Exception as e:
-            log.error(f"Unexpected error for GPU {self.id}: {e}")
+            log.error(f"Unexpected error for GPU {self.device_id}: {e}")
         return ""
 
     def get_gpu_load_status(self, threshold: int = 20) -> str:
@@ -62,45 +63,89 @@ class GPU:
             status = "Waiting"
         else:
             status = "Busy"
-        log.debug(f"GPU {self.id} status: {status}")
+        log.debug(f"GPU {self.device_id} status: {status}")
         return status
 
     def get_gpu_util(self) -> int:
         gpu_util = int(self.query_nvidia_smi("--query-gpu=utilization.gpu"))
-        log.debug(f"GPU {self.id} utilization: {gpu_util}%")
+        log.debug(f"GPU {self.device_id} utilization: {gpu_util}%")
         return gpu_util
 
     def get_mem_util(self) -> int:
         mem_util = int(self.query_nvidia_smi("--query-gpu=utilization.memory"))
-        log.debug(f"GPU {self.id} memory utilization: {mem_util}%")
+        log.debug(f"GPU {self.device_id} memory utilization: {mem_util}%")
         return mem_util
 
     def check_is_amumax_running(self) -> bool:
         output = self.query_nvidia_smi("--query-compute-apps=process_name")
         is_running = "amumax" in output if output else False
-        log.debug(f"GPU {self.id} amumax running: {is_running}")
+        log.debug(f"GPU {self.device_id} amumax running: {is_running}")
         return is_running
 
-    def get_name(self) -> str:
-        name = self.query_nvidia_smi("--query-gpu=gpu_name")
-        log.debug(f"GPU {self.id} name: {name}")
-        return name
+    def get_model(self) -> str:
+        model = self.query_nvidia_smi("--query-gpu=gpu_name")
+        log.debug(f"GPU {self.device_id} model: {model}")
+        return model
+
+    def get_gpu_performance_category(self) -> str:
+        gpu_performance = {
+            "NVIDIA GeForce GTX 960": "Slow",
+            "NVIDIA GeForce GTX 970": "Slow",
+            "NVIDIA GeForce GTX 980": "Slow",
+            "NVIDIA GeForce GTX 980 Ti": "Slow",
+            "NVIDIA GeForce GTX 1050": "Slow",
+            "NVIDIA GeForce GTX 1050 Ti": "Slow",
+            "NVIDIA GeForce GTX 1060": "Normal",
+            "NVIDIA GeForce GTX 1070": "Normal",
+            "NVIDIA GeForce GTX 1070 Ti": "Normal",
+            "NVIDIA GeForce GTX 1080": "Normal",
+            "NVIDIA GeForce GTX 1080 Ti": "Normal",
+            "NVIDIA GeForce GTX 1650": "Slow",
+            "NVIDIA GeForce GTX 1650 SUPER": "Normal",
+            "NVIDIA GeForce GTX 1660": "Normal",
+            "NVIDIA GeForce GTX 1660 SUPER": "Normal",
+            "NVIDIA GeForce GTX 1660 Ti": "Normal",
+            "NVIDIA GeForce RTX 2060": "Normal",
+            "NVIDIA GeForce RTX 2060 SUPER": "Normal",
+            "NVIDIA GeForce RTX 2070": "Normal",
+            "NVIDIA GeForce RTX 2070 SUPER": "Fast",
+            "NVIDIA GeForce RTX 2080": "Fast",
+            "NVIDIA GeForce RTX 2080 SUPER": "Fast",
+            "NVIDIA GeForce RTX 2080 Ti": "Fast",
+            "NVIDIA GeForce RTX 3060": "Normal",
+            "NVIDIA GeForce RTX 3060 Ti": "Fast",
+            "NVIDIA GeForce RTX 3070": "Fast",
+            "NVIDIA GeForce RTX 3070 Ti": "Fast",
+            "NVIDIA GeForce RTX 3080": "Fast",
+            "NVIDIA GeForce RTX 3080 Ti": "Fast",
+            "NVIDIA GeForce RTX 3090": "Fast",
+            "NVIDIA GeForce RTX 3090 Ti": "Fast",
+            "NVIDIA GeForce RTX 4070": "Fast",
+            "NVIDIA GeForce RTX 4070 Ti": "Fast",
+            "NVIDIA GeForce RTX 4080": "Fast",
+            "NVIDIA GeForce RTX 4090": "Fast",
+            # Dodaj tutaj dodatkowe modele zgodnie z potrzebą.
+        }
+        return gpu_performance.get(self.model, "Unknown")
 
     def get_uuid(self) -> str:
-        uuid = self.query_nvidia_smi("--query-gpu=uuid")
-        log.debug(f"GPU {self.id} UUID: {uuid}")
+        raw_uuid = self.query_nvidia_smi("--query-gpu=uuid")
+        # Usuń prefiks "GPU-" z UUID
+        uuid = raw_uuid.replace("GPU-", "").strip()
+        log.debug(f"GPU {self.device_id} UUID: {uuid}")
         return uuid
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, any]:
         data = {
-            "action": "assign_node_gpu",
-            "node_id": self.node_id,
-            "brand_name": str(self.name),
-            "gpu_util": self.gpu_util,
-            "status": str(self.status),
+            "device_id": self.device_id,
+            "node": self.node_id,
+            "model": self.model,
+            "uuid": self.uuid,
+            "util": self.gpu_util,
             "is_running_amumax": self.is_running_amumax,
-            "gpu_uuid": str(self.uuid),
-            "gpu_info": "",
+            "status": self.status,
+            "speed": self.speed,
+            "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
         return data
 
@@ -119,29 +164,31 @@ class GPUMonitor:
             log.error(f"Failed to get GPU count: {e}")
             raise e
 
-        return [GPU(id=id, node_id=self.node_id) for id in range(gpu_count)]
+        return [GPU(device_id=id, node_id=self.node_id) for id in range(gpu_count)]
 
     def api_post(self, action: str) -> None:
         log.debug(f"GPU api post: {action}")
         action_word = "assigned" if action == "assign" else "updated"
         failure_action_word = "assign" if action == "assign" else "update"
         for gpu in self.gpus:
-            # if action == "update":
-            #     gpu.update_status()
+            if action == "update":
+                gpu.update_status()
             try:
                 data = gpu.to_dict()
+                import json
+                print(json.dumps(data))
                 log.debug(f"Sending {data}")
                 response = requests.post(
-                    f"http://{self.manager_url}/api/nodes/",
-                    json=gpu.to_dict(),
+                    f"http://{self.manager_url}/api/gpus/",
+                    json=data,
                 )
                 if response.status_code in [200, 201]:
                     log.info(
-                        f"Successfully {action_word} GPU:{gpu.id} ({gpu.name}) to node {self.node_id}."
+                        f"Successfully {action_word} GPU:{gpu.device_id} ({gpu.model}) to node {self.node_id}."
                     )
                 else:
                     error_message = (
-                        f"Failed to {failure_action_word} GPU:{gpu.id} ({gpu.name}). "
+                        f"Failed to {failure_action_word} GPU:{gpu.device_id} ({gpu.model}). "
                         f"Server responded with status code: {response.status_code}."
                     )
                     if response.status_code == 500:
