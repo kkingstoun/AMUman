@@ -11,7 +11,8 @@
 	</NavBrand>
 	<NavHamburger />
 	<NavUl>
-		<NavLi href="/jobs">Jobs</NavLi>
+		<NavLi href="/newjob">New Job</NavLi>
+		<NavLi href="/">Jobs</NavLi>
 		<NavLi href="/nodes">Nodes</NavLi>
 		<NavLi href="/gpus">GPUs</NavLi>
 		<NavLi href="/settings">Settings</NavLi>
