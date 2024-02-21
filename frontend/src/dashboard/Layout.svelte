@@ -6,7 +6,6 @@
 	import Sidebar from './Sidebar.svelte';
 	import { isAuthenticated } from '$stores/store';
 	import { SvelteToast } from '@zerodevx/svelte-toast';
-	import { Alert } from 'flowbite-svelte';
 </script>
 
 <SvelteToast />
