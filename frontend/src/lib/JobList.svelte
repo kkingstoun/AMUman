@@ -8,12 +8,21 @@
 		TableBodyRow,
 		TableHead,
 		TableHeadCell,
-		Checkbox
+		Checkbox,
+		Button
 	} from 'flowbite-svelte';
 
 	import type { Job } from '$api/Api';
-	import { fetchJobs, sortJobs } from '$api/jobs';
-	import { shownColumns, refreshInterval, activeJobs, sortState } from '$stores/store';
+	import { fetchJobs, sortJobs } from '$api/Jobs';
+	import {
+		shownColumns,
+		refreshInterval,
+		activeJobs,
+		sortState,
+		lastFetchTime,
+		selectedJobs,
+		timeSinceLastFetch
+	} from '$stores/store';
 	import Status from './Status.svelte';
 	import Priority from './Priority.svelte';
 	import OutputDrawer from './OutputDrawer.svelte';
@@ -43,15 +52,31 @@
 		{ key: 'node', label: 'Node', format: '' }
 	];
 
-	let intervalId: ReturnType<typeof setInterval>;
+	let refreshLastFetchTimeInterval: ReturnType<typeof setInterval>;
+	function refreshTimeSinceLastFetch() {
+		$timeSinceLastFetch = moment($lastFetchTime).fromNow();
+	}
+
+	let refreshJobsInterval: ReturnType<typeof setInterval>;
 	onMount(async () => {
 		await fetchJobs();
+		// This only refreshes the text that shows the time since last fetch
+		refreshTimeSinceLastFetch();
+		refreshLastFetchTimeInterval = setInterval(refreshTimeSinceLastFetch, 1000 * 60);
+
+		const localStorageSortState = localStorage.getItem('sortState');
+		if (localStorageSortState) {
+			$sortState = JSON.parse(localStorageSortState);
+		}
+
 		sortJobs();
-		intervalId = setInterval(fetchJobs, $refreshInterval); // Refresh every minute
+		// This refreshes the jobs every minute
+		refreshJobsInterval = setInterval(fetchJobs, $refreshInterval); // Refresh every minute
 	});
 
 	onDestroy(() => {
-		clearInterval(intervalId); // Clear the interval when the component is destroyed
+		clearInterval(refreshLastFetchTimeInterval);
+		clearInterval(refreshJobsInterval);
 	});
 
 	function formatValue(job: Job, key: string, format?: string): string | number | null | undefined {
@@ -62,6 +87,7 @@
 		}
 		return value;
 	}
+
 	function updateSortState(column: keyof Job): void {
 		if ($sortState.column === column) {
 			$sortState.direction *= -1; // Toggle direction
@@ -69,14 +95,30 @@
 			$sortState.column = column;
 			$sortState.direction = 1; // Default to ascending for a new column
 		}
+		localStorage.setItem('sortState', JSON.stringify($sortState));
 		sortJobs();
+	}
+
+	function allCheckBoxes(event: Event): void {
+		if (event.target instanceof HTMLInputElement) {
+			if (event.target.checked) {
+				$selectedJobs = $activeJobs
+					.map((job) => job.id)
+					.filter((id): id is number | undefined => id !== undefined) as (number | string)[];
+			} else {
+				$selectedJobs = [];
+			}
+		}
 	}
 </script>
 
 <Table shadow hoverable={true}>
 	<TableHead>
-		<TableHeadCell class="!p-4">
-			<Checkbox />
+		<TableHeadCell class="flex items-center !p-4 space-x-2">
+			<Checkbox on:change={(event) => allCheckBoxes(event)} />
+			{#if $selectedJobs.length > 0}
+				<DeleteJob jobsToDelete={$selectedJobs} />
+			{/if}
 		</TableHeadCell>
 		{#each tableHeaders as { key, label }}
 			{#if $shownColumns.includes(key)}
@@ -93,7 +135,7 @@
 		{#each $activeJobs as job}
 			<TableBodyRow>
 				<TableBodyCell class="!p-4">
-					<Checkbox />
+					<Checkbox bind:group={$selectedJobs} value={job.id} />
 				</TableBodyCell>
 				{#each tableHeaders as { key, format }}
 					{#if $shownColumns.includes(key)}
@@ -112,7 +154,7 @@
 					<OutputDrawer {job} />
 				</TableBodyCell>
 				<TableBodyCell>
-					<DeleteJob {job} />
+					<DeleteJob jobsToDelete={[job.id]} />
 				</TableBodyCell>
 				<TableBodyCell>
 					<RunJob {job} />
