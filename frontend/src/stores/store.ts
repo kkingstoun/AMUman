@@ -8,8 +8,11 @@ export const activePage = writable<string>('Running');
 
 export const api = new Api<string>({ baseUrl: 'http://localhost:8000' }).api;
 export const refreshInterval = writable(60 * 1000);
+export const timeSinceLastFetch = writable('');
 export const lastFetchTime = writable(0);
 export const activeJobs = writable<Job[]>([]);
+export const selectedJobs = writable<Array<number | string>>([]);
+
 export const shownColumns = writable<(keyof Job)[]>([
 	'id',
 	'path',
