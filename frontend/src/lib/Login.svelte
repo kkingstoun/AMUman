@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from 'flowbite-svelte';
-	import { handleLogin } from '$api/auth';
+	import { handleLogin } from '$api/Auth';
 
 	let username = 'admin';
 	let password = 'admin';
