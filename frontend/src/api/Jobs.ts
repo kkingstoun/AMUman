@@ -1,19 +1,18 @@
-import { api, sortState, activeJobs, lastFetchTime, selectedJobs } from '$stores/store';
+import { api, sortState, activeJobs, lastFetchTime, selectedJobs, accessToken } from '$stores/store';
 import { get } from 'svelte/store';
 import type { Job } from './Api';
 import { errorToast } from '$lib/Toast';
+import { getRequestParams } from './Auth';
 
 export async function fetchJobs() {
     try {
-        const res = await api.jobsList();
-        // Use the set method to update the store value
+        const res = await api.jobsList(getRequestParams());
         activeJobs.set(res.data);
         sortJobs();
-        // Update the lastFetchTime store with the current timestamp
         lastFetchTime.set(Date.now());
     } catch (err) {
         console.error(err);
-        // errorToast('Failed to fetch jobs');
+        errorToast('Failed to fetch jobs');
     }
 }
 
@@ -36,7 +35,7 @@ export function sortJobs(): void {
 
 export async function deleteJob(jobId: number) {
     try {
-        await api.jobsDestroy(jobId);
+        await api.jobsDestroy(jobId, getRequestParams());
     } catch (err) {
         console.error(err);
         errorToast(`Failed to delete job ${jobId}`);
