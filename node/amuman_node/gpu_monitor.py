@@ -175,8 +175,6 @@ class GPUMonitor:
                 gpu.update_status()
             try:
                 data = gpu.to_dict()
-                import json
-                print(json.dumps(data))
                 log.debug(f"Sending {data}")
                 response = requests.post(
                     f"http://{self.manager_url}/api/gpus/",

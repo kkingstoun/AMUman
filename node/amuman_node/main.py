@@ -201,7 +201,4 @@ def entrypoint() -> None:
 
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(NodeClient().start())
-    except KeyboardInterrupt:
-        log.warning("Caught KeyboardInterrupt (Ctrl+C). Shutting down...")
+    entrypoint()

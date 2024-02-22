@@ -5,8 +5,6 @@ from rest_framework import serializers
 
 from .models import Gpu, Job, ManagerSettings, Node
 
-# https://www.django-rest-framework.org/api-guide/serializers/#modelserializer
-
 
 class NodesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -57,7 +55,7 @@ class GpusSerializer(serializers.ModelSerializer):
                 'help_text': 'The timestamp of the last update (read-only, auto-generated).'
             },
         }
-        
+
     def to_representation(self, instance):
         """
         Because the `node` field is a ForeignKey, we want to display the node's string representation,
@@ -65,41 +63,32 @@ class GpusSerializer(serializers.ModelSerializer):
         """
         ret = super().to_representation(instance)
         if 'node' in ret:
-                # Załóżmy, że chcesz zamienić ID węzła na jego reprezentację jako string (lub inny format)
             node_instance = Node.objects.get(pk=ret['node'])
-            ret['node'] = str(node_instance)  # Przykład, jak możesz chcieć reprezentować node
+            ret['node'] = str(node_instance)
 
         return ret
     def create(self, validated_data):
-        print("dupa")
-        # Logika sprawdzania, czy GPU już istnieje i aktualizacji lub tworzenia
         gpu, created = Gpu.objects.get_or_create(
             uuid=validated_data.get('uuid'),
             defaults=validated_data
         )
         if not created:
-            # Aktualizacja istniejącego obiektu GPU
             return self.update(gpu, validated_data)
         return gpu
 
     def update(self, instance, validated_data):
-        print("dupa2")
-        # Iteracja po wszystkich kluczach w validated_data i aktualizacja instancji GPU
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
         return instance
-    
+
     def save(self, **kwargs):
-        print("dupa3")
         uuid = self.validated_data.get('uuid')
         gpu = Gpu.objects.filter(uuid=uuid).first()
-        
+
         if gpu is not None:
-            # Aktualizujemy istniejącą GPU
             return self.update(gpu, self.validated_data)
         else:
-            # Tworzymy nową GPU
             return super().save(**kwargs)
 
 class MSSerializer(serializers.ModelSerializer):

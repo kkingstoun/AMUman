@@ -16,7 +16,7 @@ log = logging.getLogger("rich")
 class JobsViewSet(viewsets.ModelViewSet):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
-    # permission_classes: ClassVar = [permissions.IsAuthenticated]
+    permission_classes: ClassVar = [permissions.IsAuthenticated]
 
     def list(self, request, *_args, **_kwargs):
         max_id = request.query_params.get("max_id")
@@ -52,8 +52,6 @@ class JobsViewSet(viewsets.ModelViewSet):
             return Response({"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
-
-
 class GpusViewSet(viewsets.ModelViewSet):
     # http_method_names = ["get"]
     queryset = Gpu.objects.all()
@@ -68,11 +66,10 @@ class GpusViewSet(viewsets.ModelViewSet):
                             defaults=serializer.validated_data
                         )
                 if created:
-                    headers = self.get_success_headers(serializer.data)
+                    # headers = self.get_success_headers(serializer.data) #TODO: check if this is needed
                     return Response({'message': f'Gpu sucessfull assigned. Your node_id is: {gpu.device_id}', 'device_id': gpu.device_id}, status=status.HTTP_201_CREATED)
 
-        except ValidationError as e:
-            # Sprawdź, czy błąd jest związany z istniejącym UUID
+        except ValidationError:
             if 'uuid' in serializer.errors and 'already exists' in str(serializer.errors['uuid']):
                 gpu = Gpu.objects.get(uuid=request.data['uuid'])
                 update_serializer = self.get_serializer(gpu, data=request.data, partial=True)
@@ -81,23 +78,6 @@ class GpusViewSet(viewsets.ModelViewSet):
                 return Response(update_serializer.data)
             else:
                 Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-    # def create(self, request, *args, **kwargs):
-    #     serializer = self.get_serializer(data=request.data)
-    #     if serializer.is_valid(raise_exception=True):
-    #         gpu, created = Gpu.objects.update_or_create(
-    #             uuid=serializer.validated_data['uuid'],
-    #             defaults=serializer.validated_data
-    #         )
-    #         if created:
-    #             headers = self.get_success_headers(serializer.data)
-    #             return Response({'message': f'Gpu sucessfull assigned. Your node_id is: {gpu.device_id}', 'device_id': gpu.device_id}, status=status.HTTP_201_CREATED)
-    #             # return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-    #         else:
-    #             return Response({'message': f'Gpu already exists. Your gpu_id is: {gpu.device_id}', 'device_id': gpu.device_id}, status=status.HTTP_200_OK)
-
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class NodesViewSet(viewsets.ModelViewSet):
     queryset = Node.objects.all()
@@ -126,8 +106,9 @@ class NodesViewSet(viewsets.ModelViewSet):
                 return Response({'message': f'Node already exists. Your node_id is: {node.id}', 'id': node.id}, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class ManagerSettingsViewSet(viewsets.ModelViewSet):
     queryset = ManagerSettings.objects.all()
     serializer_class = MSSerializer
-    # permission_classes: ClassVar = [permissions.IsAuthenticated]
+    permission_classes: ClassVar = [permissions.IsAuthenticated]
 
