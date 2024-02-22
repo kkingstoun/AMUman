@@ -9,8 +9,8 @@ import requests
 import websockets
 from rich.logging import RichHandler
 
-from .gpu_monitor import GPUMonitor
-from .job_manager import JobManager
+from amuman_node.gpu_monitor import GPUMonitor
+from amuman_node.job_manager import JobManager
 
 LOGLEVEL = os.environ.get("LOGLEVEL", "DEBUG").upper()
 
@@ -28,7 +28,7 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
 class NodeClient:
-    def __init__(self) -> None:
+    def __init__(self   ) -> None:
         self.manager_url: str = os.getenv("MANAGER_URL", "localhost:8000")
         self.node_id: int = int(os.getenv("NODE_ID", 0))
         self.node_name: str = os.getenv("NODE_NAME", str(uuid.uuid1()))
@@ -45,9 +45,10 @@ class NodeClient:
 
     async def start(self) -> None:
         if self.register_with_manager():
+            # pass
             await self.websocket_loop()
 
-    def authenticate(self) -> True:
+    def authenticate(self) -> bool:
         try:
             response = requests.post(
                 f"http://{self.manager_url}/api/token/",
@@ -83,10 +84,8 @@ class NodeClient:
         if not self.authenticate():
             return False
         data: dict[str, Any] = {
-            "action": "assign_new_node",
-            "node_name": self.node_name,
+            "name": self.node_name,
             "ip": self.get_own_ip(),
-            "port": None,
             "number_of_gpus": 0,
         }
         log.debug(f"Registering data: {data=}")
@@ -105,11 +104,14 @@ class NodeClient:
                 self.gpm = GPUMonitor(self.node_id, self.manager_url)
 
                 if response.status_code == 200:
-                    self.gpm.api_post("assign")
-                # 201 = exists and modified ?
-                elif response.status_code == 201:
                     self.gpm.api_post("update")
+                elif response.status_code == 201:
+                    self.gpm.api_post("assign")
                 return True
+            else:
+                log.error(f"Failed to register node. Status Code: {response.status_code}")
+                log.debug(response.text)
+
 
         except requests.exceptions.ConnectionError:
             log.error(f"Couldn't connect to the manager ({self.manager_url})")
@@ -134,15 +136,15 @@ class NodeClient:
         while True:
             try:
                 async with websockets.connect(
-                    f"ws://{self.manager_url}/ws/node"
+                    f"ws://{self.manager_url}/ws/node/?token={self.access_token}"
                 ) as websocket:
                     log.debug(f"Registering with the manager: {self.manager_url}")
                     await self.register_websocket(websocket)
                     log.debug(f"Registered with the manager: {self.manager_url}")
                     await self.handle_connection(websocket)
-            except Exception:
+            except Exception as e:
                 log.warning("WebSocket connection error")
-                # log.exception(f"WebSocket connection error: {e}")
+                log.exception(f"WebSocket connection error: {e}")
 
             if self.reconnect_attempts > 0:
                 log.warning(f"{self.reconnect_attempts} reconnection attempts left")
@@ -196,3 +198,7 @@ def entrypoint() -> None:
         asyncio.run(NodeClient().start())
     except KeyboardInterrupt:
         log.warning("Caught KeyboardInterrupt (Ctrl+C). Shutting down...")
+
+
+if __name__ == "__main__":
+    entrypoint()

@@ -16,6 +16,6 @@ manager_router.register(
 )
 
 
-websocket_urlpatterns = [
-    path("ws/node", ManagerConsumer.as_asgi()),
-]
+# websocket_urlpatterns = [
+#     path("ws/node/", ManagerConsumer.as_asgi()),
+# ]
