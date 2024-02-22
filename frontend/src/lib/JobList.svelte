@@ -8,8 +8,7 @@
 		TableBodyRow,
 		TableHead,
 		TableHeadCell,
-		Checkbox,
-		Button
+		Checkbox
 	} from 'flowbite-svelte';
 
 	import type { Job } from '$api/Api';
@@ -27,6 +26,7 @@
 	import Priority from './Priority.svelte';
 	import OutputDrawer from './OutputDrawer.svelte';
 	import DeleteJob from './DeleteJob.svelte';
+	import DeleteSelectedJobs from './DeleteSelectedJobs.svelte';
 	import RunJob from './RunJob.svelte';
 
 	type TableHeader = {
@@ -46,7 +46,6 @@
 		{ key: 'priority', label: 'Priority', format: '' },
 		{ key: 'estimated_simulation_time', label: 'Estimated Duration', format: '' },
 		{ key: 'status', label: 'Status', format: '' },
-		{ key: 'output', label: 'Output', format: '' },
 		{ key: 'error', label: 'Error', format: '' },
 		{ key: 'flags', label: 'Flags', format: '' },
 		{ key: 'node', label: 'Node', format: '' }
@@ -117,7 +116,7 @@
 		<TableHeadCell class="flex items-center !p-4 space-x-2">
 			<Checkbox on:change={(event) => allCheckBoxes(event)} />
 			{#if $selectedJobs.length > 0}
-				<DeleteJob jobsToDelete={$selectedJobs} />
+				<DeleteSelectedJobs />
 			{/if}
 		</TableHeadCell>
 		{#each tableHeaders as { key, label }}
@@ -154,7 +153,7 @@
 					<OutputDrawer {job} />
 				</TableBodyCell>
 				<TableBodyCell>
-					<DeleteJob jobsToDelete={[job.id]} />
+					<DeleteJob {job} />
 				</TableBodyCell>
 				<TableBodyCell>
 					<RunJob {job} />

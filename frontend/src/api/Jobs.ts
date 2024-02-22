@@ -1,4 +1,4 @@
-import { api, sortState, activeJobs, lastFetchTime } from '$stores/store';
+import { api, sortState, activeJobs, lastFetchTime, selectedJobs } from '$stores/store';
 import { get } from 'svelte/store';
 import type { Job } from './Api';
 import { errorToast } from '$lib/Toast';
@@ -14,6 +14,31 @@ export async function fetchJobs() {
     } catch (err) {
         console.error(err);
         errorToast('Failed to fetch jobs');
+    }
+}
+
+export async function deleteJob(jobId: number | undefined) {
+    if (jobId === undefined) {
+        errorToast('Job ID is undefined');
+        return;
+    }
+    try {
+        await api.jobsDestroy(jobId);
+    } catch (err) {
+        console.error(err);
+        errorToast(`Failed to delete job ${jobId}`);
+    }
+    // Update the activeJobs store by removing the deleted job
+    activeJobs.update(jobs => jobs.filter(job => job.id !== jobId));
+
+}
+export async function deleteSelectedJobs() {
+    for (const job of get(activeJobs)) {
+        if (job.id && get(selectedJobs).includes(job.id)) {
+            deleteJob(job.id);
+            // remove the job from the selectedJobs store
+            selectedJobs.update(jobs => jobs.filter(id => id !== job.id));
+        }
     }
 }
 
