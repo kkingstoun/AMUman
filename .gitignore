@@ -95,3 +95,4 @@ venv.bak/
 **/.svelte-kit
 **/dev-dist
 manager/db.sqlite3-journal
+manager/schema.yml

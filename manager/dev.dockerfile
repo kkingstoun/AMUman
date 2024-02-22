@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cifs-utils \
     redis-server \
     python${PYTHON_VER} python${PYTHON_VER}-dev python3-pip python-is-python3 && \
-    pip install --upgrade pip
+    pip install --upgrade pip && \
+    pip install debugpy
 
 WORKDIR /app
 COPY requirements.txt .

@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     cifs-utils \
     python${PYTHON_VER} python${PYTHON_VER}-dev python3-pip python-is-python3 && \
-    pip install --upgrade pip
+    pip install --upgrade pip && \
+    pip install debugpy
 
 # amumax
 RUN curl -Ls https://github.com/mathieumoalic/amumax/releases/latest/download/amumax > /bin/amumax && \

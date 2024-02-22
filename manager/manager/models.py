@@ -1,7 +1,11 @@
 from enum import Enum
 
+from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 class Node(models.Model):
@@ -35,16 +39,16 @@ class Node(models.Model):
 
 
 class Gpu(models.Model):
-    class GPUStatus(Enum):
-        WAITING = "Waiting"
-        RUNNING = "Running"
-        RESERVED = "Reserved"
-        UNAVAILABLE = "Unavailable"
+    class GPUStatus(models.TextChoices):
+        WAITING = 'Waiting', _('Waiting')
+        RUNNING = 'Running', _('Running')
+        RESERVED = 'Reserved', _('Reserved')
+        UNAVAILABLE = 'Unavailable', _('Unavailable')
 
-    class GPUSpeed(Enum):
-        SLOW = "Slow"
-        NORMAL = "Normal"
-        FAST = "Fast"
+    class GPUSpeed(models.TextChoices):
+        SLOW = 'Slow', _('Slow')
+        NORMAL = 'Normal', _('Normal')
+        FAST = 'Fast', _('Fast')
 
     device_id = models.PositiveSmallIntegerField()
     uuid = models.UUIDField(unique=True)
@@ -108,7 +112,6 @@ class Job(models.Model):
         choices=[(choice.name, choice.value) for choice in JobStatus],
         default=JobStatus.WAITING.name,
     )
-    assigned_gpu_id = models.CharField(max_length=10, null=True, blank=True)
     node = models.ForeignKey(
         Node, on_delete=models.SET_NULL, null=True, blank=True, related_name="node"
     )
@@ -117,7 +120,7 @@ class Job(models.Model):
     )
     output = models.TextField(null=True, blank=True)
     error = models.TextField(null=True, blank=True)
-    flags = models.CharField(max_length=150, default="")
+    flags = models.CharField(max_length=150, null=True, blank=True)
 
     def __str__(self):
         return f"{self.id}:{self.path[-50:]}"
@@ -125,3 +128,16 @@ class Job(models.Model):
 
 class ManagerSettings(models.Model):
     queue_watchdog = models.BooleanField(default=False)
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    concurrent_jobs = models.IntegerField(default=0, choices=[(x, str(x)) for x in range(11)])
+
+    def __str__(self):
+        return self.user.username
+
+@receiver(post_save, sender=User)
+def create_or_update_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserProfile.objects.create(user=instance)
+    instance.userprofile.save()

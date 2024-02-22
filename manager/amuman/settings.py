@@ -97,6 +97,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "manager.middleware.scheduler_middleware.SchedulerMiddleware",
+    'manager.middleware.generate_initial_data.GenerateRandomJobsMiddleware',
 ]
 
 ROOT_URLCONF = "amuman.urls"
@@ -118,6 +119,9 @@ TEMPLATES = [
         },
     },
 ]
+
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [BASE_DIR / "amuman" / "static"]
 
 WSGI_APPLICATION = "amuman.wsgi.application"
 
