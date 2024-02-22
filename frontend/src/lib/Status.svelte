@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { JobStatusEnum } from '../api/Api';
+	import { JobStatusEnum } from '$api/Api';
 	import { Badge } from 'flowbite-svelte';
 
 	export let status: JobStatusEnum | undefined;
@@ -33,8 +33,6 @@
 		if (!status) return 'primary'; // Default color if status is not found
 		return statusColorMap[status];
 	}
-
-	$: color = getColorByStatus(status);
 </script>
 
 <Badge class="font-extrabold" large color={getColorByStatus(status)}>{capitalize(status)}</Badge>
