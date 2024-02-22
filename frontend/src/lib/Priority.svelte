@@ -1,25 +1,39 @@
 <script lang="ts">
-	import { PriorityEnum } from '../Api';
+	import { PriorityEnum } from '$api/Api';
+	import { Badge } from 'flowbite-svelte';
 
 	export let priority: PriorityEnum | undefined;
+	type ColorType =
+		| 'none'
+		| 'red'
+		| 'yellow'
+		| 'green'
+		| 'indigo'
+		| 'purple'
+		| 'pink'
+		| 'blue'
+		| 'dark'
+		| 'primary'
+		| undefined;
 
 	// Define a mapping from job priorityes to Tailwind CSS color classes
-	const priorityColorMap: Record<PriorityEnum, string> = {
-		[PriorityEnum.LOW]: 'bg-green-200',
-		[PriorityEnum.NORMAL]: 'bg-red-500',
-		[PriorityEnum.HIGH]: 'bg-yellow-500'
+	const priorityColorMap: Record<PriorityEnum, ColorType> = {
+		[PriorityEnum.LOW]: 'yellow',
+		[PriorityEnum.NORMAL]: 'green',
+		[PriorityEnum.HIGH]: 'primary'
 	};
 
-	// Function to get color based on priority
-	function getColorBypriority(priority: PriorityEnum | undefined): string {
-		if (!priority) return 'bg-gray-200'; // Default color if priority is not found
-		return priorityColorMap[priority];
+	function capitalize(str: string | undefined) {
+		if (!str) return '';
+		return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 	}
 
-	$: color = getColorBypriority(priority);
+	function getColorByPriority(priority: PriorityEnum | undefined): ColorType {
+		if (!priority) return 'primary'; // Default color if priority is not found
+		return priorityColorMap[priority];
+	}
 </script>
 
-<span class="relative inline-block px-3 py-1 font-semibold leading-tight">
-	<span aria-hidden="true" class={`absolute inset-0 ${color} opacity-50 rounded-full`} />
-	<span class="relative">{priority}</span>
-</span>
+<Badge class="font-extrabold" large color={getColorByPriority(priority)}
+	>{capitalize(priority)}</Badge
+>

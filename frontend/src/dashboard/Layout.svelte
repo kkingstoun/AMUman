@@ -1,73 +1,24 @@
 <script lang="ts">
 	import 'tailwindcss/tailwind.css';
-	import { page } from '$app/stores';
-	import { browser } from '$app/environment';
 
-	import TopBar from './TopBar.svelte';
-	import Overlay from './Overlay.svelte';
+	import NavBar from './NavBar.svelte';
+	import Login from '$lib/Login.svelte';
 	import Sidebar from './Sidebar.svelte';
-	import Login from '../lib/Login.svelte';
-	import { closeSidebar, sidebarOpen } from '../store';
-	import { isAuthenticated } from '../store';
+	import { isAuthenticated } from '$stores/store';
 	import { SvelteToast } from '@zerodevx/svelte-toast';
-
-	if (browser) {
-		page.subscribe(() => {
-			// close Sidebar on route changes. it's triggered when viewport is less than 1024px
-			if ($sidebarOpen && window.innerWidth < 1024) {
-				closeSidebar();
-			}
-		});
-		// page.subscribe(() => {
-		// 	if (!$isAuthenticated) {
-		// 		closeSidebar();
-		// 	}
-		// });
-	}
 </script>
 
 <SvelteToast />
-<div class="background h-screen overflow-hidden w-full lg:p-4">
-	<div class="content h-screen overflow-hidden relative lg:rounded-2xl">
-		<div class="flex items-start">
-			{#if $isAuthenticated}
-				<Overlay />
-				<Sidebar mobileOrientation="end" />
-				<div class="flex flex-col h-screen pl-0 w-full lg:space-y-4 lg:w-[calc(100%-16rem)]">
-					<TopBar />
-					<main class="main h-screen pb-36 pt-4 px-2 md:pb-8 md:px-4 lg:px-6">
-						<slot />
-					</main>
-				</div>
-			{:else}
-				<Login />
-			{/if}
+{#if $isAuthenticated}
+	<div class="flex flex-col h-screen bg-gray-900">
+		<NavBar />
+		<div class="flex flex-1 overflow-hidden">
+			<Sidebar />
+			<main class="flex-1 overflow-y-auto p-4 md:p-8">
+				<slot />
+			</main>
 		</div>
 	</div>
-</div>
-
-<style>
-	.background {
-		/* background-image: url('./mac.webp'); */
-		background-color: rgb(43, 43, 56);
-		background-size: cover;
-		background-position: center;
-	}
-	.content {
-		background-color: rgba(16 18 27 / 40%);
-		backdrop-filter: blur(24px);
-	}
-	.main {
-		color: #f9fafb;
-		background-color: rgba(16 18 27 / 40%);
-		overflow: auto;
-	}
-	.main::-webkit-scrollbar {
-		width: 6px;
-		border-radius: 10px;
-	}
-	.main::-webkit-scrollbar-thumb {
-		background: rgb(1 2 3 / 40%);
-		border-radius: 10px;
-	}
-</style>
+{:else}
+	<Login />
+{/if}
