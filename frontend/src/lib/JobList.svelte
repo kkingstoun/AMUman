@@ -101,9 +101,7 @@
 	function allCheckBoxes(event: Event): void {
 		if (event.target instanceof HTMLInputElement) {
 			if (event.target.checked) {
-				$selectedJobs = $activeJobs
-					.map((job) => job.id)
-					.filter((id): id is number | undefined => id !== undefined) as (number | string)[];
+				$selectedJobs = $activeJobs.map((job) => job.id);
 			} else {
 				$selectedJobs = [];
 			}

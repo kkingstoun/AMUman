@@ -30,43 +30,71 @@ export enum GpuPartitionEnum {
 }
 
 export interface Gpus {
-	id: number;
+	readonly id: number;
 	/**
-	 * @format int64
-	 * @min 0
-	 * @max 9223372036854776000
-	 */
-	device_id: number;
-	/** @format uuid */
-	uuid: string;
-	model: string;
-	/**
-	 * * `SLOW` - Slow
-	 * * `NORMAL` - Normal
-	 * * `FAST` - Fast
+	 * The speed of the GPU.
+	 *
+	 * * `Slow` - Slow
+	 * * `Normal` - Normal
+	 * * `Fast` - Fast
+	 * @default "Normal"
 	 */
 	speed?: SpeedEnum;
 	/**
+	 * The current status of the GPU.
+	 *
+	 * * `Waiting` - Waiting
+	 * * `Running` - Running
+	 * * `Reserved` - Reserved
+	 * * `Unavailable` - Unavailable
+	 * @default "Waiting"
+	 */
+	status?: GpusStatusEnum;
+	/** The associated node ID. */
+	node: number;
+	/**
+	 * The unique device identifier (must be <= 32767).
 	 * @format int64
 	 * @min 0
-	 * @max 9223372036854776000
+	 * @max 32767
+	 */
+	device_id: number;
+	/**
+	 * The unique identifier of the GPU.
+	 * @format uuid
+	 */
+	uuid: string;
+	model: string;
+	/**
+	 * The utilization of the GPU (must be <= 100).
+	 * @format int64
+	 * @min 0
+	 * @max 100
 	 */
 	util: number;
 	is_running_amumax?: boolean;
 	/**
-	 * * `WAITING` - Waiting
-	 * * `RUNNING` - Running
-	 * * `RESERVED` - Reserved
-	 * * `UNAVAILABLE` - Unavailable
+	 * The timestamp of the last update (read-only, auto-generated).
+	 * @format date-time
 	 */
-	status?: StatusAfaEnum;
-	/** @format date-time */
-	last_update?: string;
-	node: number;
+	readonly last_update: string;
+}
+
+/**
+ * * `Waiting` - Waiting
+ * * `Running` - Running
+ * * `Reserved` - Reserved
+ * * `Unavailable` - Unavailable
+ */
+export enum GpusStatusEnum {
+	Waiting = 'Waiting',
+	Running = 'Running',
+	Reserved = 'Reserved',
+	Unavailable = 'Unavailable'
 }
 
 export interface Job {
-	id?: number;
+	readonly id: number;
 	/** @maxLength 500 */
 	path: string;
 	/**
@@ -109,12 +137,10 @@ export interface Job {
 	 * * `INTERRUPTED` - Interrupted
 	 */
 	status?: JobStatusEnum;
-	/** @maxLength 10 */
-	assigned_gpu_id?: string | null;
 	output?: string | null;
 	error?: string | null;
 	/** @maxLength 150 */
-	flags?: string;
+	flags?: string | null;
 	node?: number | null;
 	gpu?: number | null;
 }
@@ -135,12 +161,12 @@ export enum JobStatusEnum {
 }
 
 export interface MS {
-	id: number;
+	readonly id: number;
 	queue_watchdog?: boolean;
 }
 
 export interface Nodes {
-	id: number;
+	readonly id: number;
 	ip: string;
 	/** @maxLength 15 */
 	name: string;
@@ -156,7 +182,7 @@ export interface Nodes {
 	 * * `RESERVED` - Reserved
 	 * * `UNAVAILABLE` - Unavailable
 	 */
-	status?: StatusAfaEnum;
+	status?: NodesStatusEnum;
 	/**
 	 * * `CONNECTED` - Connected
 	 * * `DISCONNECTED` - Disconnected
@@ -166,44 +192,72 @@ export interface Nodes {
 	last_seen?: string;
 }
 
+/**
+ * * `WAITING` - Waiting
+ * * `RUNNING` - Running
+ * * `RESERVED` - Reserved
+ * * `UNAVAILABLE` - Unavailable
+ */
+export enum NodesStatusEnum {
+	WAITING = 'WAITING',
+	RUNNING = 'RUNNING',
+	RESERVED = 'RESERVED',
+	UNAVAILABLE = 'UNAVAILABLE'
+}
+
 export interface PatchedGpus {
-	id?: number;
+	readonly id?: number;
 	/**
-	 * @format int64
-	 * @min 0
-	 * @max 9223372036854776000
-	 */
-	device_id?: number;
-	/** @format uuid */
-	uuid?: string;
-	model?: string;
-	/**
-	 * * `SLOW` - Slow
-	 * * `NORMAL` - Normal
-	 * * `FAST` - Fast
+	 * The speed of the GPU.
+	 *
+	 * * `Slow` - Slow
+	 * * `Normal` - Normal
+	 * * `Fast` - Fast
+	 * @default "Normal"
 	 */
 	speed?: SpeedEnum;
 	/**
+	 * The current status of the GPU.
+	 *
+	 * * `Waiting` - Waiting
+	 * * `Running` - Running
+	 * * `Reserved` - Reserved
+	 * * `Unavailable` - Unavailable
+	 * @default "Waiting"
+	 */
+	status?: GpusStatusEnum;
+	/** The associated node ID. */
+	node?: number;
+	/**
+	 * The unique device identifier (must be <= 32767).
 	 * @format int64
 	 * @min 0
-	 * @max 9223372036854776000
+	 * @max 32767
+	 */
+	device_id?: number;
+	/**
+	 * The unique identifier of the GPU.
+	 * @format uuid
+	 */
+	uuid?: string;
+	model?: string;
+	/**
+	 * The utilization of the GPU (must be <= 100).
+	 * @format int64
+	 * @min 0
+	 * @max 100
 	 */
 	util?: number;
 	is_running_amumax?: boolean;
 	/**
-	 * * `WAITING` - Waiting
-	 * * `RUNNING` - Running
-	 * * `RESERVED` - Reserved
-	 * * `UNAVAILABLE` - Unavailable
+	 * The timestamp of the last update (read-only, auto-generated).
+	 * @format date-time
 	 */
-	status?: StatusAfaEnum;
-	/** @format date-time */
-	last_update?: string;
-	node?: number;
+	readonly last_update?: string;
 }
 
 export interface PatchedJob {
-	id?: number;
+	readonly id?: number;
 	/** @maxLength 500 */
 	path?: string;
 	/**
@@ -246,23 +300,21 @@ export interface PatchedJob {
 	 * * `INTERRUPTED` - Interrupted
 	 */
 	status?: JobStatusEnum;
-	/** @maxLength 10 */
-	assigned_gpu_id?: string | null;
 	output?: string | null;
 	error?: string | null;
 	/** @maxLength 150 */
-	flags?: string;
+	flags?: string | null;
 	node?: number | null;
 	gpu?: number | null;
 }
 
 export interface PatchedMS {
-	id?: number;
+	readonly id?: number;
 	queue_watchdog?: boolean;
 }
 
 export interface PatchedNodes {
-	id?: number;
+	readonly id?: number;
 	ip?: string;
 	/** @maxLength 15 */
 	name?: string;
@@ -278,7 +330,7 @@ export interface PatchedNodes {
 	 * * `RESERVED` - Reserved
 	 * * `UNAVAILABLE` - Unavailable
 	 */
-	status?: StatusAfaEnum;
+	status?: NodesStatusEnum;
 	/**
 	 * * `CONNECTED` - Connected
 	 * * `DISCONNECTED` - Disconnected
@@ -300,38 +352,25 @@ export enum PriorityEnum {
 }
 
 /**
- * * `SLOW` - Slow
- * * `NORMAL` - Normal
- * * `FAST` - Fast
+ * * `Slow` - Slow
+ * * `Normal` - Normal
+ * * `Fast` - Fast
  */
 export enum SpeedEnum {
-	SLOW = 'SLOW',
-	NORMAL = 'NORMAL',
-	FAST = 'FAST'
-}
-
-/**
- * * `WAITING` - Waiting
- * * `RUNNING` - Running
- * * `RESERVED` - Reserved
- * * `UNAVAILABLE` - Unavailable
- */
-export enum StatusAfaEnum {
-	WAITING = 'WAITING',
-	RUNNING = 'RUNNING',
-	RESERVED = 'RESERVED',
-	UNAVAILABLE = 'UNAVAILABLE'
+	Slow = 'Slow',
+	Normal = 'Normal',
+	Fast = 'Fast'
 }
 
 export interface TokenObtainPair {
 	username: string;
 	password: string;
-	access: string;
-	refresh: string;
+	readonly access: string;
+	readonly refresh: string;
 }
 
 export interface TokenRefresh {
-	access: string;
+	readonly access: string;
 	refresh: string;
 }
 
@@ -450,8 +489,8 @@ export class HttpClient<SecurityDataType = unknown> {
 					property instanceof Blob
 						? property
 						: typeof property === 'object' && property !== null
-							? JSON.stringify(property)
-							: `${property}`
+						? JSON.stringify(property)
+						: `${property}`
 				);
 				return formData;
 			}, new FormData()),
@@ -534,18 +573,18 @@ export class HttpClient<SecurityDataType = unknown> {
 			const data = !responseFormat
 				? r
 				: await response[responseFormat]()
-					.then((data) => {
-						if (r.ok) {
-							r.data = data;
-						} else {
-							r.error = data;
-						}
-						return r;
-					})
-					.catch((e) => {
-						r.error = e;
-						return r;
-					});
+						.then((data) => {
+							if (r.ok) {
+								r.data = data;
+							} else {
+								r.error = data;
+							}
+							return r;
+						})
+						.catch((e) => {
+							r.error = e;
+							return r;
+						});
 
 			if (cancelToken) {
 				this.abortControllers.delete(cancelToken);
@@ -780,6 +819,25 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		/**
 		 * No description
 		 *
+		 * @tags jobs
+		 * @name JobsStartCreate
+		 * @request POST:/api/jobs/{id}/start/
+		 * @secure
+		 */
+		jobsStartCreate: (id: number, data: Job, params: RequestParams = {}) =>
+			this.request<Job, any>({
+				path: `/api/jobs/${id}/start/`,
+				method: 'POST',
+				body: data,
+				secure: true,
+				type: ContentType.Json,
+				format: 'json',
+				...params
+			}),
+
+		/**
+		 * No description
+		 *
 		 * @tags manager-settings
 		 * @name ManagerSettingsList
 		 * @request GET:/api/manager-settings/
@@ -1003,105 +1061,105 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 			query?: {
 				format?: 'json' | 'yaml';
 				lang?:
-				| 'af'
-				| 'ar'
-				| 'ar-dz'
-				| 'ast'
-				| 'az'
-				| 'be'
-				| 'bg'
-				| 'bn'
-				| 'br'
-				| 'bs'
-				| 'ca'
-				| 'ckb'
-				| 'cs'
-				| 'cy'
-				| 'da'
-				| 'de'
-				| 'dsb'
-				| 'el'
-				| 'en'
-				| 'en-au'
-				| 'en-gb'
-				| 'eo'
-				| 'es'
-				| 'es-ar'
-				| 'es-co'
-				| 'es-mx'
-				| 'es-ni'
-				| 'es-ve'
-				| 'et'
-				| 'eu'
-				| 'fa'
-				| 'fi'
-				| 'fr'
-				| 'fy'
-				| 'ga'
-				| 'gd'
-				| 'gl'
-				| 'he'
-				| 'hi'
-				| 'hr'
-				| 'hsb'
-				| 'hu'
-				| 'hy'
-				| 'ia'
-				| 'id'
-				| 'ig'
-				| 'io'
-				| 'is'
-				| 'it'
-				| 'ja'
-				| 'ka'
-				| 'kab'
-				| 'kk'
-				| 'km'
-				| 'kn'
-				| 'ko'
-				| 'ky'
-				| 'lb'
-				| 'lt'
-				| 'lv'
-				| 'mk'
-				| 'ml'
-				| 'mn'
-				| 'mr'
-				| 'ms'
-				| 'my'
-				| 'nb'
-				| 'ne'
-				| 'nl'
-				| 'nn'
-				| 'os'
-				| 'pa'
-				| 'pl'
-				| 'pt'
-				| 'pt-br'
-				| 'ro'
-				| 'ru'
-				| 'sk'
-				| 'sl'
-				| 'sq'
-				| 'sr'
-				| 'sr-latn'
-				| 'sv'
-				| 'sw'
-				| 'ta'
-				| 'te'
-				| 'tg'
-				| 'th'
-				| 'tk'
-				| 'tr'
-				| 'tt'
-				| 'udm'
-				| 'ug'
-				| 'uk'
-				| 'ur'
-				| 'uz'
-				| 'vi'
-				| 'zh-hans'
-				| 'zh-hant';
+					| 'af'
+					| 'ar'
+					| 'ar-dz'
+					| 'ast'
+					| 'az'
+					| 'be'
+					| 'bg'
+					| 'bn'
+					| 'br'
+					| 'bs'
+					| 'ca'
+					| 'ckb'
+					| 'cs'
+					| 'cy'
+					| 'da'
+					| 'de'
+					| 'dsb'
+					| 'el'
+					| 'en'
+					| 'en-au'
+					| 'en-gb'
+					| 'eo'
+					| 'es'
+					| 'es-ar'
+					| 'es-co'
+					| 'es-mx'
+					| 'es-ni'
+					| 'es-ve'
+					| 'et'
+					| 'eu'
+					| 'fa'
+					| 'fi'
+					| 'fr'
+					| 'fy'
+					| 'ga'
+					| 'gd'
+					| 'gl'
+					| 'he'
+					| 'hi'
+					| 'hr'
+					| 'hsb'
+					| 'hu'
+					| 'hy'
+					| 'ia'
+					| 'id'
+					| 'ig'
+					| 'io'
+					| 'is'
+					| 'it'
+					| 'ja'
+					| 'ka'
+					| 'kab'
+					| 'kk'
+					| 'km'
+					| 'kn'
+					| 'ko'
+					| 'ky'
+					| 'lb'
+					| 'lt'
+					| 'lv'
+					| 'mk'
+					| 'ml'
+					| 'mn'
+					| 'mr'
+					| 'ms'
+					| 'my'
+					| 'nb'
+					| 'ne'
+					| 'nl'
+					| 'nn'
+					| 'os'
+					| 'pa'
+					| 'pl'
+					| 'pt'
+					| 'pt-br'
+					| 'ro'
+					| 'ru'
+					| 'sk'
+					| 'sl'
+					| 'sq'
+					| 'sr'
+					| 'sr-latn'
+					| 'sv'
+					| 'sw'
+					| 'ta'
+					| 'te'
+					| 'tg'
+					| 'th'
+					| 'tk'
+					| 'tr'
+					| 'tt'
+					| 'udm'
+					| 'ug'
+					| 'uk'
+					| 'ur'
+					| 'uz'
+					| 'vi'
+					| 'zh-hans'
+					| 'zh-hant';
 			},
 			params: RequestParams = {}
 		) =>

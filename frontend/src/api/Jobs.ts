@@ -13,35 +13,9 @@ export async function fetchJobs() {
         lastFetchTime.set(Date.now());
     } catch (err) {
         console.error(err);
-        errorToast('Failed to fetch jobs');
+        // errorToast('Failed to fetch jobs');
     }
 }
-
-export async function deleteJob(jobId: number | undefined) {
-    if (jobId === undefined) {
-        errorToast('Job ID is undefined');
-        return;
-    }
-    try {
-        await api.jobsDestroy(jobId);
-    } catch (err) {
-        console.error(err);
-        errorToast(`Failed to delete job ${jobId}`);
-    }
-    // Update the activeJobs store by removing the deleted job
-    activeJobs.update(jobs => jobs.filter(job => job.id !== jobId));
-
-}
-export async function deleteSelectedJobs() {
-    for (const job of get(activeJobs)) {
-        if (job.id && get(selectedJobs).includes(job.id)) {
-            deleteJob(job.id);
-            // remove the job from the selectedJobs store
-            selectedJobs.update(jobs => jobs.filter(id => id !== job.id));
-        }
-    }
-}
-
 
 export function sortJobs(): void {
     activeJobs.update(jobs => {
@@ -58,4 +32,26 @@ export function sortJobs(): void {
             return (aValue < bValue ? -1 : 1) * currentSortState.direction;
         });
     });
+}
+
+export async function deleteJob(jobId: number) {
+    try {
+        await api.jobsDestroy(jobId);
+    } catch (err) {
+        console.error(err);
+        errorToast(`Failed to delete job ${jobId}`);
+    }
+    // Update the activeJobs store by removing the deleted job
+    activeJobs.update(jobs => jobs.filter(job => job.id !== jobId));
+
+}
+
+export async function deleteSelectedJobs() {
+    for (const job of get(activeJobs)) {
+        if (job.id && get(selectedJobs).includes(job.id)) {
+            deleteJob(job.id);
+            // remove the job from the selectedJobs store
+            selectedJobs.update(jobs => jobs.filter(id => id !== job.id));
+        }
+    }
 }
