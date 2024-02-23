@@ -20,7 +20,6 @@
 		lastFetchTime,
 		selectedItems,
 		timeSinceLastFetch,
-		headers,
 		type ItemType
 	} from '$stores/Tables';
 	import Status from './Status.svelte';
@@ -29,7 +28,7 @@
 	import DeleteItem from './DeleteItem.svelte';
 	import DeleteSelectedItems from './DeleteSelectedItems.svelte';
 	import RunJob from './RunJob.svelte';
-	import { formatValue } from '../Utils';
+	import { formatValue, formatString } from '../Utils';
 	import type { ItemTypeString } from '$stores/Tables';
 	import type { Job } from '$api/Api';
 
@@ -99,14 +98,14 @@
 		</TableHeadCell>
 		{#each $shownColumns[item_type] as header}
 			<TableHeadCell on:click={() => updateSortState(header)}>
-				{header}
+				{formatString(header)}
 			</TableHeadCell>
 		{/each}
 		{#if item_type === 'jobs'}
 			<TableHeadCell>Output</TableHeadCell>
-			<TableHeadCell>Delete</TableHeadCell>
+			<TableHeadCell>Run</TableHeadCell>
 		{/if}
-		<TableHeadCell>Run</TableHeadCell>
+		<TableHeadCell>Delete</TableHeadCell>
 	</TableHead>
 	<TableBody>
 		{#each $itemlist[item_type] as item}

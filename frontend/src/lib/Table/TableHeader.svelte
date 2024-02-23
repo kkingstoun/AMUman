@@ -9,15 +9,15 @@
 	export let item_type: ItemTypeString;
 </script>
 
-<h2 class="text-4xl">{formatString(item_type)}</h2>
-<div class="ml-7 text-gray-500">
-	Last refresh: {moment($lastFetchTime).format('HH:mm:ss')} ({$timeSinceLastFetch})
-	<div class="flex pb-4 items-center">
-		<RefreshOutline
-			on:click={() => {
-				fetchItems('jobs');
-			}}
-			class="ml-3 text-gray-500"
-		/>
+<div class="flex items-center pb-3 pl-4">
+	<h2 class="text-4xl">{formatString(item_type)}</h2>
+	<div class="ml-7 text-gray-500">
+		Last refresh: {moment($lastFetchTime).format('HH:mm:ss')} ({$timeSinceLastFetch})
 	</div>
+	<RefreshOutline
+		on:click={() => {
+			fetchItems('jobs');
+		}}
+		class="ml-3 text-gray-500"
+	/>
 </div>

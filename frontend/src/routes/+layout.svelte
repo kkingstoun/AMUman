@@ -19,7 +19,7 @@
 {#if $isAuthenticated}
 	<div class="flex flex-col h-screen bg-gray-900">
 		<NavBar />
-		<main class="flex-1 overflow-y-auto p-4 md:p-8">
+		<main class="flex-1 overflow-y-auto p-3">
 			<slot />
 		</main>
 	</div>
