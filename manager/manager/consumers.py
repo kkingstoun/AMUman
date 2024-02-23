@@ -3,8 +3,9 @@ import json
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
+from django.utils import timezone
 
-from manager.models import Node
+from manager.models import Job, Node
 
 
 class ManagerConsumer(AsyncWebsocketConsumer):
@@ -19,6 +20,37 @@ class ManagerConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, _close_code):
         await self.channel_layer.group_discard("nodes_group", self.channel_name)
+        await self.update_node_status(self.node_id, 'disconnected')
+        # Schedule Job interruption check
+        asyncio.ensure_future(self.interrupt_long_disconnected_Jobs())
+
+    @database_sync_to_async
+    def update_node_status_internal(self, node_id, status):
+        try:
+            node = Node.objects.get(id=node_id)
+            node.status = status
+            node.save()
+        except Node.DoesNotExist:
+            pass  # Handle the case where the node does not exist.
+
+    async def interrupt_long_disconnected_Jobs(self):
+        while True:
+            await asyncio.sleep(30 * 60)  # Wait for 30 minutes
+            await self.check_and_interrupt_Jobs()
+
+    @database_sync_to_async
+    def check_and_interrupt_Jobs(self):
+        disconnected_time_threshold = timezone.now() - timezone.timedelta(minutes=30)
+        jobs_to_interrupt = Job.objects.filter(
+            node__status='disconnected',
+            node__last_seen__lt=disconnected_time_threshold,
+            status='running'  # Assuming 'running' is the status of Jobs that are currently active
+        )
+
+        for job in jobs_to_interrupt:
+            job.status = 'interrupted'
+            job.save()
+
 
     @database_sync_to_async
     def update_node_status(self, node_id, name, connection_status):

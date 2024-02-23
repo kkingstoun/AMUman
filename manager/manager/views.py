@@ -1,14 +1,18 @@
 # Create your views here.
 import logging
+import time
 from typing import ClassVar
 
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from .components.run_job import RunJob
 from .models import Gpu, Job, ManagerSettings, Node
-from .serializers import GpusSerializer, JobSerializer, MSSerializer, NodesSerializer
+from .serializers import GpusSerializer, JobSerializer, MSSerializer, NodesSerializer, RefreshNodeSerializer
 
 log = logging.getLogger("rich")
 
@@ -16,7 +20,7 @@ log = logging.getLogger("rich")
 class JobsViewSet(viewsets.ModelViewSet):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
-    permission_classes: ClassVar = [permissions.IsAuthenticated]
+    # permission_classes: ClassVar = [permissions.IsAuthenticated]
 
     def list(self, request, *_args, **_kwargs):
         max_id = request.query_params.get("max_id")
@@ -45,15 +49,20 @@ class JobsViewSet(viewsets.ModelViewSet):
     def start(self, request, pk=None):
         try:
             job = self.get_object()
-            job.status = Job.JobStatus.RUNNING.name
-            job.save()
+            gpu = Gpu.objects.filter(status="Waiting").first()
+            if not gpu:
+                return Response({"error": "Gpu unavalible."}, status=status.HTTP_400_BAD_REQUEST)
+
+            self.rt = RunJob()
+            self.rt.run_job(job=job, request=request)
+
             return Response({"message": f"Job {pk} started successfully."}, status=status.HTTP_200_OK)
         except Job.DoesNotExist:
             return Response({"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND)
 
 
 class GpusViewSet(viewsets.ModelViewSet):
-    # http_method_names = ["get"]
+    http_method_names = ['get', 'post', 'delete']
     queryset = Gpu.objects.all()
     serializer_class = GpusSerializer
 
@@ -83,6 +92,32 @@ class NodesViewSet(viewsets.ModelViewSet):
     queryset = Node.objects.all()
     serializer_class = NodesSerializer
     permission_classes: ClassVar = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'post', 'delete']
+
+    @action(detail=False, methods=['post'], url_path='refresh', serializer_class=RefreshNodeSerializer)
+    def refreshnode(self, request):
+        node_id = request.query_params.get('node_id', None)
+        channel_layer = get_channel_layer()
+        if node_id:
+            async_to_sync(channel_layer.group_send)(
+                "nodes_group",
+                {
+                    "type": "node.command",
+                    "command": "update_gpus",
+                    "node_id": node_id,
+                },
+            )
+        else:
+            async_to_sync(channel_layer.group_send)(
+                "nodes_group",
+                {
+                    "type": "node.command",
+                    "command": "update_gpus",
+                    "node_id": None,
+                },
+            )
+        time.sleep(3)
+        return Response({"status": "Command sent"}, status=status.HTTP_200_OK)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

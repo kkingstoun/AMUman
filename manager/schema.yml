@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ''
-  version: 0.0.0 
+  version: 0.0.0
 paths:
   /api/gpus/:
     get:
@@ -60,73 +60,6 @@ paths:
         required: true
       tags:
       - gpus
-      security:
-      - basicAuth: []
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Gpus'
-          description: ''
-    put:
-      operationId: gpus_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this gpu.
-        required: true
-      tags:
-      - gpus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Gpus'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Gpus'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Gpus'
-        required: true
-      security:
-      - basicAuth: []
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Gpus'
-          description: ''
-    patch:
-      operationId: gpus_partial_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this gpu.
-        required: true
-      tags:
-      - gpus
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedGpus'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedGpus'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedGpus'
       security:
       - basicAuth: []
       - jwtAuth: []
@@ -309,6 +242,41 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/jobs/{id}/start/:
+    post:
+      operationId: jobs_start_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this job.
+        required: true
+      tags:
+      - jobs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Job'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Job'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Job'
+        required: true
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+          description: ''
   /api/manager-settings/:
     get:
       operationId: manager_settings_list
@@ -317,7 +285,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -345,7 +312,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -368,7 +334,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -401,7 +366,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -434,7 +398,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -456,7 +419,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
@@ -468,7 +430,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -497,7 +458,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -520,74 +480,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Nodes'
-          description: ''
-    put:
-      operationId: nodes_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this node.
-        required: true
-      tags:
-      - nodes
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Nodes'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Nodes'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Nodes'
-        required: true
-      security:
-      - basicAuth: []
-      - jwtAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Nodes'
-          description: ''
-    patch:
-      operationId: nodes_partial_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this node.
-        required: true
-      tags:
-      - nodes
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedNodes'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedNodes'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedNodes'
-      security:
-      - basicAuth: []
-      - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -609,10 +501,35 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
+  /api/nodes/refresh/:
+    post:
+      operationId: nodes_refresh_create
+      tags:
+      - nodes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshNode'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RefreshNode'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RefreshNode'
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshNode'
+          description: ''
   /api/schema/:
     get:
       operationId: schema_retrieve
@@ -817,57 +734,81 @@ components:
   schemas:
     ConnectionStatusEnum:
       enum:
-      - CONNECTED
-      - DISCONNECTED
+      - Connected
+      - Disconnected
       type: string
       description: |-
-        * `CONNECTED` - Connected
-        * `DISCONNECTED` - Disconnected
+        * `Connected` - Connected
+        * `Disconnected` - Disconnected
     GpuPartitionEnum:
       enum:
-      - SLOW
-      - NORMAL
-      - FAST
+      - Slow
+      - Normal
+      - Fast
       type: string
       description: |-
-        * `SLOW` - Slow
-        * `NORMAL` - Normal
-        * `FAST` - Fast
+        * `Slow` - Slow
+        * `Normal` - Normal
+        * `Fast` - Fast
     Gpus:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
+        speed:
+          allOf:
+          - $ref: '#/components/schemas/SpeedEnum'
+          default: Normal
+          description: |-
+            The speed of the GPU.
+
+            * `Slow` - Slow
+            * `Normal` - Normal
+            * `Fast` - Fast
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusD12Enum'
+          default: Waiting
+          description: |-
+            The current status of the GPU.
+
+            * `Waiting` - Waiting
+            * `Running` - Running
+            * `Reserved` - Reserved
+            * `Unavailable` - Unavailable
+        node:
+          type: integer
+          description: The associated node ID.
         device_id:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 32767
           minimum: 0
           format: int64
+          description: The unique device identifier (must be <= 32767).
         uuid:
           type: string
           format: uuid
+          description: The unique identifier of the GPU.
         model:
           type: string
-        speed:
-          $ref: '#/components/schemas/SpeedEnum'
         util:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 100
           minimum: 0
           format: int64
+          description: The utilization of the GPU (must be <= 100).
         is_running_amumax:
           type: boolean
-        status:
-          $ref: '#/components/schemas/StatusAfaEnum'
         last_update:
           type: string
           format: date-time
-        node:
-          type: integer
+          readOnly: true
+          description: The timestamp of the last update (read-only, auto-generated).
       required:
       - device_id
       - id
+      - last_update
       - model
       - node
       - util
@@ -914,10 +855,6 @@ components:
           format: int64
         status:
           $ref: '#/components/schemas/JobStatusEnum'
-        assigned_gpu_id:
-          type: string
-          nullable: true
-          maxLength: 10
         output:
           type: string
           nullable: true
@@ -926,6 +863,7 @@ components:
           nullable: true
         flags:
           type: string
+          nullable: true
           maxLength: 150
         node:
           type: integer
@@ -938,18 +876,18 @@ components:
       - path
     JobStatusEnum:
       enum:
-      - WAITING
-      - PENDING
-      - RUNNING
-      - FINISHED
-      - INTERRUPTED
+      - Waiting
+      - Pending
+      - Running
+      - Finished
+      - Interrupted
       type: string
       description: |-
-        * `WAITING` - Waiting
-        * `PENDING` - Pending
-        * `RUNNING` - Running
-        * `FINISHED` - Finished
-        * `INTERRUPTED` - Interrupted
+        * `Waiting` - Waiting
+        * `Pending` - Pending
+        * `Running` - Running
+        * `Finished` - Finished
+        * `Interrupted` - Interrupted
     MS:
       type: object
       properties:
@@ -977,7 +915,7 @@ components:
           minimum: 0
           format: int64
         status:
-          $ref: '#/components/schemas/StatusAfaEnum'
+          $ref: '#/components/schemas/StatusD12Enum'
         connection_status:
           $ref: '#/components/schemas/ConnectionStatusEnum'
         last_seen:
@@ -988,38 +926,6 @@ components:
       - ip
       - name
       - number_of_gpus
-    PatchedGpus:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        device_id:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        uuid:
-          type: string
-          format: uuid
-        model:
-          type: string
-        speed:
-          $ref: '#/components/schemas/SpeedEnum'
-        util:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        is_running_amumax:
-          type: boolean
-        status:
-          $ref: '#/components/schemas/StatusAfaEnum'
-        last_update:
-          type: string
-          format: date-time
-        node:
-          type: integer
     PatchedJob:
       type: object
       properties:
@@ -1062,10 +968,6 @@ components:
           format: int64
         status:
           $ref: '#/components/schemas/JobStatusEnum'
-        assigned_gpu_id:
-          type: string
-          nullable: true
-          maxLength: 10
         output:
           type: string
           nullable: true
@@ -1074,6 +976,7 @@ components:
           nullable: true
         flags:
           type: string
+          nullable: true
           maxLength: 150
         node:
           type: integer
@@ -1089,61 +992,43 @@ components:
           readOnly: true
         queue_watchdog:
           type: boolean
-    PatchedNodes:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        ip:
-          type: string
-        name:
-          type: string
-          maxLength: 15
-        number_of_gpus:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        status:
-          $ref: '#/components/schemas/StatusAfaEnum'
-        connection_status:
-          $ref: '#/components/schemas/ConnectionStatusEnum'
-        last_seen:
-          type: string
-          format: date-time
     PriorityEnum:
       enum:
       - LOW
-      - NORMAL
+      - Normal
       - HIGH
       type: string
       description: |-
         * `LOW` - Low
-        * `NORMAL` - Normal
+        * `Normal` - Normal
         * `HIGH` - High
+    RefreshNode:
+      type: object
+      properties:
+        node_id:
+          type: integer
     SpeedEnum:
       enum:
-      - SLOW
-      - NORMAL
-      - FAST
+      - Slow
+      - Normal
+      - Fast
       type: string
       description: |-
-        * `SLOW` - Slow
-        * `NORMAL` - Normal
-        * `FAST` - Fast
-    StatusAfaEnum:
+        * `Slow` - Slow
+        * `Normal` - Normal
+        * `Fast` - Fast
+    StatusD12Enum:
       enum:
-      - WAITING
-      - RUNNING
-      - RESERVED
-      - UNAVAILABLE
+      - Waiting
+      - Running
+      - Reserved
+      - Unavailable
       type: string
       description: |-
-        * `WAITING` - Waiting
-        * `RUNNING` - Running
-        * `RESERVED` - Reserved
-        * `UNAVAILABLE` - Unavailable
+        * `Waiting` - Waiting
+        * `Running` - Running
+        * `Reserved` - Reserved
+        * `Unavailable` - Unavailable
     TokenObtainPair:
       type: object
       properties:

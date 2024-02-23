@@ -17,16 +17,19 @@ class JobSerializer(serializers.ModelSerializer):
         model = Job
         fields = "__all__"
 
+class RefreshNodeSerializer(serializers.Serializer):
+    node_id = serializers.IntegerField(required=False)
+
 
 class GpusSerializer(serializers.ModelSerializer):
     speed = serializers.ChoiceField(
         choices=Gpu.GPUSpeed.choices,
-        default=Gpu.GPUSpeed.NORMAL,
+        default=Gpu.GPUSpeed.Normal,
         help_text='The speed of the GPU.'
     )
     status = serializers.ChoiceField(
         choices=Gpu.GPUStatus.choices,
-        default=Gpu.GPUStatus.WAITING,
+        default=Gpu.GPUStatus.Waiting,
         help_text='The current status of the GPU.'
     )
     node = serializers.PrimaryKeyRelatedField(

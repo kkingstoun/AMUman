@@ -124,7 +124,7 @@ class NodeClient:
             json.dumps(
                 {
                     "command": "register",
-                    "message": "Hello from Node!",
+                    "message": f"Hello from Node {self.node_name}!",
                     "node_id": self.node_id,
                     "node_name": self.node_name,
                 }
@@ -177,9 +177,9 @@ class NodeClient:
             if command == "update_gpus":
                 log.info("Updating GPUs")
                 await self.execute_update_gpus(self.node_id)
-            elif command == "run_task":
+            elif command == "run_job":
                 log.info("Running job")
-                await self.job_manager.run_job(data["task_id"])
+                await self.job_manager.run_job(data["job_id"])
             else:
                 log.error(f"Unknown command: {command}")
         elif command is not None:
