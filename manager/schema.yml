@@ -97,6 +97,7 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -125,6 +126,7 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
+      - {}
       responses:
         '201':
           content:
@@ -147,6 +149,7 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -180,6 +183,7 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -212,6 +216,7 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -233,6 +238,7 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
+      - {}
       responses:
         '204':
           description: No response body
@@ -263,6 +269,7 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -523,23 +530,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/RefreshNode'
           description: ''
-    delete:
-      operationId: nodes_destroy
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this node.
-        required: true
-      tags:
-      - nodes
-      security:
-      - basicAuth: []
-      - jwtAuth: []
-      responses:
-        '204':
-          description: No response body
   /api/schema/:
     get:
       operationId: schema_retrieve
@@ -778,7 +768,7 @@ components:
             * `Fast` - Fast
         status:
           allOf:
-          - $ref: '#/components/schemas/GpusStatusEnum'
+          - $ref: '#/components/schemas/StatusD12Enum'
           default: Waiting
           description: |-
             The current status of the GPU.
@@ -823,18 +813,6 @@ components:
       - node
       - util
       - uuid
-    GpusStatusEnum:
-      enum:
-      - Waiting
-      - Running
-      - Reserved
-      - Unavailable
-      type: string
-      description: |-
-        * `Waiting` - Waiting
-        * `Running` - Running
-        * `Reserved` - Reserved
-        * `Unavailable` - Unavailable
     Job:
       type: object
       properties:
@@ -937,7 +915,7 @@ components:
           minimum: 0
           format: int64
         status:
-          $ref: '#/components/schemas/NodesStatusEnum'
+          $ref: '#/components/schemas/StatusD12Enum'
         connection_status:
           $ref: '#/components/schemas/ConnectionStatusEnum'
         last_seen:
@@ -948,73 +926,6 @@ components:
       - ip
       - name
       - number_of_gpus
-    NodesStatusEnum:
-      enum:
-      - WAITING
-      - RUNNING
-      - RESERVED
-      - UNAVAILABLE
-      type: string
-      description: |-
-        * `WAITING` - Waiting
-        * `RUNNING` - Running
-        * `RESERVED` - Reserved
-        * `UNAVAILABLE` - Unavailable
-    PatchedGpus:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        speed:
-          allOf:
-          - $ref: '#/components/schemas/SpeedEnum'
-          default: Normal
-          description: |-
-            The speed of the GPU.
-
-            * `Slow` - Slow
-            * `Normal` - Normal
-            * `Fast` - Fast
-        status:
-          allOf:
-          - $ref: '#/components/schemas/GpusStatusEnum'
-          default: Waiting
-          description: |-
-            The current status of the GPU.
-
-            * `Waiting` - Waiting
-            * `Running` - Running
-            * `Reserved` - Reserved
-            * `Unavailable` - Unavailable
-        node:
-          type: integer
-          description: The associated node ID.
-        device_id:
-          type: integer
-          maximum: 32767
-          minimum: 0
-          format: int64
-          description: The unique device identifier (must be <= 32767).
-        uuid:
-          type: string
-          format: uuid
-          description: The unique identifier of the GPU.
-        model:
-          type: string
-        util:
-          type: integer
-          maximum: 100
-          minimum: 0
-          format: int64
-          description: The utilization of the GPU (must be <= 100).
-        is_running_amumax:
-          type: boolean
-        last_update:
-          type: string
-          format: date-time
-          readOnly: true
-          description: The timestamp of the last update (read-only, auto-generated).
     PatchedJob:
       type: object
       properties:
@@ -1081,29 +992,6 @@ components:
           readOnly: true
         queue_watchdog:
           type: boolean
-    PatchedNodes:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        ip:
-          type: string
-        name:
-          type: string
-          maxLength: 15
-        number_of_gpus:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: 0
-          format: int64
-        status:
-          $ref: '#/components/schemas/NodesStatusEnum'
-        connection_status:
-          $ref: '#/components/schemas/ConnectionStatusEnum'
-        last_seen:
-          type: string
-          format: date-time
     PriorityEnum:
       enum:
       - LOW
@@ -1129,6 +1017,18 @@ components:
         * `Slow` - Slow
         * `Normal` - Normal
         * `Fast` - Fast
+    StatusD12Enum:
+      enum:
+      - Waiting
+      - Running
+      - Reserved
+      - Unavailable
+      type: string
+      description: |-
+        * `Waiting` - Waiting
+        * `Running` - Running
+        * `Reserved` - Reserved
+        * `Unavailable` - Unavailable
     TokenObtainPair:
       type: object
       properties:
