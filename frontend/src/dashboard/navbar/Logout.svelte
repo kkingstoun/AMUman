@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { isAuthenticated } from '../../stores/store';
+	import { isAuthenticated } from '$stores/Auth';
 	import { NavLi } from 'flowbite-svelte';
 	function handleLogout() {
 		localStorage.removeItem('access_token');
