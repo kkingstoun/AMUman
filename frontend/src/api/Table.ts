@@ -1,4 +1,4 @@
-import { sortStates, itemlist, lastFetchTime, selectedItems, type ItemType } from '$stores/Tables';
+import { sortStates, itemlist, lastFetchTime, selectedItems } from '$stores/Tables';
 import { api } from '$stores/Auth';
 import { get } from 'svelte/store';
 import { errorToast } from '$lib/Toast';

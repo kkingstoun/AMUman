@@ -1,17 +1,19 @@
 <script lang="ts">
-	import Table from '$lib/Table/Table.svelte';
-	import TableHeader from './TableHeader.svelte';
+	import TableContent from './TableContent.svelte';
+	import TableTitle from './TableTitle.svelte';
+	import Sidebar from './Sidebar/Sidebar.svelte';
 
 	import type { ItemTypeString } from '$stores/Tables';
-	import Sidebar from '$lib/Table/Sidebar/Sidebar.svelte';
-
 	export let item_type: ItemTypeString;
 </script>
 
-<div class="flex overflow-hidden">
-	<Sidebar {item_type} />
-	<div class="flex flex-col w-4/5">
-		<TableHeader {item_type} />
-		<Table {item_type} />
+<div class="flex overflow-hidden pb-3 pr-3">
+	<div class="flex h-auto pr-3">
+		<Sidebar {item_type} />
+	</div>
+
+	<div class="flex flex-col w-full pt-3 overflow-auto">
+		<TableTitle {item_type} />
+		<TableContent {item_type} />
 	</div>
 </div>
