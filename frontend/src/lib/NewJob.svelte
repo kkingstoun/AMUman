@@ -2,6 +2,7 @@
 	import type { Job } from '$api/Api';
 	import { PriorityEnum, GpuPartitionEnum, JobStatusEnum } from '$api/Api';
 	import { api } from '$stores/Auth';
+	import { getRequestParams } from '$api/Auth';
 
 	let job: Job = {
 		id: 0,
@@ -16,8 +17,14 @@
 	const maxPathLength = 500;
 	const maxFlagsLength = 150;
 
-	function submitJob() {
-		api.jobsCreate(job);
+	async function submitJob() {
+		let res = await api.jobsCreate(job, getRequestParams());
+		if (res.status === 201) {
+			console.log('Job created');
+		} else {
+			console.error('Job creation failed');
+		}
+		job.path = '';
 	}
 </script>
 
