@@ -1,4 +1,4 @@
-import { isAuthenticated, api, accessToken } from '$stores/store';
+import { isAuthenticated, api, accessToken } from '$stores/Auth';
 import { successToast, errorToast } from '$lib/Toast';
 import type { RequestParams } from './Api';
 import { get } from 'svelte/store';
