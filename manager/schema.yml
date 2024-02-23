@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ''
-  version: 0.0.0 
+  version: 0.0.0
 paths:
   /api/gpus/:
     get:
@@ -164,7 +164,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -193,7 +192,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -216,7 +214,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -250,7 +247,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -283,7 +279,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -305,10 +300,43 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
+  /api/jobs/{id}/start/:
+    post:
+      operationId: jobs_start_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this job.
+        required: true
+      tags:
+      - jobs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Job'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Job'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Job'
+        required: true
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+          description: ''
   /api/manager-settings/:
     get:
       operationId: manager_settings_list
@@ -317,7 +345,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -345,7 +372,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -368,7 +394,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -401,7 +426,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -434,7 +458,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -456,7 +479,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
@@ -468,7 +490,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -497,7 +518,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -520,7 +540,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -554,7 +573,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -587,7 +605,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -609,7 +626,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
@@ -839,39 +855,75 @@ components:
         id:
           type: integer
           readOnly: true
+        speed:
+          allOf:
+          - $ref: '#/components/schemas/SpeedEnum'
+          default: Normal
+          description: |-
+            The speed of the GPU.
+
+            * `Slow` - Slow
+            * `Normal` - Normal
+            * `Fast` - Fast
+        status:
+          allOf:
+          - $ref: '#/components/schemas/GpusStatusEnum'
+          default: Waiting
+          description: |-
+            The current status of the GPU.
+
+            * `Waiting` - Waiting
+            * `Running` - Running
+            * `Reserved` - Reserved
+            * `Unavailable` - Unavailable
+        node:
+          type: integer
+          description: The associated node ID.
         device_id:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 32767
           minimum: 0
           format: int64
+          description: The unique device identifier (must be <= 32767).
         uuid:
           type: string
           format: uuid
+          description: The unique identifier of the GPU.
         model:
           type: string
-        speed:
-          $ref: '#/components/schemas/SpeedEnum'
         util:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 100
           minimum: 0
           format: int64
+          description: The utilization of the GPU (must be <= 100).
         is_running_amumax:
           type: boolean
-        status:
-          $ref: '#/components/schemas/StatusAfaEnum'
         last_update:
           type: string
           format: date-time
-        node:
-          type: integer
+          readOnly: true
+          description: The timestamp of the last update (read-only, auto-generated).
       required:
       - device_id
       - id
+      - last_update
       - model
       - node
       - util
       - uuid
+    GpusStatusEnum:
+      enum:
+      - Waiting
+      - Running
+      - Reserved
+      - Unavailable
+      type: string
+      description: |-
+        * `Waiting` - Waiting
+        * `Running` - Running
+        * `Reserved` - Reserved
+        * `Unavailable` - Unavailable
     Job:
       type: object
       properties:
@@ -914,10 +966,6 @@ components:
           format: int64
         status:
           $ref: '#/components/schemas/JobStatusEnum'
-        assigned_gpu_id:
-          type: string
-          nullable: true
-          maxLength: 10
         output:
           type: string
           nullable: true
@@ -926,6 +974,7 @@ components:
           nullable: true
         flags:
           type: string
+          nullable: true
           maxLength: 150
         node:
           type: integer
@@ -977,7 +1026,7 @@ components:
           minimum: 0
           format: int64
         status:
-          $ref: '#/components/schemas/StatusAfaEnum'
+          $ref: '#/components/schemas/NodesStatusEnum'
         connection_status:
           $ref: '#/components/schemas/ConnectionStatusEnum'
         last_seen:
@@ -988,38 +1037,73 @@ components:
       - ip
       - name
       - number_of_gpus
+    NodesStatusEnum:
+      enum:
+      - WAITING
+      - RUNNING
+      - RESERVED
+      - UNAVAILABLE
+      type: string
+      description: |-
+        * `WAITING` - Waiting
+        * `RUNNING` - Running
+        * `RESERVED` - Reserved
+        * `UNAVAILABLE` - Unavailable
     PatchedGpus:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
+        speed:
+          allOf:
+          - $ref: '#/components/schemas/SpeedEnum'
+          default: Normal
+          description: |-
+            The speed of the GPU.
+
+            * `Slow` - Slow
+            * `Normal` - Normal
+            * `Fast` - Fast
+        status:
+          allOf:
+          - $ref: '#/components/schemas/GpusStatusEnum'
+          default: Waiting
+          description: |-
+            The current status of the GPU.
+
+            * `Waiting` - Waiting
+            * `Running` - Running
+            * `Reserved` - Reserved
+            * `Unavailable` - Unavailable
+        node:
+          type: integer
+          description: The associated node ID.
         device_id:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 32767
           minimum: 0
           format: int64
+          description: The unique device identifier (must be <= 32767).
         uuid:
           type: string
           format: uuid
+          description: The unique identifier of the GPU.
         model:
           type: string
-        speed:
-          $ref: '#/components/schemas/SpeedEnum'
         util:
           type: integer
-          maximum: 9223372036854775807
+          maximum: 100
           minimum: 0
           format: int64
+          description: The utilization of the GPU (must be <= 100).
         is_running_amumax:
           type: boolean
-        status:
-          $ref: '#/components/schemas/StatusAfaEnum'
         last_update:
           type: string
           format: date-time
-        node:
-          type: integer
+          readOnly: true
+          description: The timestamp of the last update (read-only, auto-generated).
     PatchedJob:
       type: object
       properties:
@@ -1062,10 +1146,6 @@ components:
           format: int64
         status:
           $ref: '#/components/schemas/JobStatusEnum'
-        assigned_gpu_id:
-          type: string
-          nullable: true
-          maxLength: 10
         output:
           type: string
           nullable: true
@@ -1074,6 +1154,7 @@ components:
           nullable: true
         flags:
           type: string
+          nullable: true
           maxLength: 150
         node:
           type: integer
@@ -1106,7 +1187,7 @@ components:
           minimum: 0
           format: int64
         status:
-          $ref: '#/components/schemas/StatusAfaEnum'
+          $ref: '#/components/schemas/NodesStatusEnum'
         connection_status:
           $ref: '#/components/schemas/ConnectionStatusEnum'
         last_seen:
@@ -1124,26 +1205,14 @@ components:
         * `HIGH` - High
     SpeedEnum:
       enum:
-      - SLOW
-      - NORMAL
-      - FAST
+      - Slow
+      - Normal
+      - Fast
       type: string
       description: |-
-        * `SLOW` - Slow
-        * `NORMAL` - Normal
-        * `FAST` - Fast
-    StatusAfaEnum:
-      enum:
-      - WAITING
-      - RUNNING
-      - RESERVED
-      - UNAVAILABLE
-      type: string
-      description: |-
-        * `WAITING` - Waiting
-        * `RUNNING` - Running
-        * `RESERVED` - Reserved
-        * `UNAVAILABLE` - Unavailable
+        * `Slow` - Slow
+        * `Normal` - Normal
+        * `Fast` - Fast
     TokenObtainPair:
       type: object
       properties:

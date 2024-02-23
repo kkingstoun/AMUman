@@ -4,7 +4,7 @@
 	import NavBar from './NavBar.svelte';
 	import Login from '$lib/Login.svelte';
 	import Sidebar from './Sidebar.svelte';
-	import { isAuthenticated } from '$stores/store';
+	import { isAuthenticated } from '$stores/Auth';
 	import { SvelteToast } from '@zerodevx/svelte-toast';
 </script>
 
