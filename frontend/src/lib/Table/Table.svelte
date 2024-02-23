@@ -84,9 +84,6 @@
 			}
 		}
 	}
-	function columnIsShown(header: string): boolean {
-		return $shownColumns[item_type].includes(header as keyof ItemType);
-	}
 	function isJob(item: any): item is Job {
 		return item_type === 'jobs' && 'priority' in item;
 	}
@@ -100,12 +97,10 @@
 				<DeleteSelectedItems {item_type} />
 			{/if}
 		</TableHeadCell>
-		{#each $headers[item_type] as header}
-			{#if columnIsShown(header)}
-				<TableHeadCell on:click={() => updateSortState(header)}>
-					{header}
-				</TableHeadCell>
-			{/if}
+		{#each $shownColumns[item_type] as header}
+			<TableHeadCell on:click={() => updateSortState(header)}>
+				{header}
+			</TableHeadCell>
 		{/each}
 		{#if item_type === 'jobs'}
 			<TableHeadCell>Output</TableHeadCell>
@@ -119,18 +114,16 @@
 				<TableBodyCell class="!p-4">
 					<Checkbox bind:group={$selectedItems[item_type]} value={item.id} />
 				</TableBodyCell>
-				{#each $headers[item_type] as header}
-					{#if columnIsShown(header)}
-						<TableBodyCell class="hover:underline">
-							{#if isJob(item) && header === 'status'}
-								<Status status={item.status} />
-							{:else if isJob(item) && header === 'priority'}
-								<Priority priority={item.priority} />
-							{:else}
-								{formatValue(item, header)}
-							{/if}
-						</TableBodyCell>
-					{/if}
+				{#each $shownColumns[item_type] as header}
+					<TableBodyCell class="hover:underline">
+						{#if isJob(item) && header === 'status'}
+							<Status status={item.status} />
+						{:else if isJob(item) && header === 'priority'}
+							<Priority priority={item.priority} />
+						{:else}
+							{formatValue(item, header)}
+						{/if}
+					</TableBodyCell>
 				{/each}
 				{#if isJob(item)}
 					<TableBodyCell>

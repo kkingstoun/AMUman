@@ -6,8 +6,8 @@
 	export let item_type: ItemTypeString;
 </script>
 
-<Sidebar class="w-2/12 pt-24 pl-3">
-	<SidebarWrapper>
+<Sidebar class="w-3/12 pt-24 pl-3 pr-3 ">
+	<SidebarWrapper class="!bg-gray-800">
 		<ColumnFiters {item_type} />
 	</SidebarWrapper>
 </Sidebar>

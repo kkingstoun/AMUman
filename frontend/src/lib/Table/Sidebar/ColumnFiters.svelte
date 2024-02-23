@@ -6,20 +6,20 @@
 	import type { ItemTypeString } from '$stores/Tables';
 
 	export let item_type: ItemTypeString;
-	function saveToCache() {
-		localStorage.setItem('shownColumns', JSON.stringify($shownColumns));
-	}
 	onMount(() => {
 		const localStorageShownColumns = localStorage.getItem('shownColumns');
 		if (localStorageShownColumns) {
-			$shownColumns[item_type] = JSON.parse(localStorageShownColumns);
+			$shownColumns = JSON.parse(localStorageShownColumns);
 		}
 	});
+	function onChange() {
+		localStorage.setItem('shownColumns', JSON.stringify($shownColumns));
+	}
 </script>
 
 <Heading tag="h3">Columns</Heading>
 {#each $headers[item_type] as column}
-	<Checkbox bind:group={$shownColumns['jobs']} on:change={saveToCache} value={column}
+	<Checkbox bind:group={$shownColumns[item_type]} on:change={onChange} value={column}
 		>{formatString(column)}</Checkbox
 	>
 {/each}
