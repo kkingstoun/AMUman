@@ -91,7 +91,7 @@ export const headers = writable<KeyLists>({
         'error_time',
         'priority',
         'gpu_partition',
-        'estimated_simulation_time',
+        'duration',
         'status',
         'error',
         'flags',

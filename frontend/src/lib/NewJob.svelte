@@ -11,7 +11,7 @@
 		gpu_partition: GpuPartitionEnum.NORMAL,
 		status: JobStatusEnum.PENDING,
 		flags: '',
-		estimated_simulation_time: 1
+		duration: 1
 	};
 
 	const maxPathLength = 500;
@@ -80,13 +80,8 @@
 			/>
 		</div>
 		<div>
-			<label for="estimated_simulation_time" class="block">Estimated Simulation Time (Hours)</label>
-			<input
-				type="number"
-				id="estimated_simulation_time"
-				bind:value={job.estimated_simulation_time}
-				class="input"
-			/>
+			<label for="duration" class="block">Duration (Hours)</label>
+			<input type="number" id="duration" bind:value={job.duration} class="input" />
 		</div>
 
 		<button

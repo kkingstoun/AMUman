@@ -43,7 +43,7 @@ class JobManagementTests(TestCase):
                 "port": random.randint(8000, 9000),
                 "priority": random.choice(["Low", "Normal", "High"]),
                 "gpu_partition": random.choice(["Slow", "Normal", "Fast"]),
-                "estimated_simulation_time": random.randint(1, 100),
+                "duration": random.randint(1, 100),
                 "status": "Waiting",
             }
             response = self.client.post(self.job_url, job_data, format="json")

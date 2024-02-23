@@ -106,7 +106,7 @@ class Job(models.Model):
         choices=[(choice.name, choice.value) for choice in GPUPartition],
         default=GPUPartition.NORMAL.name,
     )
-    estimated_simulation_time = models.PositiveSmallIntegerField(default=1)
+    duration = models.PositiveSmallIntegerField(default=1)
     status = models.CharField(
         max_length=50,
         choices=[(choice.name, choice.value) for choice in JobStatus],

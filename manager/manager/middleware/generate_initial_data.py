@@ -40,7 +40,7 @@ class GenerateRandomJobsMiddleware:
                     gpu_partition=random.choice(
                         [choice.name for choice in Job.GPUPartition]
                     ),
-                    estimated_simulation_time=random.randint(1, 120),
+                    duration=random.randint(1, 120),
                     status=random.choice([choice.name for choice in Job.JobStatus]),
                     node=None,  # Tutaj możesz przypisać losowy węzeł, jeśli masz predefiniowane węzły
                     gpu=None,  # Podobnie, przypisz losowy GPU, jeśli masz predefiniowane GPU
