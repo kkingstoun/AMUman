@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Job } from '$api/Api';
 	import { PriorityEnum, GpuPartitionEnum, JobStatusEnum } from '$api/Api';
-	import { api } from '$stores/store';
+	import { api } from '$stores/Auth';
 
 	let job: Job = {
 		id: 0,

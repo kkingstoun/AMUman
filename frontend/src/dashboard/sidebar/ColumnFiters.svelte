@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { shownColumns } from '$stores/store';
+	import { shownColumns } from '$stores/Tables';
 	import { Checkbox, Heading } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 	import type { Job } from '$api/Api';
+	import { formatString } from '$lib/Utils';
 
 	function saveToCache() {
 		localStorage.setItem('shownColumns', JSON.stringify($shownColumns));
@@ -19,33 +20,26 @@
 		'estimated_simulation_time',
 		'status',
 		'gpu_partition',
-		'assigned_gpu_id',
 		'output',
 		'error',
 		'flags',
 		'node',
 		'gpu'
 	];
-	function formatString(input: string): string {
-		const replacedString = input.replace(/_/g, ' ');
-		const capitalizedString = replacedString.charAt(0).toUpperCase() + replacedString.slice(1);
-
-		return capitalizedString;
-	}
 
 	onMount(() => {
 		const savedColumns = localStorage.getItem('shownColumns');
 		if (savedColumns) {
-			$shownColumns = JSON.parse(savedColumns);
+			$shownColumns['jobs'] = JSON.parse(savedColumns);
 		} else {
-			$shownColumns = ['id', 'path', 'status'];
+			$shownColumns['jobs'] = ['id', 'path', 'status'];
 		}
 	});
 </script>
 
 <Heading tag="h3">Columns</Heading>
 {#each allColumns as column}
-	<Checkbox bind:group={$shownColumns} on:change={saveToCache} value={column}
+	<Checkbox bind:group={$shownColumns['jobs']} on:change={saveToCache} value={column}
 		>{formatString(column)}</Checkbox
 	>
 {/each}

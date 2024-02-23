@@ -1,5 +1,5 @@
 <script lang="ts">
-	import JobList from '$lib/JobList.svelte';
+	import Main from '$lib/Table/main.svelte';
 </script>
 
-<JobList />
+<Main item_type="nodes" />
