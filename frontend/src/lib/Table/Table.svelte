@@ -22,8 +22,6 @@
 		timeSinceLastFetch,
 		type ItemType
 	} from '$stores/Tables';
-	import Status from './Status.svelte';
-	import Priority from './Priority.svelte';
 	import OutputDrawer from './OutputDrawer.svelte';
 	import DeleteItem from './DeleteItem.svelte';
 	import DeleteSelectedItems from './DeleteSelectedItems.svelte';
@@ -31,6 +29,7 @@
 	import { formatValue, formatString } from '../Utils';
 	import type { ItemTypeString } from '$stores/Tables';
 	import type { Job } from '$api/Api';
+	import Badge from '$lib/Table/Badge.svelte';
 
 	export let item_type: ItemTypeString;
 
@@ -48,7 +47,7 @@
 
 		const localStorageSortState = localStorage.getItem('sortState');
 		if (localStorageSortState) {
-			$sortStates[item_type] = JSON.parse(localStorageSortState);
+			$sortStates = JSON.parse(localStorageSortState);
 		}
 
 		sortItems(item_type);
@@ -86,6 +85,9 @@
 	function isJob(item: any): item is Job {
 		return item_type === 'jobs' && 'priority' in item;
 	}
+	function getPropertyValue(item: ItemType, property: string): string | undefined {
+		return (item as any)[property];
+	}
 </script>
 
 <Table shadow hoverable={true}>
@@ -115,12 +117,12 @@
 				</TableBodyCell>
 				{#each $shownColumns[item_type] as header}
 					<TableBodyCell class="hover:underline">
-						{#if isJob(item) && header === 'status'}
-							<Status status={item.status} />
-						{:else if isJob(item) && header === 'priority'}
-							<Priority priority={item.priority} />
-						{:else}
+						{#if ['gpu_partition', 'priority', 'status', 'connection_status', 'speed'].includes(header)}
+							<Badge {header} {item} />
+						{:else if ['gpu_partition', 'priority', 'status', 'connection_status', 'speed'].includes(header)}
 							{formatValue(item, header)}
+						{:else}
+							{getPropertyValue(item, header)}
 						{/if}
 					</TableBodyCell>
 				{/each}
