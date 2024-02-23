@@ -1,7 +1,5 @@
-from django.urls import path
 from rest_framework.routers import DefaultRouter
 
-from .consumers import ManagerConsumer
 from .views import GpusViewSet, JobsViewSet, ManagerSettingsViewSet, NodesViewSet
 
 # Tworzenie instancji DefaultRouter

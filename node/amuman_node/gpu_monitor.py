@@ -19,8 +19,11 @@ class GPU:
     mem_util: int = field(default=0)
     status: str = field(default="Waiting")  # Use default value from GPUStatus
     is_running_amumax: bool = field(default=False)
-    refresh_time: datetime = field(default_factory=lambda: datetime.now())  # Use default_factory
+    refresh_time: datetime = field(
+        default_factory=lambda: datetime.now()
+    )  # Use default_factory
     speed: str = field(default="Normal")  # Add speed field
+
     # Do we want it to run when the GPU class is created?
     def __post_init__(self) -> None:
         self.update_status()

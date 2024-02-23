@@ -40,15 +40,15 @@ class Node(models.Model):
 
 class Gpu(models.Model):
     class GPUStatus(models.TextChoices):
-        WAITING = 'Waiting', _('Waiting')
-        RUNNING = 'Running', _('Running')
-        RESERVED = 'Reserved', _('Reserved')
-        UNAVAILABLE = 'Unavailable', _('Unavailable')
+        WAITING = "Waiting", _("Waiting")
+        RUNNING = "Running", _("Running")
+        RESERVED = "Reserved", _("Reserved")
+        UNAVAILABLE = "Unavailable", _("Unavailable")
 
     class GPUSpeed(models.TextChoices):
-        SLOW = 'Slow', _('Slow')
-        NORMAL = 'Normal', _('Normal')
-        FAST = 'Fast', _('Fast')
+        SLOW = "Slow", _("Slow")
+        NORMAL = "Normal", _("Normal")
+        FAST = "Fast", _("Fast")
 
     device_id = models.PositiveSmallIntegerField()
     uuid = models.UUIDField(unique=True)
@@ -129,15 +129,19 @@ class Job(models.Model):
 class ManagerSettings(models.Model):
     queue_watchdog = models.BooleanField(default=False)
 
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    concurrent_jobs = models.IntegerField(default=0, choices=[(x, str(x)) for x in range(11)])
+    concurrent_jobs = models.IntegerField(
+        default=0, choices=[(x, str(x)) for x in range(11)]
+    )
 
     def __str__(self):
         return self.user.username
 
+
 @receiver(post_save, sender=User)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
+def create_or_update_user_profile(_sender, instance, created, **_kwargs):
     if created:
         UserProfile.objects.create(user=instance)
     instance.userprofile.save()
