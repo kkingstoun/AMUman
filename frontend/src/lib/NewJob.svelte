@@ -21,65 +21,74 @@
 	}
 </script>
 
-<form class="space-y-4 text-white p-4 rounded">
-	<div>
-		<label for="path" class="block">Path</label>
-		<input
-			type="text"
-			id="path"
-			bind:value={job.path}
-			class="input"
-			maxlength={maxPathLength}
-			required
-		/>
-	</div>
-	<div>
-		<label for="priority" class="block">Priority</label>
-		<select id="priority" bind:value={job.priority} class="input">
-			<option value="" disabled>Select priority</option>
-			{#each Object.values(PriorityEnum) as option}
-				<option value={option}>{option}</option>
-			{/each}
-		</select>
-	</div>
-	<div>
-		<label for="gpu_partition" class="block">GPU Partition</label>
-		<select id="gpu_partition" bind:value={job.gpu_partition} class="input">
-			<option value="" disabled>Select GPU partition</option>
-			{#each Object.values(GpuPartitionEnum) as option}
-				<option value={option}>{option}</option>
-			{/each}
-		</select>
-	</div>
-	<div>
-		<label for="status" class="block">Status</label>
-		<select id="status" bind:value={job.status} class="input">
-			<option value="" disabled>Select status</option>
-			{#each Object.values(JobStatusEnum) as option}
-				<option value={option}>{option}</option>
-			{/each}
-		</select>
-	</div>
-	<div>
-		<label for="flags" class="block">Flags</label>
-		<input type="text" id="flags" bind:value={job.flags} class="input" maxlength={maxFlagsLength} />
-	</div>
-	<div>
-		<label for="estimated_simulation_time" class="block">Estimated Simulation Time (Hours)</label>
-		<input
-			type="number"
-			id="estimated_simulation_time"
-			bind:value={job.estimated_simulation_time}
-			class="input"
-		/>
-	</div>
+<div class="flex flex-col items-center mx-auto w-5/12">
+	<h1 class="text-4xl text-white">New Job</h1>
+	<form class="space-y-4 text-white p-4 rounded w-full">
+		<div>
+			<label for="path" class="block">Path</label>
+			<input
+				type="text"
+				id="path"
+				bind:value={job.path}
+				class="input"
+				maxlength={maxPathLength}
+				required
+			/>
+		</div>
+		<div>
+			<label for="priority" class="block">Priority</label>
+			<select id="priority" bind:value={job.priority} class="input">
+				<option value="" disabled>Select priority</option>
+				{#each Object.values(PriorityEnum) as option}
+					<option value={option}>{option}</option>
+				{/each}
+			</select>
+		</div>
+		<div>
+			<label for="gpu_partition" class="block">GPU Partition</label>
+			<select id="gpu_partition" bind:value={job.gpu_partition} class="input">
+				<option value="" disabled>Select GPU partition</option>
+				{#each Object.values(GpuPartitionEnum) as option}
+					<option value={option}>{option}</option>
+				{/each}
+			</select>
+		</div>
+		<div>
+			<label for="status" class="block">Status</label>
+			<select id="status" bind:value={job.status} class="input">
+				<option value="" disabled>Select status</option>
+				{#each Object.values(JobStatusEnum) as option}
+					<option value={option}>{option}</option>
+				{/each}
+			</select>
+		</div>
+		<div>
+			<label for="flags" class="block">Flags</label>
+			<input
+				type="text"
+				id="flags"
+				bind:value={job.flags}
+				class="input"
+				maxlength={maxFlagsLength}
+			/>
+		</div>
+		<div>
+			<label for="estimated_simulation_time" class="block">Estimated Simulation Time (Hours)</label>
+			<input
+				type="number"
+				id="estimated_simulation_time"
+				bind:value={job.estimated_simulation_time}
+				class="input"
+			/>
+		</div>
 
-	<button
-		type="submit"
-		class="ml-4 bg-violet-900 hover:bg-violet-950 text-white font-bold py-2 px-4 rounded"
-		on:click={submitJob}>Submit</button
-	>
-</form>
+		<button
+			type="submit"
+			class="ml-4 bg-violet-900 hover:bg-violet-950 text-white font-bold py-2 px-4 rounded"
+			on:click={submitJob}>Submit</button
+		>
+	</form>
+</div>
 
 <style>
 	.input {
