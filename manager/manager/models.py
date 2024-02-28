@@ -6,7 +6,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-
+from django.core.exceptions import ValidationError
 
 class Node(models.Model):
     class NodeStatus(Enum):
@@ -127,7 +127,10 @@ class Job(models.Model):
 
 class ManagerSettings(models.Model):
     queue_watchdog = models.BooleanField(default=False)
-
+    def save(self, *args, **kwargs):
+        if not self.pk and ManagerSettings.objects.exists():
+            raise ValidationError('Może istnieć tylko jeden wpis ManagerSettings.')
+        return super().save(*args, **kwargs)
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

@@ -91,7 +91,12 @@ class GpusSerializer(serializers.ModelSerializer):
             return super().save(**kwargs)
 
 
-class MSSerializer(serializers.ModelSerializer):
+class ManagerSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ManagerSettings
-        fields = "__all__"
+        fields = '__all__'
+
+    def create(self, validated_data):
+        if ManagerSettings.objects.exists():
+            raise serializers.ValidationError('You cannoc duplicate this entrypoint.')
+        return ManagerSettings.objects.create(**validated_data)

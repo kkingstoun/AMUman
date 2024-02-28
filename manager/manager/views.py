@@ -15,7 +15,7 @@ from .models import Gpu, Job, ManagerSettings, Node
 from .serializers import (
     GpusSerializer,
     JobSerializer,
-    MSSerializer,
+    ManagerSettingsSerializer,
     NodesSerializer,
     RefreshNodeSerializer,
 )
@@ -190,5 +190,6 @@ class NodesViewSet(viewsets.ModelViewSet):
 
 class ManagerSettingsViewSet(viewsets.ModelViewSet):
     queryset = ManagerSettings.objects.all()
-    serializer_class = MSSerializer
+    serializer_class = ManagerSettingsSerializer
     permission_classes: ClassVar = [permissions.IsAuthenticated]
+    http_method_names = ['patch', 'head', 'options']  # Zezwól tylko na PATCH
