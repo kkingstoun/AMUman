@@ -121,6 +121,7 @@ class Job(models.Model):
     output = models.TextField(null=True, blank=True)
     error = models.TextField(null=True, blank=True)
     flags = models.CharField(max_length=150, null=True, blank=True)
+    user = models.CharField(max_length=150)
 
     def __str__(self):
         return f"{self.id}:{self.path[-50:]}"

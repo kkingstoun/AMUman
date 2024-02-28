@@ -97,7 +97,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -126,7 +125,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -149,7 +147,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -183,7 +180,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -216,7 +212,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -238,7 +233,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
@@ -269,7 +263,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -865,6 +858,9 @@ components:
           type: string
           nullable: true
           maxLength: 150
+        user:
+          type: string
+          maxLength: 150
         node:
           type: integer
           nullable: true
@@ -874,6 +870,7 @@ components:
       required:
       - id
       - path
+      - user
     JobStatusEnum:
       enum:
       - Waiting
@@ -978,6 +975,9 @@ components:
           type: string
           nullable: true
           maxLength: 150
+        user:
+          type: string
+          maxLength: 150
         node:
           type: integer
           nullable: true
@@ -996,12 +996,12 @@ components:
       enum:
       - LOW
       - Normal
-      - High
+      - HIGH
       type: string
       description: |-
         * `LOW` - Low
         * `Normal` - Normal
-        * `High` - High
+        * `HIGH` - High
     RefreshNode:
       type: object
       properties:

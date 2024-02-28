@@ -12,7 +12,13 @@ from rest_framework.response import Response
 
 from .components.run_job import RunJob
 from .models import Gpu, Job, ManagerSettings, Node
-from .serializers import GpusSerializer, JobSerializer, MSSerializer, NodesSerializer, RefreshNodeSerializer
+from .serializers import (
+    GpusSerializer,
+    JobSerializer,
+    MSSerializer,
+    NodesSerializer,
+    RefreshNodeSerializer,
+)
 
 log = logging.getLogger("rich")
 
@@ -20,7 +26,7 @@ log = logging.getLogger("rich")
 class JobsViewSet(viewsets.ModelViewSet):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
-    # permission_classes: ClassVar = [permissions.IsAuthenticated]
+    permission_classes: ClassVar = [permissions.IsAuthenticated]
 
     def list(self, request, *_args, **_kwargs):
         max_id = request.query_params.get("max_id")
@@ -32,7 +38,6 @@ class JobsViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, _request, *_args, **_kwargs):
         data = JobSerializer(instance=self.get_object()).data
-        data["user"] = "hsi"
         return Response(data)
 
     def create(self, request, *_args, **_kwargs):
@@ -54,7 +59,7 @@ class JobsViewSet(viewsets.ModelViewSet):
                 return Response({"error": "Gpu unavalible."}, status=status.HTTP_400_BAD_REQUEST)
 
             self.rt = RunJob()
-            self.rt.run_job(job=job, request=request)
+            self.rt.run_job(job=job, request=_request)
 
             return Response({"message": f"Job {pk} started successfully."}, status=status.HTTP_200_OK)
         except Job.DoesNotExist:

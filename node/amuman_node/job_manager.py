@@ -1,10 +1,9 @@
 import asyncio
 import logging
-from dataclasses import asdict
+from datetime import datetime
 from typing import Any, Dict
 
-import httpx  # Użyj httpx dla asynchronicznych zapytań HTTP
-from datetime import datetime, timezone
+import httpx
 
 from .job import Job, JobStatus
 
@@ -12,9 +11,10 @@ log = logging.getLogger("rich")
 
 
 class JobManager:
-    def __init__(self, node_id: int, manager_url: str) -> None:
+    def __init__(self, node_id: int, manager_url: str, token: str) -> None:
         self.node_id: int = node_id
         self.manager_url: str = manager_url
+        self.token = token
 
     async def run_job(self, job_id: int) -> None:
         self.job = await self.fetch_job_from_manager(job_id)
@@ -26,10 +26,13 @@ class JobManager:
 
     async def post_updated_job_to_manager(self) -> None:
         url: str = f"http://{self.manager_url}/api/jobs/{self.job.id}/"
+        headers = {
+            "Authorization": f"Bearer {self.token}"
+        }
         async with httpx.AsyncClient() as client:
             try:
                 log.debug(f"Sending updated job to `{url}`")
-                response = await client.put(url, json=self.job.asdict)
+                response = await client.put(url, json=self.job.asdict, headers=headers)
                 if response.status_code <= 400:
                     updated_job: Dict[str, Any] = response.json()
                     log.debug(f"Received updated job: {updated_job}")
@@ -40,11 +43,14 @@ class JobManager:
 
     async def fetch_job_from_manager(self, job_id: int) -> Job:
         url: str = f"http://{self.manager_url}/api/jobs/{job_id}/"
+        headers = {
+            "Authorization": f"Bearer {self.token}"
+        }
         job_data: Dict[
             str, Any
         ] = {}
         async with httpx.AsyncClient() as client:
-            response = await client.get(url)
+            response = await client.get(url, headers=headers)
             if response.status_code == 200:
                 job_data = response.json()
                 log.debug(f"Received job: {job_data}")

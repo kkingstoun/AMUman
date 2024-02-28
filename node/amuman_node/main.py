@@ -35,12 +35,10 @@ class NodeClient:
         log.debug(
             f"Manager URL: '{self.manager_url}', Node ID: {self.node_id}, Node Name: '{self.node_name}'"
         )
-
-        self.job_manager: JobManager = JobManager(self.node_id, self.manager_url)
         self.reconnect_attempts: int = 10
-        self.reconnect_delay: int = 30
+        self.reconnect_delay: int = 30  
         self.gpm: Optional[GPUMonitor] = None
-        self.access_token: Optional[str] = None
+        self.access_token: str
         self.refresh_token: Optional[str] = None
 
     async def start(self) -> None:
@@ -182,6 +180,7 @@ class NodeClient:
                 await self.execute_update_gpus(self.node_id)
             elif command == "run_job":
                 log.info("Running job")
+                self.job_manager: JobManager = JobManager(self.node_id, self.manager_url, token=self.access_token)
                 await self.job_manager.run_job(data["job_id"])
             else:
                 log.error(f"Unknown command: {command}")

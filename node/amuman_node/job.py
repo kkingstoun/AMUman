@@ -31,6 +31,7 @@ class Job:
     user: str
     node: int
     gpu: int
+    user: str
     port: Optional[int] = None
     submit_time: Optional[str] = None
     start_time: Optional[str] = None

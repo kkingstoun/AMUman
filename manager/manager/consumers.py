@@ -75,7 +75,9 @@ class ManagerConsumer(AsyncWebsocketConsumer):
                 await self.update_node_status(
                     data["node_id"], "Connected", data["node_name"]
                 )
+                await self.update_node_status(self.node_id, 'Connected')
                 print("Registering node", data.get("node_name"))
+                
             except Exception as e:
                 print("Error", data.get("node_name"), str(e))
                 await self.update_node_status(

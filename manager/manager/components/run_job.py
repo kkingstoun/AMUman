@@ -42,19 +42,20 @@ class RunJob:
         try:
             if gpu is None:
                 gpu = self.find_gpu(job.gpu_partition)
-            self.check_connection(gpu)
-            job.node=gpu.node
-            job.gpu=gpu
-            job.save()
-            self.send_run_command(job, gpu)
-            time.sleep(3)
-            if request is not None:
-                return self.handle_response( 
-                    request,
-                    f"Job {job.id} is running on GPU {gpu.id}.",
-                    "success",
-                    200,
-                )
+            if self.check_connection(gpu):
+                job.node=gpu.node
+                job.gpu=gpu
+                job.save()
+                self.send_run_command(job, gpu)
+                time.sleep(3)
+                if request is not None:
+                    return self.handle_response( 
+                        request,
+                        f"Job {job.id} is running on GPU {gpu.id}.",
+                        "success",
+                        200,
+                    )
+            
         except Exception as e:
             time.sleep(self.time_break)
             self.time_break += 5
