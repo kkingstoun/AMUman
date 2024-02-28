@@ -42,13 +42,19 @@ class JobsViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *_args, **_kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        log.debug(f"Job created: {serializer.data}")
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
+        try:
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            log.debug(f"Job created: {serializer.data}")
+            return Response(
+                serializer.data, status=status.HTTP_201_CREATED, headers=headers
+            )
+        except ValidationError as e:
+            log.error(f"Job not created: {e}")
+            return Response(
+                f"Job not created: {e}", status=status.HTTP_400_BAD_REQUEST, headers=headers
+            )
 
     @action(detail=True, methods=["post"])
     def start(self, _request, pk=None):

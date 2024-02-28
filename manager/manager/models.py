@@ -74,9 +74,9 @@ class Gpu(models.Model):
 
 class Job(models.Model):
     class JobPriority(Enum):
-        LOW = "Low"
+        Low = "Low"
         Normal = "Normal"
-        HIGH = "High"
+        High = "High"
 
     class JobStatus(Enum):
         Waiting = "Waiting"
