@@ -10,13 +10,12 @@ from manager.models import Job, Node
 
 class ManagerConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-    # Authentication should be done in JWTAuthMiddleware
+        # Authentication should be done in JWTAuthMiddleware
         if self.scope["user"] is AnonymousUser:
             await self.close()
         else:
             await self.channel_layer.group_add("nodes_group", self.channel_name)
             await self.accept()
-
 
     async def disconnect(self, _close_code):
         await self.channel_layer.group_discard("nodes_group", self.channel_name)
@@ -105,7 +104,3 @@ class ManagerConsumer(AsyncWebsocketConsumer):
         response_message = {key: event[key] for key in event if key != "type"}
         # Wysyłanie odpowiedzi do klienta 'node'
         await self.send(text_data=json.dumps(response_message))
-
-
-
-

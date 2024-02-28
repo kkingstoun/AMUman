@@ -28,7 +28,7 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
 class NodeClient:
-    def __init__(self   ) -> None:
+    def __init__(self) -> None:
         self.manager_url: str = os.getenv("MANAGER_URL", "localhost:8000")
         self.node_id: int = int(os.getenv("NODE_ID", 0))
         self.node_name: str = os.getenv("NODE_NAME", str(uuid.uuid1()))
@@ -109,9 +109,10 @@ class NodeClient:
                     self.gpm.api_post("assign")
                 return True
             else:
-                log.error(f"Failed to register node. Status Code: {response.status_code}")
+                log.error(
+                    f"Failed to register node. Status Code: {response.status_code}"
+                )
                 log.debug(response.text)
-
 
         except requests.exceptions.ConnectionError:
             log.error(f"Couldn't connect to the manager ({self.manager_url})")

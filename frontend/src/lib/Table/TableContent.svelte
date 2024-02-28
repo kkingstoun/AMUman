@@ -20,18 +20,16 @@
 		lastFetchTime,
 		selectedItems,
 		timeSinceLastFetch,
-		headers,
 		type ItemType
 	} from '$stores/Tables';
-	import Status from './Status.svelte';
-	import Priority from './Priority.svelte';
 	import OutputDrawer from './OutputDrawer.svelte';
 	import DeleteItem from './DeleteItem.svelte';
 	import DeleteSelectedItems from './DeleteSelectedItems.svelte';
 	import RunJob from './RunJob.svelte';
-	import { formatValue } from '../Utils';
+	import { formatValue, formatString } from '../Utils';
 	import type { ItemTypeString } from '$stores/Tables';
 	import type { Job } from '$api/Api';
+	import Badge from '$lib/Table/Badge.svelte';
 
 	export let item_type: ItemTypeString;
 
@@ -49,7 +47,7 @@
 
 		const localStorageSortState = localStorage.getItem('sortState');
 		if (localStorageSortState) {
-			$sortStates[item_type] = JSON.parse(localStorageSortState);
+			$sortStates = JSON.parse(localStorageSortState);
 		}
 
 		sortItems(item_type);
@@ -84,34 +82,32 @@
 			}
 		}
 	}
-	function columnIsShown(header: string): boolean {
-		return $shownColumns[item_type].includes(header as keyof ItemType);
-	}
 	function isJob(item: any): item is Job {
 		return item_type === 'jobs' && 'priority' in item;
+	}
+	function getPropertyValue(item: ItemType, property: string): string | undefined {
+		return (item as any)[property];
 	}
 </script>
 
 <Table shadow hoverable={true}>
-	<TableHead>
+	<TableHead class="sticky top-0">
 		<TableHeadCell class="flex items-center !p-4 space-x-2">
 			<Checkbox on:change={(event) => allCheckBoxes(event)} />
 			{#if $selectedItems[item_type].length > 0}
 				<DeleteSelectedItems {item_type} />
 			{/if}
 		</TableHeadCell>
-		{#each $headers[item_type] as header}
-			{#if columnIsShown(header)}
-				<TableHeadCell on:click={() => updateSortState(header)}>
-					{header}
-				</TableHeadCell>
-			{/if}
+		{#each $shownColumns[item_type] as header}
+			<TableHeadCell on:click={() => updateSortState(header)}>
+				{formatString(header)}
+			</TableHeadCell>
 		{/each}
 		{#if item_type === 'jobs'}
 			<TableHeadCell>Output</TableHeadCell>
-			<TableHeadCell>Delete</TableHeadCell>
+			<TableHeadCell>Run</TableHeadCell>
 		{/if}
-		<TableHeadCell>Run</TableHeadCell>
+		<TableHeadCell>Delete</TableHeadCell>
 	</TableHead>
 	<TableBody>
 		{#each $itemlist[item_type] as item}
@@ -119,18 +115,16 @@
 				<TableBodyCell class="!p-4">
 					<Checkbox bind:group={$selectedItems[item_type]} value={item.id} />
 				</TableBodyCell>
-				{#each $headers[item_type] as header}
-					{#if columnIsShown(header)}
-						<TableBodyCell class="hover:underline">
-							{#if isJob(item) && header === 'status'}
-								<Status status={item.status} />
-							{:else if isJob(item) && header === 'priority'}
-								<Priority priority={item.priority} />
-							{:else}
-								{formatValue(item, header)}
-							{/if}
-						</TableBodyCell>
-					{/if}
+				{#each $shownColumns[item_type] as header}
+					<TableBodyCell class="hover:underline">
+						{#if ['gpu_partition', 'priority', 'status', 'connection_status', 'speed'].includes(header)}
+							<Badge {header} {item} />
+						{:else if ['gpu_partition', 'priority', 'status', 'connection_status', 'speed'].includes(header)}
+							{formatValue(item, header)}
+						{:else}
+							{getPropertyValue(item, header)}
+						{/if}
+					</TableBodyCell>
 				{/each}
 				{#if isJob(item)}
 					<TableBodyCell>

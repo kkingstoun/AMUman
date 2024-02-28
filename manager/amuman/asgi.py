@@ -18,12 +18,15 @@ from manager.middleware.JWTAuthMiddleware import JwtAuthMiddleware
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "amuman.settings")
 
-application = ProtocolTypeRouter({
-            "http": get_asgi_application(),
-            "websocket": JwtAuthMiddleware(
-                URLRouter([
-                      path("ws/node/", ManagerConsumer.as_asgi()),
-                ])
-            ),
+application = ProtocolTypeRouter(
+    {
+        "http": get_asgi_application(),
+        "websocket": JwtAuthMiddleware(
+            URLRouter(
+                [
+                    path("ws/node/", ManagerConsumer.as_asgi()),
+                ]
+            )
+        ),
     }
 )

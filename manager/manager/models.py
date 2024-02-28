@@ -106,7 +106,7 @@ class Job(models.Model):
         choices=[(choice.name, choice.value) for choice in GPUPartition],
         default=GPUPartition.Normal.name,
     )
-    estimated_simulation_time = models.PositiveSmallIntegerField(default=1)
+    duration = models.PositiveSmallIntegerField(default=1)
     status = models.CharField(
         max_length=50,
         choices=[(choice.name, choice.value) for choice in JobStatus],
@@ -129,15 +129,19 @@ class Job(models.Model):
 class ManagerSettings(models.Model):
     queue_watchdog = models.BooleanField(default=False)
 
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    concurrent_jobs = models.IntegerField(default=0, choices=[(x, str(x)) for x in range(11)])
+    concurrent_jobs = models.IntegerField(
+        default=0, choices=[(x, str(x)) for x in range(11)]
+    )
 
     def __str__(self):
         return self.user.username
 
+
 @receiver(post_save, sender=User)
-def create_or_update_user_profile(sender, instance, created, **kwargs):
+def create_or_update_user_profile(_sender, instance, created, **_kwargs):
     if created:
         UserProfile.objects.create(user=instance)
     instance.userprofile.save()

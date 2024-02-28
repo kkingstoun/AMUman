@@ -128,7 +128,7 @@ export interface Job {
 	 * @min 0
 	 * @max 9223372036854776000
 	 */
-	estimated_simulation_time?: number;
+	duration?: number;
 	/**
 	 * * `WAITING` - Waiting
 	 * * `PENDING` - Pending
@@ -291,7 +291,7 @@ export interface PatchedJob {
 	 * @min 0
 	 * @max 9223372036854776000
 	 */
-	estimated_simulation_time?: number;
+	duration?: number;
 	/**
 	 * * `WAITING` - Waiting
 	 * * `PENDING` - Pending

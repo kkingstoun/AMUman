@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Navbar, NavBrand, NavUl, NavHamburger, NavLi } from 'flowbite-svelte';
-	import Logout from './navbar/Logout.svelte';
-	import Github from './navbar/Github.svelte';
+	import Logout from './Logout.svelte';
+	import Github from './Github.svelte';
 </script>
 
 <Navbar class="!bg-gray-800">

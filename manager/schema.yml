@@ -848,7 +848,7 @@ components:
           $ref: '#/components/schemas/PriorityEnum'
         gpu_partition:
           $ref: '#/components/schemas/GpuPartitionEnum'
-        estimated_simulation_time:
+        duration:
           type: integer
           maximum: 9223372036854775807
           minimum: 0
@@ -961,7 +961,7 @@ components:
           $ref: '#/components/schemas/PriorityEnum'
         gpu_partition:
           $ref: '#/components/schemas/GpuPartitionEnum'
-        estimated_simulation_time:
+        duration:
           type: integer
           maximum: 9223372036854775807
           minimum: 0

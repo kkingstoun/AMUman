@@ -4,7 +4,7 @@ from datetime import timedelta
 from django.core.exceptions import MiddlewareNotUsed
 from django.utils import timezone
 
-from manager.models import ( 
+from manager.models import (
     Job,
 )
 
@@ -13,7 +13,9 @@ class GenerateRandomJobsMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
         self.generate_random_jobs()
-        raise MiddlewareNotUsed('GenerateRandomJobsMiddleware is disabled after initial use.')
+        raise MiddlewareNotUsed(
+            "GenerateRandomJobsMiddleware is disabled after initial use."
+        )
 
     def generate_random_jobs(self):
         if not Job.objects.exists():  # Sprawdza, czy jakiekolwiek zadania już istnieją
@@ -21,7 +23,11 @@ class GenerateRandomJobsMiddleware:
                 submit_time = timezone.now() - timedelta(days=random.randint(0, 10))
                 start_time = submit_time + timedelta(minutes=random.randint(1, 60))
                 end_time = start_time + timedelta(hours=random.randint(1, 3))
-                error_time = None if random.choice([True, False]) else start_time + timedelta(minutes=random.randint(1, 30))
+                error_time = (
+                    None
+                    if random.choice([True, False])
+                    else start_time + timedelta(minutes=random.randint(1, 30))
+                )
 
                 job = Job(
                     path=f"/example/path/{random.randint(1, 100)}",
@@ -41,7 +47,8 @@ class GenerateRandomJobsMiddleware:
                     flags="Random flags" if random.choice([True, False]) else None,
                 )
                 job.save()
-            print('Successfully generated 10 random job entries')
+            print("Successfully generated 10 random job entries")
+
     def __call__(self, request):
         response = self.get_response(request)
         return response
