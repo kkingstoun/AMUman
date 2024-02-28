@@ -996,12 +996,12 @@ components:
       enum:
       - LOW
       - Normal
-      - HIGH
+      - High
       type: string
       description: |-
         * `LOW` - Low
         * `Normal` - Normal
-        * `HIGH` - High
+        * `High` - High
     RefreshNode:
       type: object
       properties:

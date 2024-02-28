@@ -137,21 +137,23 @@ class NodeClient:
         while True:
             try:
                 async with websockets.connect(
-                    f"ws://{self.manager_url}/ws/node/?token={self.access_token}"
+                    f"ws://{self.manager_url}/ws/node/?token={self.access_token}&node_id={self.node_id}"
                 ) as websocket:
                     log.debug(f"Registering with the manager: {self.manager_url}")
                     await self.register_websocket(websocket)
                     log.debug(f"Registered with the manager: {self.manager_url}")
                     await self.handle_connection(websocket)
+            except websockets.exceptions.WebSocketException as e:
+                log.warning(f"WebSocket connection failed: {e}")
             except Exception as e:
-                log.warning("WebSocket connection error")
-                log.exception(f"WebSocket connection error: {e}")
-
-            if self.reconnect_attempts > 0:
-                log.warning(f"{self.reconnect_attempts} reconnection attempts left")
-                log.warning(f"Reconnecting in {self.reconnect_delay} seconds...")
-                await asyncio.sleep(self.reconnect_delay)
-                self.reconnect_attempts -= 1
+                log.exception(f"Unexpected error: {e}")
+            finally:
+                if self.reconnect_attempts > 0:
+                    log.info(f"Reconnecting in {self.reconnect_delay} seconds...")
+                    await asyncio.sleep(self.reconnect_delay)
+                    self.reconnect_attempts -= 1
+                else:
+                    log.error("Maximum reconnect attempts reached. Giving up.")
 
     async def handle_connection(
         self, websocket: websockets.WebSocketClientProtocol

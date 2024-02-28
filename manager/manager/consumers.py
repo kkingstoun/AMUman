@@ -1,4 +1,6 @@
+import asyncio
 import json
+from urllib.parse import parse_qs
 
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -10,6 +12,8 @@ from manager.models import Job, Node
 
 class ManagerConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        query_string = parse_qs(self.scope['query_string'].decode('utf8'))
+        self.node_id = query_string.get('node_id', [None])[0]  # Pobieranie wartości 'node_id'
         # Authentication should be done in JWTAuthMiddleware
         if self.scope["user"] is AnonymousUser:
             await self.close()
@@ -18,9 +22,9 @@ class ManagerConsumer(AsyncWebsocketConsumer):
             await self.accept()
 
     async def disconnect(self, _close_code):
+        if hasattr(self, 'node_id'):
+            await self.update_node_status(self.node_id, 'disconnected')
         await self.channel_layer.group_discard("nodes_group", self.channel_name)
-        await self.update_node_status(self.node_id, 'disconnected')
-        # Schedule Job interruption check
         asyncio.ensure_future(self.interrupt_long_disconnected_Jobs())
 
     @database_sync_to_async
@@ -52,10 +56,15 @@ class ManagerConsumer(AsyncWebsocketConsumer):
 
 
     @database_sync_to_async
-    def update_node_status(self, node_id, name, connection_status):
-        return Node.objects.filter(id=node_id).update(
-            name=name, connection_status=connection_status
-        )
+    def update_node_status(self, node_id,  connection_status, name=None):
+        if name is not None:
+            return Node.objects.filter(id=node_id).update(
+                name=name, connection_status=connection_status
+            )
+        else:
+            return Node.objects.filter(id=node_id).update(
+                connection_status=connection_status
+            )
 
     async def receive(self, text_data):
         # Rozłóż wiadomość na dane
@@ -64,13 +73,13 @@ class ManagerConsumer(AsyncWebsocketConsumer):
         if data.get("command", None) == "register":
             try:
                 await self.update_node_status(
-                    data["node_id"], data["node_name"], "Connected"
+                    data["node_id"], "Connected", data["node_name"]
                 )
                 print("Registering node", data.get("node_name"))
             except Exception as e:
                 print("Error", data.get("node_name"), str(e))
                 await self.update_node_status(
-                    data["node_id"], data["node_name"], "Disconnected"
+                    data["node_id"], "Disconnected", data["node_name"]
                 )
         else:
             await self.send_test_message("test")

@@ -3,7 +3,6 @@ from venv import logger
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from django.utils import timezone
 from rest_framework.response import Response
 
 from manager.models import Gpu
@@ -12,9 +11,9 @@ from manager.models import Gpu
 class RunJob:
     def __init__(self) -> None:
         self.time_break = 5
-        
+
     def find_gpu(self, partition):
-        gpu = Gpu.objects.filter(status="Waiting", 
+        gpu = Gpu.objects.filter(status="Waiting",
                                 #  speed=partition                 #TEMPORARY DISABLED
                                  ).first()
         if gpu is None:
@@ -25,30 +24,34 @@ class RunJob:
             return None
         return gpu
 
+
+    def check_connection(self,gpu):
+        for _ in range(5):
+            if gpu.node.connection_status == "Connected":
+                return True
+            else:
+                print(f"Node {gpu.node.name} is not connected. Attempting to reconnect in {self.time_break} seconds...")
+                time.sleep(self.time_break)
+                self.time_break += 5  # Zwiększenie opóźnienia dla kolejnej próby
+
+        # Jeśli pętla zakończy się bez powodzenia, logujemy błąd
+        logger.error(f"Node {gpu.node.name} is not connected after multiple attempts.")
+        return False
+
     def run_job(self, job=None, gpu=None, request=None):
         try:
             if gpu is None:
                 gpu = self.find_gpu(job.gpu_partition)
-                if gpu.node.status != "Connected":
-                    time.sleep(self.time_break)
-                    self.time_break += 5
-                    print(f"Node {gpu.node.name} is not connected.")
-                    logger.error(f"Node {gpu.node.name} is not connected.")
-                    return self.handle_response(
-                        request,
-                        f"Node {gpu.node.name} is not connected.",
-                        "danger",
-                        400,
-                    )
-            # Send job run command to the node managing the selected GPU
+            self.check_connection(gpu)
             job.node=gpu.node
             job.gpu=gpu
+            job.save()
             self.send_run_command(job, gpu)
             time.sleep(3)
             if request is not None:
-                return self.handle_response(
+                return self.handle_response( 
                     request,
-                    f"Job {gpu.job_id.id} is running on GPU {gpu.id}.",
+                    f"Job {job.id} is running on GPU {gpu.id}.",
                     "success",
                     200,
                 )
@@ -63,7 +66,7 @@ class RunJob:
                 logger.error(e)
 
     def send_run_command(self, job, _gpu):
-        
+
         try:
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
@@ -79,7 +82,7 @@ class RunJob:
         except Exception as e:
             print(f"send_run_command: {e}")
             logger.error(e)
-            
+
     def handle_response(self, request, message, tag, status_code=200):
         if (
             request.accepted_renderer.format == "json"
