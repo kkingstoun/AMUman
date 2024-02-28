@@ -22,7 +22,7 @@ class GPU:
     refresh_time: datetime = field(
         default_factory=lambda: datetime.now()
     )  # Use default_factory
-    speed: str = field(default="Normal")  # Add speed field
+    speed: str = field(default="NORMAL")  # Add speed field
 
     # Do we want it to run when the GPU class is created?
     def __post_init__(self) -> None:
@@ -63,9 +63,9 @@ class GPU:
 
     def get_gpu_load_status(self, threshold: int = 30) -> str:
         if self.gpu_util < threshold and self.mem_util < threshold:
-            status = "Waiting"
+            status = "WAITING"
         else:
-            status = "Unavailable"
+            status = "UNAVAILABLE"
         log.debug(f"GPU {self.device_id} status: {status}")
         return status
 
@@ -92,41 +92,41 @@ class GPU:
 
     def get_gpu_performance_category(self) -> str:
         gpu_performance = {
-            "NVIDIA GeForce GTX 960": "Slow",
-            "NVIDIA GeForce GTX 970": "Slow",
-            "NVIDIA GeForce GTX 980": "Slow",
-            "NVIDIA GeForce GTX 980 Ti": "Slow",
-            "NVIDIA GeForce GTX 1050": "Slow",
-            "NVIDIA GeForce GTX 1050 Ti": "Slow",
-            "NVIDIA GeForce GTX 1060": "Normal",
-            "NVIDIA GeForce GTX 1070": "Normal",
-            "NVIDIA GeForce GTX 1070 Ti": "Normal",
-            "NVIDIA GeForce GTX 1080": "Normal",
-            "NVIDIA GeForce GTX 1080 Ti": "Normal",
-            "NVIDIA GeForce GTX 1650": "Slow",
-            "NVIDIA GeForce GTX 1650 SUPER": "Normal",
-            "NVIDIA GeForce GTX 1660": "Normal",
-            "NVIDIA GeForce GTX 1660 SUPER": "Normal",
-            "NVIDIA GeForce GTX 1660 Ti": "Normal",
-            "NVIDIA GeForce RTX 2060": "Normal",
-            "NVIDIA GeForce RTX 2060 SUPER": "Normal",
-            "NVIDIA GeForce RTX 2070": "Normal",
-            "NVIDIA GeForce RTX 2070 SUPER": "Fast",
-            "NVIDIA GeForce RTX 2080": "Fast",
-            "NVIDIA GeForce RTX 2080 SUPER": "Fast",
-            "NVIDIA GeForce RTX 2080 Ti": "Fast",
-            "NVIDIA GeForce RTX 3060": "Normal",
-            "NVIDIA GeForce RTX 3060 Ti": "Fast",
-            "NVIDIA GeForce RTX 3070": "Fast",
-            "NVIDIA GeForce RTX 3070 Ti": "Fast",
-            "NVIDIA GeForce RTX 3080": "Fast",
-            "NVIDIA GeForce RTX 3080 Ti": "Fast",
-            "NVIDIA GeForce RTX 3090": "Fast",
-            "NVIDIA GeForce RTX 3090 Ti": "Fast",
-            "NVIDIA GeForce RTX 4070": "Fast",
-            "NVIDIA GeForce RTX 4070 Ti": "Fast",
-            "NVIDIA GeForce RTX 4080": "Fast",
-            "NVIDIA GeForce RTX 4090": "Fast",
+            "NVIDIA GeForce GTX 960": "SLOW",
+            "NVIDIA GeForce GTX 970": "SLOW",
+            "NVIDIA GeForce GTX 980": "SLOW",
+            "NVIDIA GeForce GTX 980 Ti": "SLOW",
+            "NVIDIA GeForce GTX 1050": "SLOW",
+            "NVIDIA GeForce GTX 1050 Ti": "SLOW",
+            "NVIDIA GeForce GTX 1060": "NORMAL",
+            "NVIDIA GeForce GTX 1070": "NORMAL",
+            "NVIDIA GeForce GTX 1070 Ti": "NORMAL",
+            "NVIDIA GeForce GTX 1080": "NORMAL",
+            "NVIDIA GeForce GTX 1080 Ti": "NORMAL",
+            "NVIDIA GeForce GTX 1650": "SLOW",
+            "NVIDIA GeForce GTX 1650 SUPER": "NORMAL",
+            "NVIDIA GeForce GTX 1660": "NORMAL",
+            "NVIDIA GeForce GTX 1660 SUPER": "NORMAL",
+            "NVIDIA GeForce GTX 1660 Ti": "NORMAL",
+            "NVIDIA GeForce RTX 2060": "NORMAL",
+            "NVIDIA GeForce RTX 2060 SUPER": "NORMAL",
+            "NVIDIA GeForce RTX 2070": "NORMAL",
+            "NVIDIA GeForce RTX 2070 SUPER": "FAST",
+            "NVIDIA GeForce RTX 2080": "FAST",
+            "NVIDIA GeForce RTX 2080 SUPER": "FAST",
+            "NVIDIA GeForce RTX 2080 Ti": "FAST",
+            "NVIDIA GeForce RTX 3060": "NORMAL",
+            "NVIDIA GeForce RTX 3060 Ti": "FAST",
+            "NVIDIA GeForce RTX 3070": "FAST",
+            "NVIDIA GeForce RTX 3070 Ti": "FAST",
+            "NVIDIA GeForce RTX 3080": "FAST",
+            "NVIDIA GeForce RTX 3080 Ti": "FAST",
+            "NVIDIA GeForce RTX 3090": "FAST",
+            "NVIDIA GeForce RTX 3090 Ti": "FAST",
+            "NVIDIA GeForce RTX 4070": "FAST",
+            "NVIDIA GeForce RTX 4070 Ti": "FAST",
+            "NVIDIA GeForce RTX 4080": "FAST",
+            "NVIDIA GeForce RTX 4090": "FAST",
             # Dodaj tutaj dodatkowe modele zgodnie z potrzebą.
         }
         return gpu_performance.get(self.model, "Unknown")

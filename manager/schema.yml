@@ -727,22 +727,22 @@ components:
   schemas:
     ConnectionStatusEnum:
       enum:
-      - Connected
-      - Disconnected
+      - CONNECTED
+      - DISCONNECTED
       type: string
       description: |-
-        * `Connected` - Connected
-        * `Disconnected` - Disconnected
+        * `CONNECTED` - CONNECTED
+        * `DISCONNECTED` - DISCONNECTED
     GpuPartitionEnum:
       enum:
-      - Slow
-      - Normal
-      - Fast
+      - SLOW
+      - NORMAL
+      - FAST
       type: string
       description: |-
-        * `Slow` - Slow
-        * `Normal` - Normal
-        * `Fast` - Fast
+        * `SLOW` - SLOW
+        * `NORMAL` - NORMAL
+        * `FAST` - FAST
     Gpus:
       type: object
       properties:
@@ -752,24 +752,24 @@ components:
         speed:
           allOf:
           - $ref: '#/components/schemas/SpeedEnum'
-          default: Normal
+          default: NORMAL
           description: |-
             The speed of the GPU.
 
-            * `Slow` - Slow
-            * `Normal` - Normal
-            * `Fast` - Fast
+            * `SLOW` - SLOW
+            * `NORMAL` - NORMAL
+            * `FAST` - FAST
         status:
           allOf:
-          - $ref: '#/components/schemas/StatusD12Enum'
-          default: Waiting
+          - $ref: '#/components/schemas/GpusStatusEnum'
+          default: WAITING
           description: |-
             The current status of the GPU.
 
-            * `Waiting` - Waiting
-            * `Running` - Running
-            * `Reserved` - Reserved
-            * `Unavailable` - Unavailable
+            * `WAITING` - WAITING
+            * `PENDING` - PENDING
+            * `RESERVED` - RESERVED
+            * `UNAVALIBLE` - UNAVALIBLE
         node:
           type: integer
           description: The associated node ID.
@@ -806,6 +806,18 @@ components:
       - node
       - util
       - uuid
+    GpusStatusEnum:
+      enum:
+      - WAITING
+      - PENDING
+      - RESERVED
+      - UNAVALIBLE
+      type: string
+      description: |-
+        * `WAITING` - WAITING
+        * `PENDING` - PENDING
+        * `RESERVED` - RESERVED
+        * `UNAVALIBLE` - UNAVALIBLE
     Job:
       type: object
       properties:
@@ -873,18 +885,16 @@ components:
       - user
     JobStatusEnum:
       enum:
-      - Waiting
-      - Pending
-      - Running
-      - Finished
-      - Interrupted
+      - WAITING
+      - PENDING
+      - FINISHED
+      - INTERRUPTED
       type: string
       description: |-
-        * `Waiting` - Waiting
-        * `Pending` - Pending
-        * `Running` - Running
-        * `Finished` - Finished
-        * `Interrupted` - Interrupted
+        * `WAITING` - WAITING
+        * `PENDING` - PENDING
+        * `FINISHED` - FINISHED
+        * `INTERRUPTED` - INTERRUPTED
     MS:
       type: object
       properties:
@@ -912,7 +922,7 @@ components:
           minimum: 0
           format: int64
         status:
-          $ref: '#/components/schemas/StatusD12Enum'
+          $ref: '#/components/schemas/NodesStatusEnum'
         connection_status:
           $ref: '#/components/schemas/ConnectionStatusEnum'
         last_seen:
@@ -923,6 +933,18 @@ components:
       - ip
       - name
       - number_of_gpus
+    NodesStatusEnum:
+      enum:
+      - WAITING
+      - PENDING
+      - RESERVED
+      - Unavailable
+      type: string
+      description: |-
+        * `WAITING` - WAITING
+        * `PENDING` - PENDING
+        * `RESERVED` - RESERVED
+        * `Unavailable` - Unavailable
     PatchedJob:
       type: object
       properties:
@@ -995,13 +1017,13 @@ components:
     PriorityEnum:
       enum:
       - LOW
-      - Normal
+      - NORMAL
       - HIGH
       type: string
       description: |-
-        * `LOW` - Low
-        * `Normal` - Normal
-        * `HIGH` - High
+        * `LOW` - LOW
+        * `NORMAL` - NORMAL
+        * `HIGH` - HIGH
     RefreshNode:
       type: object
       properties:
@@ -1009,26 +1031,14 @@ components:
           type: integer
     SpeedEnum:
       enum:
-      - Slow
-      - Normal
-      - Fast
+      - SLOW
+      - NORMAL
+      - FAST
       type: string
       description: |-
-        * `Slow` - Slow
-        * `Normal` - Normal
-        * `Fast` - Fast
-    StatusD12Enum:
-      enum:
-      - Waiting
-      - Running
-      - Reserved
-      - Unavailable
-      type: string
-      description: |-
-        * `Waiting` - Waiting
-        * `Running` - Running
-        * `Reserved` - Reserved
-        * `Unavailable` - Unavailable
+        * `SLOW` - SLOW
+        * `NORMAL` - NORMAL
+        * `FAST` - FAST
     TokenObtainPair:
       type: object
       properties:

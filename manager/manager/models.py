@@ -10,14 +10,14 @@ from django.utils.translation import gettext_lazy as _
 
 class Node(models.Model):
     class NodeStatus(Enum):
-        Waiting = "Waiting"
-        Running = "Running"
-        Reserved = "Reserved"
-        Unavailable = "Unavailable"
+        WAITING = "WAITING"
+        PENDING = "PENDING"
+        RESERVED = "RESERVED"
+        UNAVAILABLE = "UNAVAILABLE"
 
     class ConnectionStatus(Enum):
-        Connected = "Connected"
-        Disconnected = "Disconnected"
+        CONNECTED = "CONNECTED"
+        DISCONNECTED = "DISCONNECTED"
 
     ip = models.GenericIPAddressField()
     name = models.CharField(max_length=15, unique=True)
@@ -25,12 +25,12 @@ class Node(models.Model):
     status = models.CharField(
         max_length=50,
         choices=[(choice.name, choice.value) for choice in NodeStatus],
-        default=NodeStatus.Waiting.name,
+        default=NodeStatus.WAITING.name,
     )
     connection_status = models.CharField(
         max_length=50,
         choices=[(choice.name, choice.value) for choice in ConnectionStatus],
-        default=ConnectionStatus.Connected.name,
+        default=ConnectionStatus.CONNECTED.name,
     )
     last_seen = models.DateTimeField(default=timezone.now)
 
@@ -40,15 +40,15 @@ class Node(models.Model):
 
 class Gpu(models.Model):
     class GPUStatus(models.TextChoices):
-        Waiting = 'Waiting', _('Waiting')
-        Running = 'Running', _('Running')
-        Reserved = 'Reserved', _('Reserved')
-        Unavailable = 'Unavailable', _('Unavailable')
+        WAITING = 'WAITING', _('WAITING')
+        PENDING = 'PENDING', _('PENDING')
+        RESERVED = 'RESERVED', _('RESERVED')
+        UNAVALIBLE = 'UNAVALIBLE', _('UNAVALIBLE')
 
     class GPUSpeed(models.TextChoices):
-        Slow = 'Slow', _('Slow')
-        Normal = 'Normal', _('Normal')
-        Fast = 'Fast', _('Fast')
+        SLOW = 'SLOW', _('SLOW')
+        NORMAL = 'NORMAL', _('NORMAL')
+        FAST = 'FAST', _('FAST')
 
     device_id = models.PositiveSmallIntegerField()
     uuid = models.UUIDField(unique=True)
@@ -57,14 +57,14 @@ class Gpu(models.Model):
     speed = models.CharField(
         max_length=50,
         choices=[(choice.name, choice.value) for choice in GPUSpeed],
-        default=GPUSpeed.Normal.name,
+        default=GPUSpeed.NORMAL.name,
     )
     util = models.PositiveSmallIntegerField()
     is_running_amumax = models.BooleanField(default=False)
     status = models.CharField(
         max_length=50,
         choices=[(choice.name, choice.value) for choice in GPUStatus],
-        default=GPUStatus.Waiting.name,
+        default=GPUStatus.WAITING.name,
     )
     last_update = models.DateTimeField(default=timezone.now)
 
@@ -74,21 +74,19 @@ class Gpu(models.Model):
 
 class Job(models.Model):
     class JobPriority(Enum):
-        Low = "Low"
-        Normal = "Normal"
-        High = "High"
-
+        LOW = "LOW"
+        NORMAL = "NORMAL"
+        HIGH = "HIGH"
     class JobStatus(Enum):
-        Waiting = "Waiting"
-        Pending = "Pending"
-        Running = "Running"
-        Finished = "Finished"
-        Interrupted = "Interrupted"
+        WAITING = "WAITING"
+        PENDING = "PENDING"
+        FINISHED = "FINISHED"
+        INTERRUPTED = "INTERRUPTED"
 
     class GPUPartition(Enum):
-        Slow = "Slow"
-        Normal = "Normal"
-        Fast = "Fast"
+        SLOW = "SLOW"
+        NORMAL = "NORMAL"
+        FAST = "FAST"
 
     path = models.CharField(max_length=500)
     port = models.PositiveIntegerField(null=True, blank=True)
@@ -99,18 +97,18 @@ class Job(models.Model):
     priority = models.CharField(
         max_length=6,
         choices=[(choice.name, choice.value) for choice in JobPriority],
-        default=JobPriority.Normal.name,
+        default=JobPriority.NORMAL.name,
     )
     gpu_partition = models.CharField(
         max_length=6,
         choices=[(choice.name, choice.value) for choice in GPUPartition],
-        default=GPUPartition.Normal.name,
+        default=GPUPartition.NORMAL.name,
     )
     duration = models.PositiveSmallIntegerField(default=1)
     status = models.CharField(
         max_length=50,
         choices=[(choice.name, choice.value) for choice in JobStatus],
-        default=JobStatus.Waiting.name,
+        default=JobStatus.WAITING.name,
     )
     node = models.ForeignKey(
         Node, on_delete=models.SET_NULL, null=True, blank=True, related_name="node"

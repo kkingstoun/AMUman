@@ -60,7 +60,7 @@ class JobsViewSet(viewsets.ModelViewSet):
     def start(self, _request, pk=None):
         try:
             job = self.get_object()
-            gpu = Gpu.objects.filter(status="Waiting").first()
+            gpu = Gpu.objects.filter(status="WAITING").first()
             if not gpu:
                 return Response({"error": "Gpu unavalible."}, status=status.HTTP_400_BAD_REQUEST)
 

@@ -41,10 +41,10 @@ class JobManagementTests(TestCase):
                 "path": "/path/to/simulation_" + str(random.randint(1, 100)),
                 "node_name": "node_" + str(random.randint(1, 10)),
                 "port": random.randint(8000, 9000),
-                "priority": random.choice(["Low", "Normal", "High"]),
-                "gpu_partition": random.choice(["Slow", "Normal", "Fast"]),
+                "priority": random.choice(["LOW", "NORMAL", "HIGH"]),
+                "gpu_partition": random.choice(["SLOW", "NORMAL", "FAST"]),
                 "duration": random.randint(1, 100),
-                "status": "Waiting",
+                "status": "WAITING",
             }
             response = self.client.post(self.job_url, job_data, format="json")
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)

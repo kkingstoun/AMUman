@@ -23,9 +23,9 @@ class ManagerConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, _close_code):
         if hasattr(self, 'node_id'):
-            await self.update_node_status(self.node_id, 'disconnected')
+            await self.update_node_status(self.node_id, 'DISCONNECTED')
         await self.channel_layer.group_discard("nodes_group", self.channel_name)
-        asyncio.ensure_future(self.interrupt_long_disconnected_Jobs())
+        asyncio.ensure_future(self.interrupt_long_DISCONNECTED_Jobs())
 
     @database_sync_to_async
     def update_node_status_internal(self, node_id, status):
@@ -36,22 +36,22 @@ class ManagerConsumer(AsyncWebsocketConsumer):
         except Node.DoesNotExist:
             pass  # Handle the case where the node does not exist.
 
-    async def interrupt_long_disconnected_Jobs(self):
+    async def interrupt_long_DISCONNECTED_Jobs(self):
         while True:
             await asyncio.sleep(30 * 60)  # Wait for 30 minutes
             await self.check_and_interrupt_Jobs()
 
     @database_sync_to_async
     def check_and_interrupt_Jobs(self):
-        disconnected_time_threshold = timezone.now() - timezone.timedelta(minutes=30)
+        DISCONNECTED_time_threshold = timezone.now() - timezone.timedelta(minutes=30)
         jobs_to_interrupt = Job.objects.filter(
-            node__status='disconnected',
-            node__last_seen__lt=disconnected_time_threshold,
-            status='running'  # Assuming 'running' is the status of Jobs that are currently active
+            node__status='DISCONNECTED',
+            node__last_seen__lt=DISCONNECTED_time_threshold,
+            status='PENDING'
         )
 
         for job in jobs_to_interrupt:
-            job.status = 'interrupted'
+            job.status = 'INTERRUPTED'
             job.save()
 
 
@@ -73,15 +73,15 @@ class ManagerConsumer(AsyncWebsocketConsumer):
         if data.get("command", None) == "register":
             try:
                 await self.update_node_status(
-                    data["node_id"], "Connected", data["node_name"]
+                    data["node_id"], "CONNECTED", data["node_name"]
                 )
-                await self.update_node_status(self.node_id, 'Connected')
+                await self.update_node_status(self.node_id, "CONNECTED")
                 print("Registering node", data.get("node_name"))
                 
             except Exception as e:
                 print("Error", data.get("node_name"), str(e))
                 await self.update_node_status(
-                    data["node_id"], "Disconnected", data["node_name"]
+                    data["node_id"], "DISCONNECTED", data["node_name"]
                 )
         else:
             await self.send_test_message("test")

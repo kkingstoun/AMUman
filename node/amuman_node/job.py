@@ -8,21 +8,20 @@ from typing import Optional
 log = logging.getLogger("rich")
 
 class JobPriority(Enum):
-    LOW = "Low"
-    NORMAL = "Normal"
-    HIGH = "High"
+    LOW = "LOW"
+    NORMAL = "NORMAL"
+    HIGH = "HIGH"
 
 class JobStatus(Enum):
-    WAITING = "Waiting"
-    PENDING = "Pending"
-    RUNNING = "Running"
-    FINISHED = "Finished"
-    INTERRUPTED = "Interrupted"
+    WAITING = "WAITING"
+    PENDING = "PENDING"
+    FINISHED = "FINISHED"
+    INTERRUPTED = "INTERRUPTED"
 
 class GPUPartition(Enum):
-    SLOW = "Slow"
-    NORMAL = "Normal"
-    FAST = "Fast"
+    SLOW = "SLOW"
+    NORMAL = "NORMAL"
+    FAST = "FAST"
 
 @dataclass
 class Job:
