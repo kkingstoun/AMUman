@@ -142,7 +142,7 @@ class UserProfile(models.Model):
 
 
 @receiver(post_save, sender=User)
-def create_or_update_user_profile(_sender, instance, created, **_kwargs):
+def create_or_update_user_profile(sender, instance, created, **_kwargs):  # noqa: ARG001
     if created:
         UserProfile.objects.create(user=instance)
     instance.userprofile.save()
