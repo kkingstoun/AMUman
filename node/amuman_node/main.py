@@ -35,12 +35,10 @@ class NodeClient:
         log.debug(
             f"Manager URL: '{self.manager_url}', Node ID: {self.node_id}, Node Name: '{self.node_name}'"
         )
-
-        self.job_manager: JobManager = JobManager(self.node_id, self.manager_url)
         self.reconnect_attempts: int = 10
-        self.reconnect_delay: int = 30
+        self.reconnect_delay: int = 30  
         self.gpm: Optional[GPUMonitor] = None
-        self.access_token: Optional[str] = None
+        self.access_token: str
         self.refresh_token: Optional[str] = None
 
     async def start(self) -> None:
@@ -125,7 +123,7 @@ class NodeClient:
             json.dumps(
                 {
                     "command": "register",
-                    "message": "Hello from Node!",
+                    "message": f"Hello from Node {self.node_name}!",
                     "node_id": self.node_id,
                     "node_name": self.node_name,
                 }
@@ -137,21 +135,23 @@ class NodeClient:
         while True:
             try:
                 async with websockets.connect(
-                    f"ws://{self.manager_url}/ws/node/?token={self.access_token}"
+                    f"ws://{self.manager_url}/ws/node/?token={self.access_token}&node_id={self.node_id}"
                 ) as websocket:
                     log.debug(f"Registering with the manager: {self.manager_url}")
                     await self.register_websocket(websocket)
                     log.debug(f"Registered with the manager: {self.manager_url}")
                     await self.handle_connection(websocket)
+            except websockets.exceptions.WebSocketException as e:
+                log.warning(f"WebSocket connection failed: {e}")
             except Exception as e:
-                log.warning("WebSocket connection error")
-                log.exception(f"WebSocket connection error: {e}")
-
-            if self.reconnect_attempts > 0:
-                log.warning(f"{self.reconnect_attempts} reconnection attempts left")
-                log.warning(f"Reconnecting in {self.reconnect_delay} seconds...")
-                await asyncio.sleep(self.reconnect_delay)
-                self.reconnect_attempts -= 1
+                log.exception(f"Unexpected error: {e}")
+            finally:
+                if self.reconnect_attempts > 0:
+                    log.info(f"Reconnecting in {self.reconnect_delay} seconds...")
+                    await asyncio.sleep(self.reconnect_delay)
+                    self.reconnect_attempts -= 1
+                else:
+                    log.error("Maximum reconnect attempts reached. Giving up.")
 
     async def handle_connection(
         self, websocket: websockets.WebSocketClientProtocol
@@ -178,9 +178,10 @@ class NodeClient:
             if command == "update_gpus":
                 log.info("Updating GPUs")
                 await self.execute_update_gpus(self.node_id)
-            elif command == "run_task":
+            elif command == "run_job":
                 log.info("Running job")
-                await self.job_manager.run_job(data["task_id"])
+                self.job_manager: JobManager = JobManager(self.node_id, self.manager_url, token=self.access_token)
+                await self.job_manager.run_job(data["job_id"])
             else:
                 log.error(f"Unknown command: {command}")
         elif command is not None:

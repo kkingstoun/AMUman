@@ -10,14 +10,14 @@ from django.utils.translation import gettext_lazy as _
 
 class Node(models.Model):
     class NodeStatus(Enum):
-        WAITING = "Waiting"
-        RUNNING = "Running"
-        RESERVED = "Reserved"
-        UNAVAILABLE = "Unavailable"
+        WAITING = "WAITING"
+        PENDING = "PENDING"
+        RESERVED = "RESERVED"
+        UNAVAILABLE = "UNAVAILABLE"
 
     class ConnectionStatus(Enum):
-        CONNECTED = "Connected"
-        DISCONNECTED = "Disconnected"
+        CONNECTED = "CONNECTED"
+        DISCONNECTED = "DISCONNECTED"
 
     ip = models.GenericIPAddressField()
     name = models.CharField(max_length=15, unique=True)
@@ -40,15 +40,15 @@ class Node(models.Model):
 
 class Gpu(models.Model):
     class GPUStatus(models.TextChoices):
-        WAITING = "Waiting", _("Waiting")
-        RUNNING = "Running", _("Running")
-        RESERVED = "Reserved", _("Reserved")
-        UNAVAILABLE = "Unavailable", _("Unavailable")
+        WAITING = 'WAITING', _('WAITING')
+        PENDING = 'PENDING', _('PENDING')
+        RESERVED = 'RESERVED', _('RESERVED')
+        UNAVALIBLE = 'UNAVALIBLE', _('UNAVALIBLE')
 
     class GPUSpeed(models.TextChoices):
-        SLOW = "Slow", _("Slow")
-        NORMAL = "Normal", _("Normal")
-        FAST = "Fast", _("Fast")
+        SLOW = 'SLOW', _('SLOW')
+        NORMAL = 'NORMAL', _('NORMAL')
+        FAST = 'FAST', _('FAST')
 
     device_id = models.PositiveSmallIntegerField()
     uuid = models.UUIDField(unique=True)
@@ -74,21 +74,19 @@ class Gpu(models.Model):
 
 class Job(models.Model):
     class JobPriority(Enum):
-        LOW = "Low"
-        NORMAL = "Normal"
-        HIGH = "High"
-
+        LOW = "LOW"
+        NORMAL = "NORMAL"
+        HIGH = "HIGH"
     class JobStatus(Enum):
-        WAITING = "Waiting"
-        PENDING = "Pending"
-        RUNNING = "Running"
-        FINISHED = "Finished"
-        INTERRUPTED = "Interrupted"
+        WAITING = "WAITING"
+        PENDING = "PENDING"
+        FINISHED = "FINISHED"
+        INTERRUPTED = "INTERRUPTED"
 
     class GPUPartition(Enum):
-        SLOW = "Slow"
-        NORMAL = "Normal"
-        FAST = "Fast"
+        SLOW = "SLOW"
+        NORMAL = "NORMAL"
+        FAST = "FAST"
 
     path = models.CharField(max_length=500)
     port = models.PositiveIntegerField(null=True, blank=True)
@@ -121,6 +119,7 @@ class Job(models.Model):
     output = models.TextField(null=True, blank=True)
     error = models.TextField(null=True, blank=True)
     flags = models.CharField(max_length=150, null=True, blank=True)
+    user = models.CharField(max_length=150)
 
     def __str__(self):
         return f"{self.id}:{self.path[-50:]}"

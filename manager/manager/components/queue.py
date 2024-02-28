@@ -17,7 +17,7 @@ class QueueManager:
         ordered_jobs(self)
             Returns a list of jobs ordered by decreasing priority, decreasing GPU partition, and increasing submission time.
 
-        waiting_gpus(self)
+        WAITING_gpus(self)
             Get the first available GPU from the waiting GPUs.
 
             The GPUs are ordered based on their speed, with fast GPUs coming first.
@@ -41,13 +41,13 @@ class QueueManager:
             A list of jobs ordered by decreasing priority, decreasing GPU partition, and increasing submission time.
         """
         return Job.objects.filter(
-            Q(status="Waiting") | Q(status="Interrupted")
+            Q(status="Waiting") | Q(status="INTERRUPTED")
         ).order_by("-priority", "-gpu_partition", "submit_time")
 
     @property
-    def waiting_gpus(self):
+    def WAITING_gpus(self):
         """
-        Get the first available GPU from the waiting GPUs.
+        Get the first available GPU from the WAITING GPUs.
 
         The GPUs are ordered based on their speed, with fast GPUs coming first.
 
@@ -56,14 +56,14 @@ class QueueManager:
         """
         speed_order = Case(
             When(gpu_speed="Fast", then=Value(3)),
-            When(gpu_speed="Normal", then=Value(2)),
-            When(gpu_speed="Slow", then=Value(1)),
+            When(gpu_speed="NORMAL", then=Value(2)),
+            When(gpu_speed="SLOW", then=Value(1)),
             default=Value(0),
             output_field=IntegerField(),
         )
 
         gpus = (
-            Gpu.objects.filter(status="Waiting")
+            Gpu.objects.filter(status="WAITING")
             .annotate(speed_as_number=speed_order)
             .order_by("-speed_as_number")
         )

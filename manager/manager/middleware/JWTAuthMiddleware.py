@@ -8,9 +8,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 @database_sync_to_async
 def get_user_from_token(token):
-    auth = JWTAuthentication()
     try:
-        # W SimpleJWT, validated_token jest instancją Token, a nie słownikiem
+        auth = JWTAuthentication()
         validated_token = auth.get_validated_token(token)
         user = auth.get_user(validated_token)
         return user
