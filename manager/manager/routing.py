@@ -12,8 +12,3 @@ manager_router.register(r"gpus", GpusViewSet, basename="gpu")
 manager_router.register(
     r"manager-settings", ManagerSettingsViewSet, basename="manager-settings"
 )
-
-
-# websocket_urlpatterns = [
-#     path("ws/node/", ManagerConsumer.as_asgi()),
-# ]

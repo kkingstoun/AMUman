@@ -51,7 +51,7 @@ class RunJob:
                 if request is not None:
                     return self.handle_response( 
                         request,
-                        f"Job {job.id} is running on GPU {gpu.id}.",
+                        f"Job {job.id} is DISCONNECTED on GPU {gpu.id}.",
                         "success",
                         200,
                     )
