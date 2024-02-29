@@ -1,7 +1,7 @@
 import { sortStates, itemlist, lastFetchTime, selectedItems } from '$stores/Tables';
 import { api } from '$stores/Auth';
 import { get } from 'svelte/store';
-import { errorToast } from '$lib/Toast';
+import { newToast } from '$lib/Utils';
 import { getRequestParams } from './Auth';
 
 export async function fetchItems(item_type: 'jobs' | 'nodes' | 'gpus') {
@@ -27,7 +27,7 @@ export async function fetchItems(item_type: 'jobs' | 'nodes' | 'gpus') {
         lastFetchTime.set(Date.now());
     } catch (err) {
         console.error(err);
-        errorToast(`Failed to fetch ${item_type}`);
+        newToast(`Failed to fetch ${item_type}`, "red");
     }
 }
 
@@ -72,7 +72,7 @@ export async function deleteItem(item_type: 'jobs' | 'nodes' | 'gpus', id: numbe
         });
     } catch (err) {
         console.error(err);
-        errorToast(`Failed to delete ${item_type.slice(0, -1)} ${id}`); // Adjust the message dynamically
+        newToast(`Failed to delete ${item_type.slice(0, -1)} ${id}`, "red"); // Adjust the message dynamically
     }
 }
 

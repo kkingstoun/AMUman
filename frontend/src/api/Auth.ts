@@ -1,5 +1,6 @@
 import { isAuthenticated, api, accessToken } from '$stores/Auth';
-import { successToast, errorToast } from '$lib/Toast';
+import { newToast } from '$lib/Utils';
+
 import type { RequestParams } from './Api';
 import { get } from 'svelte/store';
 
@@ -23,7 +24,7 @@ export function getRequestParams(): RequestParams {
 
     if (!storedAccessToken) {
         isAuthenticated.set(false);
-        errorToast('Not authenticated');
+        newToast('Not authenticated', "red");
         return {};
     }
 
@@ -48,14 +49,15 @@ export async function handleLogin(username: string, password: string) {
                 isAuthenticated.set(true);
                 localStorage.setItem('access_token', res.data.access);
                 localStorage.setItem('refresh_token', res.data.refresh);
-                successToast('Login successful!');
+                newToast('Login successful!', "green");
+
             } else {
                 throw new Error('Invalid token');
             }
         })
         .catch((res) => {
             const errorMessage = res.status === 401 ? 'Invalid credentials!' : 'Login failed!';
-            errorToast(errorMessage);
+            newToast(errorMessage, "red");
             console.error(errorMessage, res);
         });
 }

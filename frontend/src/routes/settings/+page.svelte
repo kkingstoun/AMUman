@@ -8,4 +8,6 @@
 	}
 </script>
 
-<Toggle bind:checked on:click={handleClick} aria-checked={checked}>Autorun jobs</Toggle>
+<main class="p-5">
+	<Toggle bind:checked on:click={handleClick} aria-checked={checked}>Autorun jobs</Toggle>
+</main>
