@@ -2,6 +2,7 @@
 import logging
 import time
 from typing import ClassVar
+from venv import logger
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -15,7 +16,7 @@ from .models import Gpu, Job, ManagerSettings, Node
 from .serializers import (
     GpusSerializer,
     JobSerializer,
-    MSSerializer,
+    ManagerSettingsSerializer,
     NodesSerializer,
     RefreshNodeSerializer,
 )
@@ -97,7 +98,8 @@ class GpusViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_201_CREATED,
                     )
 
-        except ValidationError:
+        except ValidationError as e:
+            logger.error(f"GPU not created: {e}")
             if "uuid" in serializer.errors and "already exists" in str(
                 serializer.errors["uuid"]
             ):
@@ -108,8 +110,12 @@ class GpusViewSet(viewsets.ModelViewSet):
                 update_serializer.is_valid(raise_exception=True)
                 self.perform_update(update_serializer)
                 return Response(update_serializer.data)
-            else:
-                Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else: 
+                return Response(
+                        {
+                            "message": f"Gpu not assigned. Error: {e}",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class NodesViewSet(viewsets.ModelViewSet):
@@ -190,5 +196,6 @@ class NodesViewSet(viewsets.ModelViewSet):
 
 class ManagerSettingsViewSet(viewsets.ModelViewSet):
     queryset = ManagerSettings.objects.all()
-    serializer_class = MSSerializer
+    serializer_class = ManagerSettingsSerializer
     permission_classes: ClassVar = [permissions.IsAuthenticated]
+    http_method_names = ['patch', 'head', 'options']  # Zezwól tylko na PATCH
