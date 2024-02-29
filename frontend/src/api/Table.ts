@@ -3,6 +3,7 @@ import { api } from '$stores/Auth';
 import { get } from 'svelte/store';
 import { newToast } from '$lib/Utils';
 import { getRequestParams } from './Auth';
+import type { Job } from './Api';
 
 export async function fetchItems(item_type: 'jobs' | 'nodes' | 'gpus') {
     try {
@@ -51,6 +52,15 @@ export function sortItems(item_type: 'jobs' | 'nodes' | 'gpus'): void {
 
         // Update the specific category with sorted items
         return { ...list, [item_type]: itemsCopy };
+    });
+}
+
+export async function runJob(job: Job) {
+    api.jobsStartCreate(job.id, job, getRequestParams()).then(() => {
+        newToast(`Started job ${job.id}`, "green");
+    }).catch(err => {
+        console.error(err);
+        newToast(`Failed to run job ${job.id}`, "red");
     });
 }
 
