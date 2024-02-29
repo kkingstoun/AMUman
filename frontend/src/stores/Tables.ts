@@ -110,3 +110,4 @@ export const headers = writable<KeyLists>({
         'is_running_amumax',
     ]
 });
+

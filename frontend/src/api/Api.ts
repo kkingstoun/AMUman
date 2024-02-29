@@ -10,8 +10,8 @@
  */
 
 /**
- * * `CONNECTED` - Connected
- * * `DISCONNECTED` - Disconnected
+ * * `CONNECTED` - CONNECTED
+ * * `DISCONNECTED` - DISCONNECTED
  */
 export enum ConnectionStatusEnum {
 	CONNECTED = 'CONNECTED',
@@ -19,9 +19,9 @@ export enum ConnectionStatusEnum {
 }
 
 /**
- * * `SLOW` - Slow
- * * `NORMAL` - Normal
- * * `FAST` - Fast
+ * * `SLOW` - SLOW
+ * * `NORMAL` - NORMAL
+ * * `FAST` - FAST
  */
 export enum GpuPartitionEnum {
 	SLOW = 'SLOW',
@@ -34,20 +34,20 @@ export interface Gpus {
 	/**
 	 * The speed of the GPU.
 	 *
-	 * * `Slow` - Slow
-	 * * `Normal` - Normal
-	 * * `Fast` - Fast
-	 * @default "Normal"
+	 * * `SLOW` - SLOW
+	 * * `NORMAL` - NORMAL
+	 * * `FAST` - FAST
+	 * @default "NORMAL"
 	 */
 	speed?: SpeedEnum;
 	/**
 	 * The current status of the GPU.
 	 *
-	 * * `Waiting` - Waiting
-	 * * `Running` - Running
-	 * * `Reserved` - Reserved
-	 * * `Unavailable` - Unavailable
-	 * @default "Waiting"
+	 * * `WAITING` - WAITING
+	 * * `PENDING` - PENDING
+	 * * `RESERVED` - RESERVED
+	 * * `UNAVALIBLE` - UNAVALIBLE
+	 * @default "WAITING"
 	 */
 	status?: GpusStatusEnum;
 	/** The associated node ID. */
@@ -81,16 +81,16 @@ export interface Gpus {
 }
 
 /**
- * * `Waiting` - Waiting
- * * `Running` - Running
- * * `Reserved` - Reserved
- * * `Unavailable` - Unavailable
+ * * `WAITING` - WAITING
+ * * `PENDING` - PENDING
+ * * `RESERVED` - RESERVED
+ * * `UNAVALIBLE` - UNAVALIBLE
  */
 export enum GpusStatusEnum {
-	Waiting = 'Waiting',
-	Running = 'Running',
-	Reserved = 'Reserved',
-	Unavailable = 'Unavailable'
+	WAITING = 'WAITING',
+	PENDING = 'PENDING',
+	RESERVED = 'RESERVED',
+	UNAVALIBLE = 'UNAVALIBLE'
 }
 
 export interface Job {
@@ -112,15 +112,15 @@ export interface Job {
 	/** @format date-time */
 	error_time?: string | null;
 	/**
-	 * * `LOW` - Low
-	 * * `NORMAL` - Normal
-	 * * `HIGH` - High
+	 * * `LOW` - LOW
+	 * * `NORMAL` - NORMAL
+	 * * `HIGH` - HIGH
 	 */
 	priority?: PriorityEnum;
 	/**
-	 * * `SLOW` - Slow
-	 * * `NORMAL` - Normal
-	 * * `FAST` - Fast
+	 * * `SLOW` - SLOW
+	 * * `NORMAL` - NORMAL
+	 * * `FAST` - FAST
 	 */
 	gpu_partition?: GpuPartitionEnum;
 	/**
@@ -130,32 +130,31 @@ export interface Job {
 	 */
 	duration?: number;
 	/**
-	 * * `WAITING` - Waiting
-	 * * `PENDING` - Pending
-	 * * `RUNNING` - Running
-	 * * `FINISHED` - Finished
-	 * * `INTERRUPTED` - Interrupted
+	 * * `WAITING` - WAITING
+	 * * `PENDING` - PENDING
+	 * * `FINISHED` - FINISHED
+	 * * `INTERRUPTED` - INTERRUPTED
 	 */
 	status?: JobStatusEnum;
 	output?: string | null;
 	error?: string | null;
 	/** @maxLength 150 */
 	flags?: string | null;
+	/** @maxLength 150 */
+	user: string;
 	node?: number | null;
 	gpu?: number | null;
 }
 
 /**
- * * `WAITING` - Waiting
- * * `PENDING` - Pending
- * * `RUNNING` - Running
- * * `FINISHED` - Finished
- * * `INTERRUPTED` - Interrupted
+ * * `WAITING` - WAITING
+ * * `PENDING` - PENDING
+ * * `FINISHED` - FINISHED
+ * * `INTERRUPTED` - INTERRUPTED
  */
 export enum JobStatusEnum {
 	WAITING = 'WAITING',
 	PENDING = 'PENDING',
-	RUNNING = 'RUNNING',
 	FINISHED = 'FINISHED',
 	INTERRUPTED = 'INTERRUPTED'
 }
@@ -177,15 +176,15 @@ export interface Nodes {
 	 */
 	number_of_gpus: number;
 	/**
-	 * * `WAITING` - Waiting
-	 * * `RUNNING` - Running
-	 * * `RESERVED` - Reserved
-	 * * `UNAVAILABLE` - Unavailable
+	 * * `WAITING` - WAITING
+	 * * `PENDING` - PENDING
+	 * * `RESERVED` - RESERVED
+	 * * `UNAVAILABLE` - UNAVAILABLE
 	 */
 	status?: NodesStatusEnum;
 	/**
-	 * * `CONNECTED` - Connected
-	 * * `DISCONNECTED` - Disconnected
+	 * * `CONNECTED` - CONNECTED
+	 * * `DISCONNECTED` - DISCONNECTED
 	 */
 	connection_status?: ConnectionStatusEnum;
 	/** @format date-time */
@@ -193,67 +192,16 @@ export interface Nodes {
 }
 
 /**
- * * `WAITING` - Waiting
- * * `RUNNING` - Running
- * * `RESERVED` - Reserved
- * * `UNAVAILABLE` - Unavailable
+ * * `WAITING` - WAITING
+ * * `PENDING` - PENDING
+ * * `RESERVED` - RESERVED
+ * * `UNAVAILABLE` - UNAVAILABLE
  */
 export enum NodesStatusEnum {
 	WAITING = 'WAITING',
-	RUNNING = 'RUNNING',
+	PENDING = 'PENDING',
 	RESERVED = 'RESERVED',
 	UNAVAILABLE = 'UNAVAILABLE'
-}
-
-export interface PatchedGpus {
-	readonly id?: number;
-	/**
-	 * The speed of the GPU.
-	 *
-	 * * `Slow` - Slow
-	 * * `Normal` - Normal
-	 * * `Fast` - Fast
-	 * @default "Normal"
-	 */
-	speed?: SpeedEnum;
-	/**
-	 * The current status of the GPU.
-	 *
-	 * * `Waiting` - Waiting
-	 * * `Running` - Running
-	 * * `Reserved` - Reserved
-	 * * `Unavailable` - Unavailable
-	 * @default "Waiting"
-	 */
-	status?: GpusStatusEnum;
-	/** The associated node ID. */
-	node?: number;
-	/**
-	 * The unique device identifier (must be <= 32767).
-	 * @format int64
-	 * @min 0
-	 * @max 32767
-	 */
-	device_id?: number;
-	/**
-	 * The unique identifier of the GPU.
-	 * @format uuid
-	 */
-	uuid?: string;
-	model?: string;
-	/**
-	 * The utilization of the GPU (must be <= 100).
-	 * @format int64
-	 * @min 0
-	 * @max 100
-	 */
-	util?: number;
-	is_running_amumax?: boolean;
-	/**
-	 * The timestamp of the last update (read-only, auto-generated).
-	 * @format date-time
-	 */
-	readonly last_update?: string;
 }
 
 export interface PatchedJob {
@@ -275,15 +223,15 @@ export interface PatchedJob {
 	/** @format date-time */
 	error_time?: string | null;
 	/**
-	 * * `LOW` - Low
-	 * * `NORMAL` - Normal
-	 * * `HIGH` - High
+	 * * `LOW` - LOW
+	 * * `NORMAL` - NORMAL
+	 * * `HIGH` - HIGH
 	 */
 	priority?: PriorityEnum;
 	/**
-	 * * `SLOW` - Slow
-	 * * `NORMAL` - Normal
-	 * * `FAST` - Fast
+	 * * `SLOW` - SLOW
+	 * * `NORMAL` - NORMAL
+	 * * `FAST` - FAST
 	 */
 	gpu_partition?: GpuPartitionEnum;
 	/**
@@ -293,17 +241,18 @@ export interface PatchedJob {
 	 */
 	duration?: number;
 	/**
-	 * * `WAITING` - Waiting
-	 * * `PENDING` - Pending
-	 * * `RUNNING` - Running
-	 * * `FINISHED` - Finished
-	 * * `INTERRUPTED` - Interrupted
+	 * * `WAITING` - WAITING
+	 * * `PENDING` - PENDING
+	 * * `FINISHED` - FINISHED
+	 * * `INTERRUPTED` - INTERRUPTED
 	 */
 	status?: JobStatusEnum;
 	output?: string | null;
 	error?: string | null;
 	/** @maxLength 150 */
 	flags?: string | null;
+	/** @maxLength 150 */
+	user?: string;
 	node?: number | null;
 	gpu?: number | null;
 }
@@ -313,37 +262,10 @@ export interface PatchedMS {
 	queue_watchdog?: boolean;
 }
 
-export interface PatchedNodes {
-	readonly id?: number;
-	ip?: string;
-	/** @maxLength 15 */
-	name?: string;
-	/**
-	 * @format int64
-	 * @min 0
-	 * @max 9223372036854776000
-	 */
-	number_of_gpus?: number;
-	/**
-	 * * `WAITING` - Waiting
-	 * * `RUNNING` - Running
-	 * * `RESERVED` - Reserved
-	 * * `UNAVAILABLE` - Unavailable
-	 */
-	status?: NodesStatusEnum;
-	/**
-	 * * `CONNECTED` - Connected
-	 * * `DISCONNECTED` - Disconnected
-	 */
-	connection_status?: ConnectionStatusEnum;
-	/** @format date-time */
-	last_seen?: string;
-}
-
 /**
- * * `LOW` - Low
- * * `NORMAL` - Normal
- * * `HIGH` - High
+ * * `LOW` - LOW
+ * * `NORMAL` - NORMAL
+ * * `HIGH` - HIGH
  */
 export enum PriorityEnum {
 	LOW = 'LOW',
@@ -351,15 +273,19 @@ export enum PriorityEnum {
 	HIGH = 'HIGH'
 }
 
+export interface RefreshNode {
+	node_id?: number;
+}
+
 /**
- * * `Slow` - Slow
- * * `Normal` - Normal
- * * `Fast` - Fast
+ * * `SLOW` - SLOW
+ * * `NORMAL` - NORMAL
+ * * `FAST` - FAST
  */
 export enum SpeedEnum {
-	Slow = 'Slow',
-	Normal = 'Normal',
-	Fast = 'Fast'
+	SLOW = 'SLOW',
+	NORMAL = 'NORMAL',
+	FAST = 'FAST'
 }
 
 export interface TokenObtainPair {
@@ -651,44 +577,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 				path: `/api/gpus/${id}/`,
 				method: 'GET',
 				secure: true,
-				format: 'json',
-				...params
-			}),
-
-		/**
-		 * No description
-		 *
-		 * @tags gpus
-		 * @name GpusUpdate
-		 * @request PUT:/api/gpus/{id}/
-		 * @secure
-		 */
-		gpusUpdate: (id: number, data: Gpus, params: RequestParams = {}) =>
-			this.request<Gpus, any>({
-				path: `/api/gpus/${id}/`,
-				method: 'PUT',
-				body: data,
-				secure: true,
-				type: ContentType.Json,
-				format: 'json',
-				...params
-			}),
-
-		/**
-		 * No description
-		 *
-		 * @tags gpus
-		 * @name GpusPartialUpdate
-		 * @request PATCH:/api/gpus/{id}/
-		 * @secure
-		 */
-		gpusPartialUpdate: (id: number, data: PatchedGpus, params: RequestParams = {}) =>
-			this.request<Gpus, any>({
-				path: `/api/gpus/${id}/`,
-				method: 'PATCH',
-				body: data,
-				secure: true,
-				type: ContentType.Json,
 				format: 'json',
 				...params
 			}),
@@ -999,44 +887,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		 * No description
 		 *
 		 * @tags nodes
-		 * @name NodesUpdate
-		 * @request PUT:/api/nodes/{id}/
-		 * @secure
-		 */
-		nodesUpdate: (id: number, data: Nodes, params: RequestParams = {}) =>
-			this.request<Nodes, any>({
-				path: `/api/nodes/${id}/`,
-				method: 'PUT',
-				body: data,
-				secure: true,
-				type: ContentType.Json,
-				format: 'json',
-				...params
-			}),
-
-		/**
-		 * No description
-		 *
-		 * @tags nodes
-		 * @name NodesPartialUpdate
-		 * @request PATCH:/api/nodes/{id}/
-		 * @secure
-		 */
-		nodesPartialUpdate: (id: number, data: PatchedNodes, params: RequestParams = {}) =>
-			this.request<Nodes, any>({
-				path: `/api/nodes/${id}/`,
-				method: 'PATCH',
-				body: data,
-				secure: true,
-				type: ContentType.Json,
-				format: 'json',
-				...params
-			}),
-
-		/**
-		 * No description
-		 *
-		 * @tags nodes
 		 * @name NodesDestroy
 		 * @request DELETE:/api/nodes/{id}/
 		 * @secure
@@ -1046,6 +896,25 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 				path: `/api/nodes/${id}/`,
 				method: 'DELETE',
 				secure: true,
+				...params
+			}),
+
+		/**
+		 * No description
+		 *
+		 * @tags nodes
+		 * @name NodesRefreshCreate
+		 * @request POST:/api/nodes/refresh/
+		 * @secure
+		 */
+		nodesRefreshCreate: (data: RefreshNode, params: RequestParams = {}) =>
+			this.request<RefreshNode, any>({
+				path: `/api/nodes/refresh/`,
+				method: 'POST',
+				body: data,
+				secure: true,
+				type: ContentType.Json,
+				format: 'json',
 				...params
 			}),
 

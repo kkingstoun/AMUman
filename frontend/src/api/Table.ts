@@ -1,8 +1,9 @@
 import { sortStates, itemlist, lastFetchTime, selectedItems } from '$stores/Tables';
 import { api } from '$stores/Auth';
 import { get } from 'svelte/store';
-import { errorToast } from '$lib/Toast';
+import { newToast } from '$lib/Utils';
 import { getRequestParams } from './Auth';
+import type { Job } from './Api';
 
 export async function fetchItems(item_type: 'jobs' | 'nodes' | 'gpus') {
     try {
@@ -27,7 +28,7 @@ export async function fetchItems(item_type: 'jobs' | 'nodes' | 'gpus') {
         lastFetchTime.set(Date.now());
     } catch (err) {
         console.error(err);
-        errorToast(`Failed to fetch ${item_type}`);
+        newToast(`Failed to fetch ${item_type}`, "red");
     }
 }
 
@@ -54,6 +55,15 @@ export function sortItems(item_type: 'jobs' | 'nodes' | 'gpus'): void {
     });
 }
 
+export async function runJob(job: Job) {
+    api.jobsStartCreate(job.id, job, getRequestParams()).then(() => {
+        newToast(`Started job ${job.id}`, "green");
+    }).catch(err => {
+        console.error(err);
+        newToast(`Failed to run job ${job.id}`, "red");
+    });
+}
+
 export async function deleteItem(item_type: 'jobs' | 'nodes' | 'gpus', id: number) {
     try {
         // Dynamically call the correct API method based on item_type
@@ -72,7 +82,7 @@ export async function deleteItem(item_type: 'jobs' | 'nodes' | 'gpus', id: numbe
         });
     } catch (err) {
         console.error(err);
-        errorToast(`Failed to delete ${item_type.slice(0, -1)} ${id}`); // Adjust the message dynamically
+        newToast(`Failed to delete ${item_type.slice(0, -1)} ${id}`, "red"); // Adjust the message dynamically
     }
 }
 

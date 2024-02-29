@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Button } from 'flowbite-svelte';
 	import { handleLogin } from '$api/Auth';
+	import Toast from './ToastList.svelte';
 
 	let username = 'admin';
 	let password = 'admin';
@@ -18,6 +19,7 @@
 			/>
 		</a>
 	</div>
+
 	<div id="form" class="flex flex-col items-center justify-center mt-4 rounded-lg">
 		<h1 class="text-3xl font-bold text-white">Welcome to Amuman</h1>
 		<p class="text-white pb-4">Please login to continue</p>

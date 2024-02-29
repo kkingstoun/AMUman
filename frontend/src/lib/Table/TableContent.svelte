@@ -22,11 +22,11 @@
 		timeSinceLastFetch,
 		type ItemType
 	} from '$stores/Tables';
-	import OutputDrawer from './OutputDrawer.svelte';
+	import Drawer from '$lib/Drawer/Layout.svelte';
 	import DeleteItem from './DeleteItem.svelte';
 	import DeleteSelectedItems from './DeleteSelectedItems.svelte';
 	import RunJob from './RunJob.svelte';
-	import { formatValue, formatString } from '../Utils';
+	import { formatValue, formatString, formatDateTime, isJob, getPropertyValue } from '../Utils';
 	import type { ItemTypeString } from '$stores/Tables';
 	import type { Job } from '$api/Api';
 	import Badge from '$lib/Table/Badge.svelte';
@@ -82,12 +82,6 @@
 			}
 		}
 	}
-	function isJob(item: any): item is Job {
-		return item_type === 'jobs' && 'priority' in item;
-	}
-	function getPropertyValue(item: ItemType, property: string): string | undefined {
-		return (item as any)[property];
-	}
 </script>
 
 <Table shadow hoverable={true}>
@@ -103,8 +97,8 @@
 				{formatString(header)}
 			</TableHeadCell>
 		{/each}
+		<TableHeadCell>Details</TableHeadCell>
 		{#if item_type === 'jobs'}
-			<TableHeadCell>Output</TableHeadCell>
 			<TableHeadCell>Run</TableHeadCell>
 		{/if}
 		<TableHeadCell>Delete</TableHeadCell>
@@ -121,15 +115,17 @@
 							<Badge {header} {item} />
 						{:else if ['gpu_partition', 'priority', 'status', 'connection_status', 'speed'].includes(header)}
 							{formatValue(item, header)}
+						{:else if header.includes('time')}
+							{formatDateTime(getPropertyValue(item, header))}
 						{:else}
 							{getPropertyValue(item, header)}
 						{/if}
 					</TableBodyCell>
 				{/each}
+				<TableBodyCell>
+					<Drawer {item} {item_type} />
+				</TableBodyCell>
 				{#if isJob(item)}
-					<TableBodyCell>
-						<OutputDrawer job={item} />
-					</TableBodyCell>
 					<TableBodyCell>
 						<RunJob job={item} />
 					</TableBodyCell>

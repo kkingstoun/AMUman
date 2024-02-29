@@ -24,11 +24,12 @@
 		"test:unit": "vitest",
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
 		"format": "prettier --plugin-search-dir . --write .",
-		"gen-api": "npx -y swagger-typescript-api --add-readonly -p ../manager/schema.yml -o ./src/api && chown 1000 ./src/api/Api.ts"
+		"gen-api": "npx -y swagger-typescript-api --add-readonly -p 'http://amuman-manager-dev:8000/api/schema/?format=yaml&lang=en' -o ./src/api"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.1.1",
 		"@sveltejs/kit": "^2.5.0",
+		"@types/prismjs": "^1.26.3",
 		"@typescript-eslint/eslint-plugin": "^7.0.1",
 		"@typescript-eslint/parser": "^7.0.1",
 		"@zerodevx/svelte-toast": "^0.9.5",
@@ -38,6 +39,8 @@
 		"eslint-plugin-svelte": "^2.35.1",
 		"eslint-plugin-tailwindcss": "^3.14.2",
 		"eslint-plugin-unused-imports": "^3.1.0",
+		"flowbite": "^2.3.0",
+		"flowbite-svelte": "^0.44.23",
 		"flowbite-svelte-icons": "^1.4.0",
 		"moment": "^2.30.1",
 		"postcss": "^8.4.35",
@@ -48,10 +51,9 @@
 		"tailwindcss": "^3.4.1",
 		"tslib": "^2.6.2",
 		"typescript": "^5.3.3",
+		"prismjs": "^1.29.0",
 		"vite": "^5.1.3",
-		"vitest": "^1.2.2",
-		"flowbite": "^2.3.0",
-		"flowbite-svelte": "^0.44.23"
+		"vitest": "^1.2.2"
 	},
 	"type": "module"
 }

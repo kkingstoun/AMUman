@@ -18,21 +18,21 @@
 	export let item: ItemType;
 	export let header: string;
 
-	export function getColorFromValue(item: ItemType, property: string): ColorType {
+	function getColorFromValue(item: ItemType, property: string): ColorType {
 		let value = (item as any)[property];
 		if (['slow', 'interrupted'].includes(value.toLowerCase())) return 'red';
-		if (['normal', 'low', 'waiting'].includes(value.toLowerCase())) return 'yellow';
-		if (['warning', 'paused'].includes(value.toLowerCase())) return 'yellow';
-		if (['warning', 'paused'].includes(value.toLowerCase())) return 'yellow';
-		return 'green';
+		return 'dark';
 	}
-	export function capitalize(item: ItemType, property: string) {
+	function capitalize(item: ItemType, property: string) {
 		let str = (item as any)[property];
 		if (!str) return '';
 		return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 	}
 </script>
 
-<Badge class="font-extrabold" large color={getColorFromValue(item, header)}
-	>{capitalize(item, header)}</Badge
+<Badge
+	border
+	class="font-extrabold !bg-gray-800 !border-gray-700"
+	large
+	color={getColorFromValue(item, header)}>{capitalize(item, header)}</Badge
 >
