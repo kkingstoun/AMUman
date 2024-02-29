@@ -81,7 +81,7 @@ CHANNEL_LAYERS = {
             "hosts": [("localhost", 6379)],
         },
     },
-}
+}   
 
 ASGI_APPLICATION = "amuman.asgi.application"
 
@@ -98,6 +98,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "manager.middleware.scheduler_middleware.SchedulerMiddleware",
     "manager.middleware.generate_initial_data.GenerateRandomJobsMiddleware",
+    "manager.middleware.generate_initial_data.InitializeManagerSettingsMiddleware",
 ]
 
 ROOT_URLCONF = "amuman.urls"
