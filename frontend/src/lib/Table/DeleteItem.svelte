@@ -9,7 +9,7 @@
 	let popupModal = false;
 </script>
 
-<Button color="red" size="sm" on:click={() => (popupModal = true)}>
+<Button outline color="dark" size="xs" class="!text-red-400" on:click={() => (popupModal = true)}>
 	<TrashBinOutline />
 </Button>
 

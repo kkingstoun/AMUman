@@ -9,6 +9,6 @@
 	}
 </script>
 
-<Button color="green" size="sm" on:click={runJob}>
+<Button outline color="dark" size="xs" class="!text-green-400" on:click={runJob}>
 	<PlayOutline />
 </Button>
