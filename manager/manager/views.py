@@ -54,7 +54,9 @@ class JobsViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             log.error(f"Job not created: {e}")
             return Response(
-                f"Job not created: {e}", status=status.HTTP_400_BAD_REQUEST, headers=headers
+                f"Job not created: {e}",
+                status=status.HTTP_400_BAD_REQUEST,
+                headers=headers,
             )
 
     @action(detail=True, methods=["post"])
@@ -63,12 +65,17 @@ class JobsViewSet(viewsets.ModelViewSet):
             job = self.get_object()
             gpu = Gpu.objects.filter(status="WAITING").first()
             if not gpu:
-                return Response({"error": "Gpu unavalible."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Gpu unavalible."}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             self.rt = RunJob()
             self.rt.run_job(job=job, request=_request)
 
-            return Response({"message": f"Job {pk} started successfully."}, status=status.HTTP_200_OK)
+            return Response(
+                {"message": f"Job {pk} started successfully."},
+                status=status.HTTP_200_OK,
+            )
         except Job.DoesNotExist:
             return Response(
                 {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND
@@ -76,7 +83,7 @@ class JobsViewSet(viewsets.ModelViewSet):
 
 
 class GpusViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'post', 'delete']
+    http_method_names = ["get", "post", "delete"]
     queryset = Gpu.objects.all()
     serializer_class = GpusSerializer
 
@@ -110,23 +117,29 @@ class GpusViewSet(viewsets.ModelViewSet):
                 update_serializer.is_valid(raise_exception=True)
                 self.perform_update(update_serializer)
                 return Response(update_serializer.data)
-            else: 
+            else:
                 return Response(
-                        {
-                            "message": f"Gpu not assigned. Error: {e}",
-                        },
-                        status=status.HTTP_400_BAD_REQUEST)
+                    {
+                        "message": f"Gpu not assigned. Error: {e}",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
 
 class NodesViewSet(viewsets.ModelViewSet):
     queryset = Node.objects.all()
     serializer_class = NodesSerializer
     permission_classes: ClassVar = [permissions.IsAuthenticated]
-    http_method_names = ['get', 'post', 'delete']
+    http_method_names = ["get", "post", "delete"]
 
-    @action(detail=False, methods=['post'], url_path='refresh', serializer_class=RefreshNodeSerializer)
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="refresh",
+        serializer_class=RefreshNodeSerializer,
+    )
     def refreshnode(self, request):
-        node_id = request.query_params.get('node_id', None)
+        node_id = request.query_params.get("node_id", None)
         channel_layer = get_channel_layer()
         if node_id:
             async_to_sync(channel_layer.group_send)(
@@ -198,4 +211,4 @@ class ManagerSettingsViewSet(viewsets.ModelViewSet):
     queryset = ManagerSettings.objects.all()
     serializer_class = ManagerSettingsSerializer
     permission_classes: ClassVar = [permissions.IsAuthenticated]
-    http_method_names = ['patch', 'head', 'options']  # Zezwól tylko na PATCH
+    http_method_names = ["patch", "head", "options"]  # Zezwól tylko na PATCH

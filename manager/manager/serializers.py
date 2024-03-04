@@ -16,6 +16,7 @@ class JobSerializer(serializers.ModelSerializer):
         model = Job
         fields = "__all__"
 
+
 class RefreshNodeSerializer(serializers.Serializer):
     node_id = serializers.IntegerField(required=False)
 
@@ -24,12 +25,12 @@ class GpusSerializer(serializers.ModelSerializer):
     speed = serializers.ChoiceField(
         choices=Gpu.GPUSpeed.choices,
         default=Gpu.GPUSpeed.NORMAL,
-        help_text='The speed of the GPU.'
+        help_text="The speed of the GPU.",
     )
     status = serializers.ChoiceField(
         choices=Gpu.GPUStatus.choices,
         default=Gpu.GPUStatus.WAITING,
-        help_text='The current status of the GPU.'
+        help_text="The current status of the GPU.",
     )
     node = serializers.PrimaryKeyRelatedField(
         queryset=Node.objects.all(), help_text="The associated node ID."
@@ -82,7 +83,11 @@ class GpusSerializer(serializers.ModelSerializer):
         return instance
 
     def save(self, **kwargs):
-        uuid = self.validated_data.get("uuid")
+        if isinstance(self.validated_data, dict):
+            uuid = self.validated_data.get("uuid")
+        else:
+            uuid = "error"
+
         gpu = Gpu.objects.filter(uuid=uuid).first()
 
         if gpu is not None:
@@ -94,9 +99,9 @@ class GpusSerializer(serializers.ModelSerializer):
 class ManagerSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = ManagerSettings
-        fields = '__all__'
+        fields = "__all__"
 
     def create(self, validated_data):
         if ManagerSettings.objects.exists():
-            raise serializers.ValidationError('You cannoc duplicate this entrypoint.')
+            raise serializers.ValidationError("You cannoc duplicate this entrypoint.")
         return ManagerSettings.objects.create(**validated_data)

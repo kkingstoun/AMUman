@@ -649,7 +649,7 @@ components:
             * `FAST` - FAST
         status:
           allOf:
-          - $ref: '#/components/schemas/GpusStatusEnum'
+          - $ref: '#/components/schemas/StatusCcdEnum'
           default: WAITING
           description: |-
             The current status of the GPU.
@@ -657,7 +657,7 @@ components:
             * `WAITING` - WAITING
             * `PENDING` - PENDING
             * `RESERVED` - RESERVED
-            * `UNAVALIBLE` - UNAVALIBLE
+            * `UNAVAILABLE` - UNAVAILABLE
         node:
           type: integer
           description: The associated node ID.
@@ -694,18 +694,6 @@ components:
       - node
       - util
       - uuid
-    GpusStatusEnum:
-      enum:
-      - WAITING
-      - PENDING
-      - RESERVED
-      - UNAVALIBLE
-      type: string
-      description: |-
-        * `WAITING` - WAITING
-        * `PENDING` - PENDING
-        * `RESERVED` - RESERVED
-        * `UNAVALIBLE` - UNAVALIBLE
     Job:
       type: object
       properties:
@@ -810,7 +798,7 @@ components:
           minimum: 0
           format: int64
         status:
-          $ref: '#/components/schemas/NodesStatusEnum'
+          $ref: '#/components/schemas/StatusCcdEnum'
         connection_status:
           $ref: '#/components/schemas/ConnectionStatusEnum'
         last_seen:
@@ -821,18 +809,6 @@ components:
       - ip
       - name
       - number_of_gpus
-    NodesStatusEnum:
-      enum:
-      - WAITING
-      - PENDING
-      - RESERVED
-      - UNAVAILABLE
-      type: string
-      description: |-
-        * `WAITING` - WAITING
-        * `PENDING` - PENDING
-        * `RESERVED` - RESERVED
-        * `UNAVAILABLE` - UNAVAILABLE
     PatchedJob:
       type: object
       properties:
@@ -927,6 +903,18 @@ components:
         * `SLOW` - SLOW
         * `NORMAL` - NORMAL
         * `FAST` - FAST
+    StatusCcdEnum:
+      enum:
+      - WAITING
+      - PENDING
+      - RESERVED
+      - UNAVAILABLE
+      type: string
+      description: |-
+        * `WAITING` - WAITING
+        * `PENDING` - PENDING
+        * `RESERVED` - RESERVED
+        * `UNAVAILABLE` - UNAVAILABLE
     TokenObtainPair:
       type: object
       properties:

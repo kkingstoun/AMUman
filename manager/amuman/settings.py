@@ -81,7 +81,7 @@ CHANNEL_LAYERS = {
             "hosts": [("localhost", 6379)],
         },
     },
-}   
+}
 
 ASGI_APPLICATION = "amuman.asgi.application"
 

@@ -4,9 +4,7 @@ from datetime import timedelta
 from django.core.exceptions import MiddlewareNotUsed
 from django.utils import timezone
 
-from manager.models import (
-    Job, ManagerSettings
-)
+from manager.models import Job, ManagerSettings
 
 
 class GenerateRandomJobsMiddleware:
@@ -38,7 +36,9 @@ class GenerateRandomJobsMiddleware:
                     end_time=end_time,
                     error_time=error_time,
                     priority=random.choice([choice.name for choice in Job.JobPriority]),
-                    gpu_partition=random.choice([choice.name for choice in Job.GPUPartition]),
+                    gpu_partition=random.choice(
+                        [choice.name for choice in Job.GPUPartition]
+                    ),
                     duration=random.randint(1, 120),
                     status=random.choice([choice.value for choice in Job.JobStatus]),
                     node=None,
@@ -54,11 +54,14 @@ class GenerateRandomJobsMiddleware:
         response = self.get_response(request)
         return response
 
+
 class InitializeManagerSettingsMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
         self.initialize_default_settings()
-        raise MiddlewareNotUsed("InitializeManagerSettingsMiddleware is disabled after initial use.")
+        raise MiddlewareNotUsed(
+            "InitializeManagerSettingsMiddleware is disabled after initial use."
+        )
 
     def initialize_default_settings(self):
         # Sprawdza, czy jakiekolwiek ustawienia już istnieją

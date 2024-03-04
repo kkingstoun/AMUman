@@ -1,12 +1,13 @@
 from enum import Enum
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.core.exceptions import ValidationError
+
 
 class Node(models.Model):
     class NodeStatus(Enum):
@@ -35,20 +36,20 @@ class Node(models.Model):
     last_seen = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return self.name
+        return f"{self.pk}"
 
 
 class Gpu(models.Model):
     class GPUStatus(models.TextChoices):
-        WAITING = 'WAITING', _('WAITING')
-        PENDING = 'PENDING', _('PENDING')
-        RESERVED = 'RESERVED', _('RESERVED')
-        UNAVALIBLE = 'UNAVALIBLE', _('UNAVALIBLE')
+        WAITING = "WAITING", _("WAITING")
+        PENDING = "PENDING", _("PENDING")
+        RESERVED = "RESERVED", _("RESERVED")
+        UNAVAILABLE = "UNAVAILABLE", _("UNAVAILABLE")
 
     class GPUSpeed(models.TextChoices):
-        SLOW = 'SLOW', _('SLOW')
-        NORMAL = 'NORMAL', _('NORMAL')
-        FAST = 'FAST', _('FAST')
+        SLOW = "SLOW", _("SLOW")
+        NORMAL = "NORMAL", _("NORMAL")
+        FAST = "FAST", _("FAST")
 
     device_id = models.PositiveSmallIntegerField()
     uuid = models.UUIDField(unique=True)
@@ -69,7 +70,7 @@ class Gpu(models.Model):
     last_update = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"GPU-{self.id}, {self.node}/{self.id}"
+        return f"{self.pk}"
 
 
 class Job(models.Model):
@@ -77,6 +78,7 @@ class Job(models.Model):
         LOW = "LOW"
         NORMAL = "NORMAL"
         HIGH = "HIGH"
+
     class JobStatus(Enum):
         WAITING = "WAITING"
         PENDING = "PENDING"
@@ -122,15 +124,17 @@ class Job(models.Model):
     user = models.CharField(max_length=150)
 
     def __str__(self):
-        return f"{self.id}:{self.path[-50:]}"
+        return f"{self.pk}"
 
 
 class ManagerSettings(models.Model):
     queue_watchdog = models.BooleanField(default=False)
+
     def save(self, *args, **kwargs):
         if not self.pk and ManagerSettings.objects.exists():
-            raise ValidationError('Może istnieć tylko jeden wpis ManagerSettings.')
+            raise ValidationError("There can only be one entry of ManagerSettings.")
         return super().save(*args, **kwargs)
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

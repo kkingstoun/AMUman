@@ -12,8 +12,10 @@ from manager.models import Job, Node
 
 class ManagerConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        query_string = parse_qs(self.scope['query_string'].decode('utf8'))
-        self.node_id = query_string.get('node_id', [None])[0]  # Pobieranie wartości 'node_id'
+        query_string = parse_qs(self.scope["query_string"].decode("utf8"))
+        self.node_id = query_string.get("node_id", [None])[
+            0
+        ]  # Pobieranie wartości 'node_id'
         # Authentication should be done in JWTAuthMiddleware
         if self.scope["user"] is AnonymousUser:
             await self.close()
@@ -22,8 +24,8 @@ class ManagerConsumer(AsyncWebsocketConsumer):
             await self.accept()
 
     async def disconnect(self, _close_code):
-        if hasattr(self, 'node_id'):
-            await self.update_node_status(self.node_id, 'DISCONNECTED')
+        if hasattr(self, "node_id"):
+            await self.update_node_status(self.node_id, "DISCONNECTED")
         await self.channel_layer.group_discard("nodes_group", self.channel_name)
         asyncio.ensure_future(self.interrupt_long_DISCONNECTED_Jobs())
 
@@ -45,18 +47,17 @@ class ManagerConsumer(AsyncWebsocketConsumer):
     def check_and_interrupt_Jobs(self):
         DISCONNECTED_time_threshold = timezone.now() - timezone.timedelta(minutes=30)
         jobs_to_interrupt = Job.objects.filter(
-            node__status='DISCONNECTED',
+            node__status="DISCONNECTED",
             node__last_seen__lt=DISCONNECTED_time_threshold,
-            status='PENDING'
+            status="PENDING",
         )
 
         for job in jobs_to_interrupt:
-            job.status = 'INTERRUPTED'
+            job.status = "INTERRUPTED"
             job.save()
 
-
     @database_sync_to_async
-    def update_node_status(self, node_id,  connection_status, name=None):
+    def update_node_status(self, node_id, connection_status, name=None):
         if name is not None:
             return Node.objects.filter(id=node_id).update(
                 name=name, connection_status=connection_status
@@ -77,7 +78,7 @@ class ManagerConsumer(AsyncWebsocketConsumer):
                 )
                 await self.update_node_status(self.node_id, "CONNECTED")
                 print("Registering node", data.get("node_name"))
-                
+
             except Exception as e:
                 print("Error", data.get("node_name"), str(e))
                 await self.update_node_status(
