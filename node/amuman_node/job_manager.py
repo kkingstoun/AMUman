@@ -61,7 +61,7 @@ class JobManager:
 
     async def run_subprocess(self) -> None:
         log.debug(f"job_starting subprocess for job ID: {self.job.id}")
-        cmd = ["amumax", "-gpu=1", self.job.path]
+        cmd = ["amumax", "-gpu=1", "-magnets=false", self.job.path]
         log.debug(f"Running command: {cmd}")
         try:
             self.subprocess = await asyncio.create_subprocess_exec(
