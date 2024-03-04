@@ -1,22 +1,17 @@
-FROM nvidia/cuda:12.3.1-base-ubuntu22.04
+FROM docker.io/python:3.11-slim
 
 ARG DEBIAN_FRONTEND="noninteractive"
-ARG PYTHON_VER=3.11
+ARG AMUMAX_VER=2024.02.21
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    bash \
-    bash-completion \
-    ca-certificates \
     curl \
-    git \
-    cifs-utils \
-    python${PYTHON_VER} python${PYTHON_VER}-dev python3-pip python-is-python3 && \
+    git && \
     pip install --upgrade pip && \
     pip install debugpy
 
 # amumax
-RUN curl -Ls https://github.com/mathieumoalic/amumax/releases/latest/download/amumax > /bin/amumax && \
-    curl -Ls https://github.com/mathieumoalic/amumax/releases/latest/download/libcufft.so.10 > /bin/libcufft.so.10 && \
-    curl -Ls https://github.com/mathieumoalic/amumax/releases/latest/download/libcurand.so.10 > /bin/libcurand.so.10 && \
+RUN curl -Ls https://github.com/MathieuMoalic/amumax/releases/download/${AMUMAX_VER}/amumax > /bin/amumax && \
+    curl -Ls https://github.com/MathieuMoalic/amumax/releases/download/${AMUMAX_VER}/libcufft.so.10 > /bin/libcufft.so.10 && \
+    curl -Ls https://github.com/MathieuMoalic/amumax/releases/download/${AMUMAX_VER}/libcurand.so.10 > /bin/libcurand.so.10 && \
     chmod +x /bin/amumax
     
 WORKDIR /app

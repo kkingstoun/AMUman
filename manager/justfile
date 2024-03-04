@@ -1,7 +1,7 @@
 dev cmd="None":
-	sudo docker network ls | grep amuman-dev || sudo docker network create amuman-dev
-	sudo docker build . -f dev.dockerfile -t amuman
-	sudo docker run --rm -it \
+	podman network ls | grep amuman-dev || podman network create amuman-dev
+	podman build . -f dev.dockerfile -t amuman
+	podman run --rm -it --replace \
 		--name amuman-manager-dev \
 		--network amuman-dev \
 		-p 8000:8000 \
@@ -11,9 +11,9 @@ dev cmd="None":
 		amuman {{cmd}}
 
 staging:
-	sudo docker network ls | grep amuman-proxy || sudo docker network create amuman-proxy
-	sudo docker build . -t amuman-manager-staging
-	sudo docker run --rm -it \
+	podman network ls | grep amuman-proxy || podman network create amuman-proxy
+	podman build . -t amuman-manager-staging
+	podman run --rm -it \
 		--name amuman-staging \
 		--network amuman-proxy \
 		--env-file ../.env \
@@ -22,7 +22,7 @@ staging:
 		amuman-manager-staging
 
 deploy:
-	sudo docker run --rm -it \
+	podman run --rm -it \
 		--name amuman-staging \
 		--network amuman-proxy \
 		-v ./manager_config:/app \

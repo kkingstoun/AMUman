@@ -1,6 +1,6 @@
 dev cmd="bash -c 'npm i && npm run dev'":
-	sudo docker network ls | grep amuman-dev || sudo docker network create amuman-dev
-	sudo docker run --rm -it \
+	podman network ls | grep amuman-dev || podman network create amuman-dev
+	podman run --rm -it --replace \
 		--name amuman-frontend-dev \
 		--network amuman-dev \
 		-p 5173:5173 \
@@ -9,7 +9,7 @@ dev cmd="bash -c 'npm i && npm run dev'":
 		docker.io/node:21 {{cmd}}
 
 build: 
-	sudo docker run --rm -it \
+	podman run --rm -it \
 		-v ./..:/app \
 		-w /app/frontend \
 		docker.io/node:21 npm i && npm run build
