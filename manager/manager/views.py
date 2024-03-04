@@ -27,7 +27,8 @@ log = logging.getLogger("rich")
 class JobsViewSet(viewsets.ModelViewSet):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
-    permission_classes: ClassVar = [permissions.IsAuthenticated]
+
+    # permission_classes: ClassVar = [permissions.IsAuthenticated]
 
     def list(self, request, *_args, **_kwargs):
         max_id = request.query_params.get("max_id")
@@ -76,6 +77,16 @@ class JobsViewSet(viewsets.ModelViewSet):
                 {"message": f"Job {pk} started successfully."},
                 status=status.HTTP_200_OK,
             )
+        except Job.DoesNotExist:
+            return Response(
+                {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    @action(detail=True, methods=["get"], url_path="output")
+    def job_output(self, *_args, **_kwargs):
+        try:
+            job = self.get_object()
+            return Response({"output": job.output}, status=status.HTTP_200_OK)
         except Job.DoesNotExist:
             return Response(
                 {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND
@@ -141,7 +152,7 @@ class NodesViewSet(viewsets.ModelViewSet):
     def refreshnode(self, request):
         node_id = request.query_params.get("node_id", None)
         channel_layer = get_channel_layer()
-        if node_id:
+        if channel_layer and node_id:
             async_to_sync(channel_layer.group_send)(
                 "nodes_group",
                 {
@@ -150,7 +161,6 @@ class NodesViewSet(viewsets.ModelViewSet):
                     "node_id": node_id,
                 },
             )
-        else:
             async_to_sync(channel_layer.group_send)(
                 "nodes_group",
                 {
@@ -172,8 +182,8 @@ class NodesViewSet(viewsets.ModelViewSet):
                 headers = self.get_success_headers(serializer.data)
                 return Response(
                     {
-                        "message": f"Node assigned. Your node_id is: {node.id}",
-                        "id": node.id,
+                        "message": f"Node assigned. Your node_id is: {node.pk}",
+                        "id": node.pk,
                     },
                     status=status.HTTP_201_CREATED,
                     headers=headers,
@@ -184,8 +194,8 @@ class NodesViewSet(viewsets.ModelViewSet):
                 serializer.save()
                 return Response(
                     {
-                        "message": f"Node already exists. Your node_id is: {node.id}",
-                        "id": node.id,
+                        "message": f"Node already exists. Your node_id is: {node.pk}",
+                        "id": node.pk,
                     },
                     status=status.HTTP_200_OK,
                 )
@@ -198,8 +208,8 @@ class NodesViewSet(viewsets.ModelViewSet):
                 node = Node.objects.get(name=request.data.get("name"))
                 return Response(
                     {
-                        "message": f"Node already exists. Your node_id is: {node.id}",
-                        "id": node.id,
+                        "message": f"Node already exists. Your node_id is: {node.pk}",
+                        "id": node.pk,
                     },
                     status=status.HTTP_200_OK,
                 )
@@ -211,4 +221,4 @@ class ManagerSettingsViewSet(viewsets.ModelViewSet):
     queryset = ManagerSettings.objects.all()
     serializer_class = ManagerSettingsSerializer
     permission_classes: ClassVar = [permissions.IsAuthenticated]
-    http_method_names = ["patch", "head", "options"]  # Zezwól tylko na PATCH
+    http_method_names = ["patch", "head", "options"]
