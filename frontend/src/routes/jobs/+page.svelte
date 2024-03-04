@@ -2,4 +2,4 @@
 	import TableLayout from '$lib/Table/TableLayout.svelte';
 </script>
 
-<TableLayout item_type="nodes" />
+<TableLayout item_type="jobs" />
