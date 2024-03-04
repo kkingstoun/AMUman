@@ -93,7 +93,6 @@ export const headers = writable<KeyLists>({
         'gpu_partition',
         'duration',
         'status',
-        'error',
         'flags',
         'node',
         'gpu',
