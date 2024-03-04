@@ -94,7 +94,8 @@ class JobsViewSet(viewsets.ModelViewSet):
     def output(self, *_args, **_kwargs):
         try:
             job = self.get_object()
-            return Response({"output": job.output}, status=status.HTTP_200_OK)
+            output = job.output if job.output else ""
+            return Response({"output": output}, status=status.HTTP_200_OK)
         except Job.DoesNotExist:
             return Response(
                 {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND

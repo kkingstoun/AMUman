@@ -14,7 +14,7 @@ class RunJob:
 
     def find_gpu(self, partition):
         gpu = Gpu.objects.filter(
-            status="WAITING",
+            status="PENDING",
             #  speed=partition                 #TEMPORARY DISABLED
         ).first()
         if gpu is None:

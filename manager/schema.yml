@@ -97,6 +97,7 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -125,6 +126,7 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
+      - {}
       responses:
         '201':
           content:
@@ -147,6 +149,7 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -180,6 +183,7 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -212,6 +216,7 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -233,9 +238,33 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
+      - {}
       responses:
         '204':
           description: No response body
+  /api/jobs/{id}/output/:
+    get:
+      operationId: jobs_output_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this job.
+        required: true
+      tags:
+      - jobs
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/output'
+          description: ''
   /api/jobs/{id}/start/:
     post:
       operationId: jobs_start_create
@@ -263,6 +292,7 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -626,38 +656,19 @@ components:
       - SLOW
       - NORMAL
       - FAST
+      - UNDEF
       type: string
       description: |-
         * `SLOW` - SLOW
         * `NORMAL` - NORMAL
         * `FAST` - FAST
+        * `UNDEF` - UNDEF
     Gpus:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
-        speed:
-          allOf:
-          - $ref: '#/components/schemas/SpeedEnum'
-          default: NORMAL
-          description: |-
-            The speed of the GPU.
-
-            * `SLOW` - SLOW
-            * `NORMAL` - NORMAL
-            * `FAST` - FAST
-        status:
-          allOf:
-          - $ref: '#/components/schemas/StatusCcdEnum'
-          default: WAITING
-          description: |-
-            The current status of the GPU.
-
-            * `WAITING` - WAITING
-            * `PENDING` - PENDING
-            * `RESERVED` - RESERVED
-            * `UNAVAILABLE` - UNAVAILABLE
         node:
           type: integer
           description: The associated node ID.
@@ -673,6 +684,8 @@ components:
           description: The unique identifier of the GPU.
         model:
           type: string
+        speed:
+          $ref: '#/components/schemas/SpeedEnum'
         util:
           type: integer
           maximum: 100
@@ -681,6 +694,8 @@ components:
           description: The utilization of the GPU (must be <= 100).
         is_running_amumax:
           type: boolean
+        status:
+          $ref: '#/components/schemas/GpusStatusEnum'
         last_update:
           type: string
           format: date-time
@@ -694,6 +709,18 @@ components:
       - node
       - util
       - uuid
+    GpusStatusEnum:
+      enum:
+      - RUNNING
+      - PENDING
+      - RESERVED
+      - UNAVAILABLE
+      type: string
+      description: |-
+        * `RUNNING` - RUNNING
+        * `PENDING` - PENDING
+        * `RESERVED` - RESERVED
+        * `UNAVAILABLE` - UNAVAILABLE
     Job:
       type: object
       properties:
@@ -736,12 +763,6 @@ components:
           format: int64
         status:
           $ref: '#/components/schemas/JobStatusEnum'
-        output:
-          type: string
-          nullable: true
-        error:
-          type: string
-          nullable: true
         flags:
           type: string
           nullable: true
@@ -761,13 +782,11 @@ components:
       - user
     JobStatusEnum:
       enum:
-      - WAITING
       - PENDING
       - FINISHED
       - INTERRUPTED
       type: string
       description: |-
-        * `WAITING` - WAITING
         * `PENDING` - PENDING
         * `FINISHED` - FINISHED
         * `INTERRUPTED` - INTERRUPTED
@@ -798,7 +817,7 @@ components:
           minimum: 0
           format: int64
         status:
-          $ref: '#/components/schemas/StatusCcdEnum'
+          $ref: '#/components/schemas/NodesStatusEnum'
         connection_status:
           $ref: '#/components/schemas/ConnectionStatusEnum'
         last_seen:
@@ -809,6 +828,16 @@ components:
       - ip
       - name
       - number_of_gpus
+    NodesStatusEnum:
+      enum:
+      - PENDING
+      - RESERVED
+      - UNAVAILABLE
+      type: string
+      description: |-
+        * `PENDING` - PENDING
+        * `RESERVED` - RESERVED
+        * `UNAVAILABLE` - UNAVAILABLE
     PatchedJob:
       type: object
       properties:
@@ -851,12 +880,6 @@ components:
           format: int64
         status:
           $ref: '#/components/schemas/JobStatusEnum'
-        output:
-          type: string
-          nullable: true
-        error:
-          type: string
-          nullable: true
         flags:
           type: string
           nullable: true
@@ -903,18 +926,6 @@ components:
         * `SLOW` - SLOW
         * `NORMAL` - NORMAL
         * `FAST` - FAST
-    StatusCcdEnum:
-      enum:
-      - WAITING
-      - PENDING
-      - RESERVED
-      - UNAVAILABLE
-      type: string
-      description: |-
-        * `WAITING` - WAITING
-        * `PENDING` - PENDING
-        * `RESERVED` - RESERVED
-        * `UNAVAILABLE` - UNAVAILABLE
     TokenObtainPair:
       type: object
       properties:
@@ -947,6 +958,13 @@ components:
       required:
       - access
       - refresh
+    output:
+      type: object
+      properties:
+        output:
+          type: string
+      required:
+      - output
   securitySchemes:
     basicAuth:
       type: http

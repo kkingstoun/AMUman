@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Job } from '$api/Api';
+	import { getJobOutput } from '$api/Table';
 	export let job: Job;
 	import Prism from 'prismjs';
 	import 'prismjs/components/prism-go'; // Ensure the import path is correct
 
-	let output = '';
-	onMount(() => {
-		output = job.output || 'nope';
+	let output = 'waiting for output...';
+	onMount(async () => {
+		output = await getJobOutput(job);
 	});
 </script>
 

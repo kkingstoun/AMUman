@@ -55,6 +55,20 @@ export function sortItems(item_type: 'jobs' | 'nodes' | 'gpus'): void {
     });
 }
 
+export function getJobOutput(job: Job): Promise<string> {
+    return new Promise((resolve, reject) => {
+        api.jobsOutputRetrieve(job.id, getRequestParams()).then(
+            (response) => {
+                resolve(response.data.output);
+            }
+        ).catch(err => {
+            console.error(err);
+            reject(err);
+        });
+    });
+}
+
+
 export async function runJob(job: Job) {
     api.jobsStartCreate(job.id, job, getRequestParams()).then(() => {
         newToast(`Started job ${job.id}`, "green");
