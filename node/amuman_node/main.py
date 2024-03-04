@@ -25,6 +25,7 @@ logging.basicConfig(
 log = logging.getLogger("rich")
 logging.getLogger("websockets").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 
 class NodeClient:
@@ -36,7 +37,7 @@ class NodeClient:
             f"Manager URL: '{self.manager_url}', Node ID: {self.node_id}, Node Name: '{self.node_name}'"
         )
         self.reconnect_attempts: int = 10
-        self.reconnect_delay: int = 30  
+        self.reconnect_delay: int = 30
         self.gpm: Optional[GPUMonitor] = None
         self.access_token: str
         self.refresh_token: Optional[str] = None
@@ -180,7 +181,9 @@ class NodeClient:
                 await self.execute_update_gpus(self.node_id)
             elif command == "run_job":
                 log.info("Running job")
-                self.job_manager: JobManager = JobManager(self.node_id, self.manager_url, token=self.access_token)
+                self.job_manager: JobManager = JobManager(
+                    self.node_id, self.manager_url, token=self.access_token
+                )
                 await self.job_manager.run_job(data["job_id"])
             else:
                 log.error(f"Unknown command: {command}")

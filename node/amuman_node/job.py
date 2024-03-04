@@ -7,10 +7,12 @@ from typing import Optional
 
 log = logging.getLogger("rich")
 
+
 class JobPriority(Enum):
     LOW = "LOW"
     NORMAL = "NORMAL"
     HIGH = "HIGH"
+
 
 class JobStatus(Enum):
     WAITING = "WAITING"
@@ -18,10 +20,12 @@ class JobStatus(Enum):
     FINISHED = "FINISHED"
     INTERRUPTED = "INTERRUPTED"
 
+
 class GPUPartition(Enum):
     SLOW = "SLOW"
     NORMAL = "NORMAL"
     FAST = "FAST"
+
 
 @dataclass
 class Job:
