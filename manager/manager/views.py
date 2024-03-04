@@ -6,9 +6,11 @@ from venv import logger
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.fields import CharField
 from rest_framework.response import Response
 
 from .components.run_job import RunJob
@@ -64,7 +66,7 @@ class JobsViewSet(viewsets.ModelViewSet):
     def start(self, _request, pk=None):
         try:
             job = self.get_object()
-            gpu = Gpu.objects.filter(status="WAITING").first()
+            gpu = Gpu.objects.filter(status="PENDING").first()
             if not gpu:
                 return Response(
                     {"error": "Gpu unavalible."}, status=status.HTTP_400_BAD_REQUEST
@@ -82,8 +84,14 @@ class JobsViewSet(viewsets.ModelViewSet):
                 {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
-    @action(detail=True, methods=["get"], url_path="output")
-    def job_output(self, *_args, **_kwargs):
+    @extend_schema(
+        responses=inline_serializer(
+            name="output",
+            fields={"output": CharField()},
+        ),
+    )
+    @action(detail=True, methods=["get"])
+    def output(self, *_args, **_kwargs):
         try:
             job = self.get_object()
             return Response({"output": job.output}, status=status.HTTP_200_OK)

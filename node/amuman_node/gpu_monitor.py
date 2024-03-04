@@ -17,7 +17,7 @@ class GPU:
     uuid: str = field(default="")
     gpu_util: int = field(default=0)
     mem_util: int = field(default=0)
-    status: str = field(default="Waiting")  # Use default value from GPUStatus
+    status: str = field(default="PENDING")  # Use default value from GPUStatus
     is_running_amumax: bool = field(default=False)
     refresh_time: datetime = field(
         default_factory=lambda: datetime.now()
@@ -63,7 +63,7 @@ class GPU:
 
     def get_gpu_load_status(self, threshold: int = 30) -> str:
         if self.gpu_util < threshold and self.mem_util < threshold:
-            status = "WAITING"
+            status = "PENDING"
         else:
             status = "UNAVAILABLE"
         log.debug(f"GPU {self.device_id} status: {status}")

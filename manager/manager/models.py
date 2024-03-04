@@ -6,12 +6,10 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 
 
 class Node(models.Model):
     class NodeStatus(Enum):
-        WAITING = "WAITING"
         PENDING = "PENDING"
         RESERVED = "RESERVED"
         UNAVAILABLE = "UNAVAILABLE"
@@ -26,7 +24,7 @@ class Node(models.Model):
     status = models.CharField(
         max_length=50,
         choices=[(choice.name, choice.value) for choice in NodeStatus],
-        default=NodeStatus.WAITING.name,
+        default=NodeStatus.PENDING.name,
     )
     connection_status = models.CharField(
         max_length=50,
@@ -40,16 +38,16 @@ class Node(models.Model):
 
 
 class Gpu(models.Model):
-    class GPUStatus(models.TextChoices):
-        WAITING = "WAITING", _("WAITING")
-        PENDING = "PENDING", _("PENDING")
-        RESERVED = "RESERVED", _("RESERVED")
-        UNAVAILABLE = "UNAVAILABLE", _("UNAVAILABLE")
+    class GPUStatus(Enum):
+        RUNNING = "RUNNING"
+        PENDING = "PENDING"
+        RESERVED = "RESERVED"  # not implemented
+        UNAVAILABLE = "UNAVAILABLE"  # High usage not from job or error
 
-    class GPUSpeed(models.TextChoices):
-        SLOW = "SLOW", _("SLOW")
-        NORMAL = "NORMAL", _("NORMAL")
-        FAST = "FAST", _("FAST")
+    class GPUSpeed(Enum):
+        SLOW = "SLOW"
+        NORMAL = "NORMAL"
+        FAST = "FAST"
 
     device_id = models.PositiveSmallIntegerField()
     uuid = models.UUIDField(unique=True)
@@ -65,7 +63,7 @@ class Gpu(models.Model):
     status = models.CharField(
         max_length=50,
         choices=[(choice.name, choice.value) for choice in GPUStatus],
-        default=GPUStatus.WAITING.name,
+        default=GPUStatus.PENDING.name,
     )
     last_update = models.DateTimeField(default=timezone.now)
 
@@ -80,7 +78,6 @@ class Job(models.Model):
         HIGH = "HIGH"
 
     class JobStatus(Enum):
-        WAITING = "WAITING"
         PENDING = "PENDING"
         FINISHED = "FINISHED"
         INTERRUPTED = "INTERRUPTED"
@@ -89,6 +86,8 @@ class Job(models.Model):
         SLOW = "SLOW"
         NORMAL = "NORMAL"
         FAST = "FAST"
+        # This next field is only to remove the enum conflict with the GPU speed
+        UNDEF = "UNDEF"
 
     path = models.CharField(max_length=500)
     port = models.PositiveIntegerField(null=True, blank=True)
@@ -110,7 +109,7 @@ class Job(models.Model):
     status = models.CharField(
         max_length=50,
         choices=[(choice.name, choice.value) for choice in JobStatus],
-        default=JobStatus.WAITING.name,
+        default=JobStatus.PENDING.name,
     )
     node = models.ForeignKey(
         Node, on_delete=models.SET_NULL, null=True, blank=True, related_name="node"

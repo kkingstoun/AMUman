@@ -44,7 +44,7 @@ class JobManagementTests(TestCase):
                 "priority": random.choice(["LOW", "NORMAL", "HIGH"]),
                 "gpu_partition": random.choice(["SLOW", "NORMAL", "FAST"]),
                 "duration": random.randint(1, 100),
-                "status": "WAITING",
+                "status": "PENDING",
             }
             response = self.client.post(self.job_url, job_data, format="json")
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)

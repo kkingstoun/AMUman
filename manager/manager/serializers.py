@@ -22,16 +22,6 @@ class RefreshNodeSerializer(serializers.Serializer):
 
 
 class GpusSerializer(serializers.ModelSerializer):
-    speed = serializers.ChoiceField(
-        choices=Gpu.GPUSpeed.choices,
-        default=Gpu.GPUSpeed.NORMAL,
-        help_text="The speed of the GPU.",
-    )
-    status = serializers.ChoiceField(
-        choices=Gpu.GPUStatus.choices,
-        default=Gpu.GPUStatus.WAITING,
-        help_text="The current status of the GPU.",
-    )
     node = serializers.PrimaryKeyRelatedField(
         queryset=Node.objects.all(), help_text="The associated node ID."
     )

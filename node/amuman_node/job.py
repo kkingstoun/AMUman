@@ -1,5 +1,4 @@
 import asyncio
-import json
 import logging
 from dataclasses import asdict, dataclass, field
 from enum import Enum
@@ -15,7 +14,6 @@ class JobPriority(Enum):
 
 
 class JobStatus(Enum):
-    WAITING = "WAITING"
     PENDING = "PENDING"
     FINISHED = "FINISHED"
     INTERRUPTED = "INTERRUPTED"
@@ -43,7 +41,7 @@ class Job:
     priority: JobPriority = JobPriority.NORMAL
     gpu_partition: GPUPartition = GPUPartition.NORMAL
     duration: int = 1
-    status: JobStatus = JobStatus.WAITING
+    status: JobStatus = JobStatus.PENDING
     output: Optional[str] = None
     error: Optional[str] = None
     flags: Optional[str] = None
