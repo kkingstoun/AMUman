@@ -5,14 +5,13 @@ dev cmd="bash":
 		--name amuman-node-dev \
 		--network amuman-dev \
 		-v ./..:/app \
+		-v ./../mock_nas:/mnt/smb \
 		-w /app/node \
 		--device=nvidia.com/gpu=all \
 		-p 5679:5679 \
 		-e MANAGER_URL=amuman-manager-dev:8000 \
 		-e NODE_NAME=test_node  \
 		--env-file ../.env \
-		--cap-add SYS_ADMIN \
-		--cap-add DAC_READ_SEARCH \
 		amuman-node-dev {{cmd}}
 
 staging:
