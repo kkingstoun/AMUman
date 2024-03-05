@@ -1,10 +1,6 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import User
 
-from .models import Gpu, Job, ManagerSettings, Node, UserProfile
-
-# from .forms import CustomUserChangeForm
+from .models import CustomUser, Gpu, Job, ManagerSettings, Node
 
 
 @admin.register(Job)
@@ -57,15 +53,6 @@ class ManagerSettingsAdmin(admin.ModelAdmin):
     ordering = ["-queue_watchdog"]
 
 
-class UserProfileInline(admin.StackedInline):
-    model = UserProfile
-    can_delete = False
-    verbose_name_plural = "UserProfile"
-
-
-class UserAdmin(BaseUserAdmin):
-    inlines = (UserProfileInline,)
-
-
-admin.site.unregister(User)
-admin.site.register(User, UserAdmin)
+@admin.register(CustomUser)
+class CustomUserAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in CustomUser._meta.fields]

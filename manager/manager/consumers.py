@@ -20,14 +20,19 @@ class ManagerConsumer(AsyncWebsocketConsumer):
         if self.scope["user"] is AnonymousUser:
             await self.close()
         else:
-            await self.channel_layer.group_add("nodes_group", self.channel_name)
-            await self.accept()
+            if self.channel_layer:
+                await self.channel_layer.group_add("nodes_group", self.channel_name)
+                await self.accept()
 
     async def disconnect(self, _close_code):
         if hasattr(self, "node_id"):
             await self.update_node_status(self.node_id, "DISCONNECTED")
-        await self.channel_layer.group_discard("nodes_group", self.channel_name)
-        asyncio.ensure_future(self.interrupt_long_DISCONNECTED_Jobs())
+        if self.channel_layer:
+            interrupt_task = asyncio.ensure_future(
+                self.interrupt_long_disconnected_jobs()
+            )
+            await self.channel_layer.group_discard("nodes_group", self.channel_name)
+            await interrupt_task
 
     @database_sync_to_async
     def update_node_status_internal(self, node_id, status):
@@ -38,17 +43,17 @@ class ManagerConsumer(AsyncWebsocketConsumer):
         except Node.DoesNotExist:
             pass  # Handle the case where the node does not exist.
 
-    async def interrupt_long_DISCONNECTED_Jobs(self):
+    async def interrupt_long_disconnected_jobs(self):
         while True:
             await asyncio.sleep(30 * 60)  # Wait for 30 minutes
-            await self.check_and_interrupt_Jobs()
+            await self.check_and_interrupt_jobs()
 
     @database_sync_to_async
-    def check_and_interrupt_Jobs(self):
-        DISCONNECTED_time_threshold = timezone.now() - timezone.timedelta(minutes=30)
+    def check_and_interrupt_jobs(self):
+        disconnected_time_threshold = timezone.now() - timezone.timedelta(minutes=30)
         jobs_to_interrupt = Job.objects.filter(
             node__status="DISCONNECTED",
-            node__last_seen__lt=DISCONNECTED_time_threshold,
+            node__last_seen__lt=disconnected_time_threshold,
             status="PENDING",
         )
 
@@ -97,13 +102,14 @@ class ManagerConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({"message": "Welcome, node!"}))
 
     async def send_test_message(self, message):
-        await self.channel_layer.group_send(
-            "nodes_group",
-            {
-                "type": "send_message_to_group",
-                "message": message,
-            },
-        )
+        if self.channel_layer:
+            await self.channel_layer.group_send(
+                "nodes_group",
+                {
+                    "type": "send_message_to_group",
+                    "message": message,
+                },
+            )
 
     async def send_message_to_group(self, event):
         message = event["message"]

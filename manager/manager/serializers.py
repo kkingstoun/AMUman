@@ -1,11 +1,39 @@
+from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import Gpu, Job, ManagerSettings, Node
+from .models import CustomUser, Gpu, Job, ManagerSettings, Node
 
 
-class NodesSerializer(serializers.ModelSerializer):
+class CustomUserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ["username", "password", "concurrent_jobs", "auth"]
+        depth = 1
+        read_only_fields = ["concurrent_jobs"]
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError(
+                "A user with that username already exists."
+            )
+        return value
+
+    def create(self, validated_data):
+        user_data = {
+            "username": validated_data.pop("username"),
+            "password": validated_data.pop("password"),
+        }
+        user = User.objects.create_user(**user_data)
+        custom_user = CustomUser.objects.create(auth=user)
+        return custom_user
+
+
+class NodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Node
         fields = "__all__"
@@ -14,14 +42,15 @@ class NodesSerializer(serializers.ModelSerializer):
 class JobSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
-        exclude = ["output", "error"]
+        fields = "__all__"
+        # exclude = ["output", "error"]
 
 
 class RefreshNodeSerializer(serializers.Serializer):
     node_id = serializers.IntegerField(required=False)
 
 
-class GpusSerializer(serializers.ModelSerializer):
+class GpuSerializer(serializers.ModelSerializer):
     node = serializers.PrimaryKeyRelatedField(
         queryset=Node.objects.all(), help_text="The associated node ID."
     )

@@ -3,8 +3,6 @@ from enum import Enum
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.utils import timezone
 
 
@@ -71,6 +69,18 @@ class Gpu(models.Model):
         return f"{self.pk}"
 
 
+class CustomUser(models.Model):
+    auth = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="user_details"
+    )
+    concurrent_jobs = models.SmallIntegerField(
+        default=10, choices=[(x, str(x)) for x in range(20)]
+    )
+
+    def __str__(self):
+        return f"{self.auth.username}"
+
+
 class Job(models.Model):
     class JobPriority(Enum):
         LOW = "LOW"
@@ -90,6 +100,7 @@ class Job(models.Model):
         UNDEF = "UNDEF"
 
     path = models.CharField(max_length=500)
+    user = models.CharField(max_length=150)
     port = models.PositiveIntegerField(null=True, blank=True)
     submit_time = models.DateTimeField(null=True, blank=True)
     start_time = models.DateTimeField(null=True, blank=True)
@@ -120,7 +131,6 @@ class Job(models.Model):
     output = models.TextField(null=True, blank=True)
     error = models.TextField(null=True, blank=True)
     flags = models.CharField(max_length=150, null=True, blank=True)
-    user = models.CharField(max_length=150)
 
     def __str__(self):
         return f"{self.pk}"
@@ -133,20 +143,3 @@ class ManagerSettings(models.Model):
         if not self.pk and ManagerSettings.objects.exists():
             raise ValidationError("There can only be one entry of ManagerSettings.")
         return super().save(*args, **kwargs)
-
-
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    concurrent_jobs = models.IntegerField(
-        default=0, choices=[(x, str(x)) for x in range(11)]
-    )
-
-    def __str__(self):
-        return self.user.username
-
-
-@receiver(post_save, sender=User)
-def create_or_update_user_profile(sender, instance, created, **_kwargs):  # noqa: ARG001
-    if created:
-        UserProfile.objects.create(user=instance)
-    instance.userprofile.save()

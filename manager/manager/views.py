@@ -14,25 +14,53 @@ from rest_framework.fields import CharField
 from rest_framework.response import Response
 
 from .components.run_job import RunJob
-from .models import Gpu, Job, ManagerSettings, Node
+from .models import CustomUser, Gpu, Job, ManagerSettings, Node
 from .serializers import (
-    GpusSerializer,
+    CustomUserSerializer,
+    GpuSerializer,
     JobSerializer,
     ManagerSettingsSerializer,
-    NodesSerializer,
+    NodeSerializer,
     RefreshNodeSerializer,
 )
 
 log = logging.getLogger("rich")
 
 
+class CustomUserViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+
+    def get_permissions(self):
+        return (
+            [permissions.AllowAny()]
+            if self.action == "create"
+            else [permissions.IsAdminUser()]
+        )
+
+    def create(self, request, *_args, **_kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            headers = self.get_success_headers(serializer.data)
+            return Response(
+                serializer.data, status=status.HTTP_201_CREATED, headers=headers
+            )
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class JobsViewSet(viewsets.ModelViewSet):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
 
-    # permission_classes: ClassVar = [permissions.IsAuthenticated]
+    permission_classes: ClassVar = [permissions.IsAuthenticated]
 
     def list(self, request, *_args, **_kwargs):
+        if request.user.is_authenticated:
+            log.debug(f"User {request.user} is authenticated.")
+        else:
+            log.debug(f"User {request.user} is not authenticated.")
         max_id = request.query_params.get("max_id")
         if max_id is not None:
             queryset = self.queryset.filter(id__lt=max_id)
@@ -61,6 +89,10 @@ class JobsViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
                 headers=headers,
             )
+
+    def update(self, request, *args, **kwargs):
+        print(request.data)
+        return super().update(request, *args, **kwargs)
 
     @action(detail=True, methods=["post"])
     def start(self, _request, pk=None):
@@ -105,7 +137,7 @@ class JobsViewSet(viewsets.ModelViewSet):
 class GpusViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "delete"]
     queryset = Gpu.objects.all()
-    serializer_class = GpusSerializer
+    serializer_class = GpuSerializer
 
     def create(self, request, *_args, **_kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -148,7 +180,7 @@ class GpusViewSet(viewsets.ModelViewSet):
 
 class NodesViewSet(viewsets.ModelViewSet):
     queryset = Node.objects.all()
-    serializer_class = NodesSerializer
+    serializer_class = NodeSerializer
     permission_classes: ClassVar = [permissions.IsAuthenticated]
     http_method_names = ["get", "post", "delete"]
 
