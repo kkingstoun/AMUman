@@ -1,12 +1,11 @@
 dev cmd="None":
-	sudo docker network ls | grep amuman-dev || sudo docker network create amuman-dev
-	sudo docker build . -f dev.dockerfile -t amuman-cli
-	sudo docker run --rm -it \
+	podman network ls | grep amuman-dev || podman network create amuman-dev
+	podman build . -f dev.dockerfile -t amuman-cli
+	podman run --rm -it \
 		--name amuman-cli \
 		--network amuman-dev \
 		-v ./..:/app \
+		-v ./../mock_nas:/mnt/smb \
 		-w /app/cli \
 		--env-file ../.env \
-		--cap-add SYS_ADMIN \
-		--cap-add DAC_READ_SEARCH \
 		amuman-cli {{cmd}}

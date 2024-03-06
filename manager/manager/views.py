@@ -6,30 +6,61 @@ from venv import logger
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.fields import CharField
 from rest_framework.response import Response
 
 from .components.run_job import RunJob
-from .models import Gpu, Job, ManagerSettings, Node
+from .models import CustomUser, Gpu, Job, ManagerSettings, Node
 from .serializers import (
-    GpusSerializer,
+    CustomUserSerializer,
+    GpuSerializer,
     JobSerializer,
     ManagerSettingsSerializer,
-    NodesSerializer,
+    NodeSerializer,
     RefreshNodeSerializer,
 )
 
 log = logging.getLogger("rich")
 
 
+class CustomUserViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+
+    def get_permissions(self):
+        return (
+            [permissions.AllowAny()]
+            if self.action == "create"
+            else [permissions.IsAdminUser()]
+        )
+
+    def create(self, request, *_args, **_kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            headers = self.get_success_headers(serializer.data)
+            return Response(
+                serializer.data, status=status.HTTP_201_CREATED, headers=headers
+            )
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class JobsViewSet(viewsets.ModelViewSet):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
+
     permission_classes: ClassVar = [permissions.IsAuthenticated]
 
     def list(self, request, *_args, **_kwargs):
+        if request.user.is_authenticated:
+            log.debug(f"User {request.user} is authenticated.")
+        else:
+            log.debug(f"User {request.user} is not authenticated.")
         max_id = request.query_params.get("max_id")
         if max_id is not None:
             queryset = self.queryset.filter(id__lt=max_id)
@@ -54,21 +85,49 @@ class JobsViewSet(viewsets.ModelViewSet):
         except ValidationError as e:
             log.error(f"Job not created: {e}")
             return Response(
-                f"Job not created: {e}", status=status.HTTP_400_BAD_REQUEST, headers=headers
+                f"Job not created: {e}",
+                status=status.HTTP_400_BAD_REQUEST,
+                headers=headers,
             )
+
+    def update(self, request, *args, **kwargs):
+        print(request.data)
+        return super().update(request, *args, **kwargs)
 
     @action(detail=True, methods=["post"])
     def start(self, _request, pk=None):
         try:
             job = self.get_object()
-            gpu = Gpu.objects.filter(status="WAITING").first()
+            gpu = Gpu.objects.filter(status="PENDING").first()
             if not gpu:
-                return Response({"error": "Gpu unavalible."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Gpu unavalible."}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             self.rt = RunJob()
             self.rt.run_job(job=job, request=_request)
 
-            return Response({"message": f"Job {pk} started successfully."}, status=status.HTTP_200_OK)
+            return Response(
+                {"message": f"Job {pk} started successfully."},
+                status=status.HTTP_200_OK,
+            )
+        except Job.DoesNotExist:
+            return Response(
+                {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+    @extend_schema(
+        responses=inline_serializer(
+            name="output",
+            fields={"output": CharField()},
+        ),
+    )
+    @action(detail=True, methods=["get"])
+    def output(self, *_args, **_kwargs):
+        try:
+            job = self.get_object()
+            output = job.output if job.output else ""
+            return Response({"output": output}, status=status.HTTP_200_OK)
         except Job.DoesNotExist:
             return Response(
                 {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND
@@ -76,9 +135,9 @@ class JobsViewSet(viewsets.ModelViewSet):
 
 
 class GpusViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'post', 'delete']
+    http_method_names = ["get", "post", "delete"]
     queryset = Gpu.objects.all()
-    serializer_class = GpusSerializer
+    serializer_class = GpuSerializer
 
     def create(self, request, *_args, **_kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -110,25 +169,31 @@ class GpusViewSet(viewsets.ModelViewSet):
                 update_serializer.is_valid(raise_exception=True)
                 self.perform_update(update_serializer)
                 return Response(update_serializer.data)
-            else: 
+            else:
                 return Response(
-                        {
-                            "message": f"Gpu not assigned. Error: {e}",
-                        },
-                        status=status.HTTP_400_BAD_REQUEST)
+                    {
+                        "message": f"Gpu not assigned. Error: {e}",
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
 
 class NodesViewSet(viewsets.ModelViewSet):
     queryset = Node.objects.all()
-    serializer_class = NodesSerializer
+    serializer_class = NodeSerializer
     permission_classes: ClassVar = [permissions.IsAuthenticated]
-    http_method_names = ['get', 'post', 'delete']
+    http_method_names = ["get", "post", "delete"]
 
-    @action(detail=False, methods=['post'], url_path='refresh', serializer_class=RefreshNodeSerializer)
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="refresh",
+        serializer_class=RefreshNodeSerializer,
+    )
     def refreshnode(self, request):
-        node_id = request.query_params.get('node_id', None)
+        node_id = request.query_params.get("node_id", None)
         channel_layer = get_channel_layer()
-        if node_id:
+        if channel_layer and node_id:
             async_to_sync(channel_layer.group_send)(
                 "nodes_group",
                 {
@@ -137,7 +202,6 @@ class NodesViewSet(viewsets.ModelViewSet):
                     "node_id": node_id,
                 },
             )
-        else:
             async_to_sync(channel_layer.group_send)(
                 "nodes_group",
                 {
@@ -159,8 +223,8 @@ class NodesViewSet(viewsets.ModelViewSet):
                 headers = self.get_success_headers(serializer.data)
                 return Response(
                     {
-                        "message": f"Node assigned. Your node_id is: {node.id}",
-                        "id": node.id,
+                        "message": f"Node assigned. Your node_id is: {node.pk}",
+                        "id": node.pk,
                     },
                     status=status.HTTP_201_CREATED,
                     headers=headers,
@@ -171,8 +235,8 @@ class NodesViewSet(viewsets.ModelViewSet):
                 serializer.save()
                 return Response(
                     {
-                        "message": f"Node already exists. Your node_id is: {node.id}",
-                        "id": node.id,
+                        "message": f"Node already exists. Your node_id is: {node.pk}",
+                        "id": node.pk,
                     },
                     status=status.HTTP_200_OK,
                 )
@@ -185,8 +249,8 @@ class NodesViewSet(viewsets.ModelViewSet):
                 node = Node.objects.get(name=request.data.get("name"))
                 return Response(
                     {
-                        "message": f"Node already exists. Your node_id is: {node.id}",
-                        "id": node.id,
+                        "message": f"Node already exists. Your node_id is: {node.pk}",
+                        "id": node.pk,
                     },
                     status=status.HTTP_200_OK,
                 )
@@ -198,4 +262,4 @@ class ManagerSettingsViewSet(viewsets.ModelViewSet):
     queryset = ManagerSettings.objects.all()
     serializer_class = ManagerSettingsSerializer
     permission_classes: ClassVar = [permissions.IsAuthenticated]
-    http_method_names = ['patch', 'head', 'options']  # Zezwól tylko na PATCH
+    http_method_names = ["patch", "head", "options"]

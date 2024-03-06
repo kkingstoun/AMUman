@@ -1,10 +1,15 @@
 <script lang="ts">
-	import { isAuthenticated } from '$stores/Auth';
 	import { NavLi } from 'flowbite-svelte';
+	import { goto } from '$app/navigation';
+	import { accessToken, refreshToken } from '$stores/Auth';
+
 	function handleLogout() {
 		localStorage.removeItem('access_token');
 		localStorage.removeItem('refresh_token');
-		isAuthenticated.set(false);
+		accessToken.set(null);
+		refreshToken.set(null);
+
+		goto('/login');
 	}
 </script>
 

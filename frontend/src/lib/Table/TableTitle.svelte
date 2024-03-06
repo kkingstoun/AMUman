@@ -16,7 +16,7 @@
 	</div>
 	<RefreshOutline
 		on:click={() => {
-			fetchItems('jobs');
+			fetchItems(item_type);
 		}}
 		class="ml-3 text-gray-500"
 	/>

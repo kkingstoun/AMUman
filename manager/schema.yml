@@ -19,7 +19,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Gpus'
+                  $ref: '#/components/schemas/Gpu'
           description: ''
     post:
       operationId: gpus_create
@@ -29,13 +29,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Gpus'
+              $ref: '#/components/schemas/Gpu'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Gpus'
+              $ref: '#/components/schemas/Gpu'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Gpus'
+              $ref: '#/components/schemas/Gpu'
         required: true
       security:
       - basicAuth: []
@@ -46,7 +46,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Gpus'
+                $ref: '#/components/schemas/Gpu'
           description: ''
   /api/gpus/{id}/:
     get:
@@ -69,7 +69,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Gpus'
+                $ref: '#/components/schemas/Gpu'
           description: ''
     delete:
       operationId: gpus_destroy
@@ -236,6 +236,28 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/jobs/{id}/output/:
+    get:
+      operationId: jobs_output_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this job.
+        required: true
+      tags:
+      - jobs
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/output'
+          description: ''
   /api/jobs/{id}/start/:
     post:
       operationId: jobs_start_create
@@ -318,7 +340,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Nodes'
+                  $ref: '#/components/schemas/Node'
           description: ''
     post:
       operationId: nodes_create
@@ -328,13 +350,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Nodes'
+              $ref: '#/components/schemas/Node'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Nodes'
+              $ref: '#/components/schemas/Node'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Nodes'
+              $ref: '#/components/schemas/Node'
         required: true
       security:
       - basicAuth: []
@@ -344,7 +366,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Nodes'
+                $ref: '#/components/schemas/Node'
           description: ''
   /api/nodes/{id}/:
     get:
@@ -366,7 +388,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Nodes'
+                $ref: '#/components/schemas/Node'
           description: ''
     delete:
       operationId: nodes_destroy
@@ -611,8 +633,200 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenRefresh'
           description: ''
+  /api/users/:
+    get:
+      operationId: users_list
+      tags:
+      - users
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomUser'
+          description: ''
+    post:
+      operationId: users_create
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomUser'
+        required: true
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUser'
+          description: ''
+  /api/users/{id}/:
+    get:
+      operationId: users_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this custom user.
+        required: true
+      tags:
+      - users
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUser'
+          description: ''
+    put:
+      operationId: users_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this custom user.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomUser'
+        required: true
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUser'
+          description: ''
+    patch:
+      operationId: users_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this custom user.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomUser'
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomUser'
+          description: ''
+    delete:
+      operationId: users_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this custom user.
+        required: true
+      tags:
+      - users
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
 components:
   schemas:
+    ConcurrentJobsEnum:
+      enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
+      - 10
+      - 11
+      - 12
+      - 13
+      - 14
+      - 15
+      - 16
+      - 17
+      - 18
+      - 19
+      type: integer
+      description: |-
+        * `0` - 0
+        * `1` - 1
+        * `2` - 2
+        * `3` - 3
+        * `4` - 4
+        * `5` - 5
+        * `6` - 6
+        * `7` - 7
+        * `8` - 8
+        * `9` - 9
+        * `10` - 10
+        * `11` - 11
+        * `12` - 12
+        * `13` - 13
+        * `14` - 14
+        * `15` - 15
+        * `16` - 16
+        * `17` - 17
+        * `18` - 18
+        * `19` - 19
     ConnectionStatusEnum:
       enum:
       - CONNECTED
@@ -621,43 +835,34 @@ components:
       description: |-
         * `CONNECTED` - CONNECTED
         * `DISCONNECTED` - DISCONNECTED
-    GpuPartitionEnum:
-      enum:
-      - SLOW
-      - NORMAL
-      - FAST
-      type: string
-      description: |-
-        * `SLOW` - SLOW
-        * `NORMAL` - NORMAL
-        * `FAST` - FAST
-    Gpus:
+    CustomUser:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        concurrent_jobs:
+          allOf:
+          - $ref: '#/components/schemas/ConcurrentJobsEnum'
+          readOnly: true
+        auth:
+          allOf:
+          - $ref: '#/components/schemas/Nested'
+          readOnly: true
+      required:
+      - auth
+      - concurrent_jobs
+      - password
+      - username
+    Gpu:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
-        speed:
-          allOf:
-          - $ref: '#/components/schemas/SpeedEnum'
-          default: NORMAL
-          description: |-
-            The speed of the GPU.
-
-            * `SLOW` - SLOW
-            * `NORMAL` - NORMAL
-            * `FAST` - FAST
-        status:
-          allOf:
-          - $ref: '#/components/schemas/GpusStatusEnum'
-          default: WAITING
-          description: |-
-            The current status of the GPU.
-
-            * `WAITING` - WAITING
-            * `PENDING` - PENDING
-            * `RESERVED` - RESERVED
-            * `UNAVALIBLE` - UNAVALIBLE
         node:
           type: integer
           description: The associated node ID.
@@ -673,6 +878,8 @@ components:
           description: The unique identifier of the GPU.
         model:
           type: string
+        speed:
+          $ref: '#/components/schemas/SpeedEnum'
         util:
           type: integer
           maximum: 100
@@ -681,6 +888,8 @@ components:
           description: The utilization of the GPU (must be <= 100).
         is_running_amumax:
           type: boolean
+        status:
+          $ref: '#/components/schemas/GpuStatusEnum'
         last_update:
           type: string
           format: date-time
@@ -694,18 +903,30 @@ components:
       - node
       - util
       - uuid
-    GpusStatusEnum:
+    GpuPartitionEnum:
       enum:
-      - WAITING
-      - PENDING
-      - RESERVED
-      - UNAVALIBLE
+      - SLOW
+      - NORMAL
+      - FAST
+      - UNDEF
       type: string
       description: |-
-        * `WAITING` - WAITING
+        * `SLOW` - SLOW
+        * `NORMAL` - NORMAL
+        * `FAST` - FAST
+        * `UNDEF` - UNDEF
+    GpuStatusEnum:
+      enum:
+      - RUNNING
+      - PENDING
+      - RESERVED
+      - UNAVAILABLE
+      type: string
+      description: |-
+        * `RUNNING` - RUNNING
         * `PENDING` - PENDING
         * `RESERVED` - RESERVED
-        * `UNAVALIBLE` - UNAVALIBLE
+        * `UNAVAILABLE` - UNAVAILABLE
     Job:
       type: object
       properties:
@@ -715,6 +936,9 @@ components:
         path:
           type: string
           maxLength: 500
+        user:
+          type: string
+          maxLength: 150
         port:
           type: integer
           maximum: 9223372036854775807
@@ -758,9 +982,6 @@ components:
           type: string
           nullable: true
           maxLength: 150
-        user:
-          type: string
-          maxLength: 150
         node:
           type: integer
           nullable: true
@@ -773,13 +994,11 @@ components:
       - user
     JobStatusEnum:
       enum:
-      - WAITING
       - PENDING
       - FINISHED
       - INTERRUPTED
       type: string
       description: |-
-        * `WAITING` - WAITING
         * `PENDING` - PENDING
         * `FINISHED` - FINISHED
         * `INTERRUPTED` - INTERRUPTED
@@ -793,7 +1012,69 @@ components:
           type: boolean
       required:
       - id
-    Nodes:
+    Nested:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        password:
+          type: string
+          maxLength: 128
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        is_superuser:
+          type: boolean
+          title: Superuser status
+          description: Designates that this user has all permissions without explicitly
+            assigning them.
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        is_staff:
+          type: boolean
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+        is_active:
+          type: boolean
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+        date_joined:
+          type: string
+          format: date-time
+        groups:
+          type: array
+          items:
+            type: integer
+          description: The groups this user belongs to. A user will get all permissions
+            granted to each of their groups.
+        user_permissions:
+          type: array
+          items:
+            type: integer
+          description: Specific permissions for this user.
+      required:
+      - id
+      - password
+      - username
+    Node:
       type: object
       properties:
         id:
@@ -810,7 +1091,7 @@ components:
           minimum: 0
           format: int64
         status:
-          $ref: '#/components/schemas/NodesStatusEnum'
+          $ref: '#/components/schemas/NodeStatusEnum'
         connection_status:
           $ref: '#/components/schemas/ConnectionStatusEnum'
         last_seen:
@@ -821,18 +1102,33 @@ components:
       - ip
       - name
       - number_of_gpus
-    NodesStatusEnum:
+    NodeStatusEnum:
       enum:
-      - WAITING
       - PENDING
       - RESERVED
       - UNAVAILABLE
       type: string
       description: |-
-        * `WAITING` - WAITING
         * `PENDING` - PENDING
         * `RESERVED` - RESERVED
         * `UNAVAILABLE` - UNAVAILABLE
+    PatchedCustomUser:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        concurrent_jobs:
+          allOf:
+          - $ref: '#/components/schemas/ConcurrentJobsEnum'
+          readOnly: true
+        auth:
+          allOf:
+          - $ref: '#/components/schemas/Nested'
+          readOnly: true
     PatchedJob:
       type: object
       properties:
@@ -842,6 +1138,9 @@ components:
         path:
           type: string
           maxLength: 500
+        user:
+          type: string
+          maxLength: 150
         port:
           type: integer
           maximum: 9223372036854775807
@@ -884,9 +1183,6 @@ components:
         flags:
           type: string
           nullable: true
-          maxLength: 150
-        user:
-          type: string
           maxLength: 150
         node:
           type: integer
@@ -959,6 +1255,13 @@ components:
       required:
       - access
       - refresh
+    output:
+      type: object
+      properties:
+        output:
+          type: string
+      required:
+      - output
   securitySchemes:
     basicAuth:
       type: http

@@ -1,16 +1,13 @@
 from enum import Enum
 
 from django.contrib.auth.models import User
-from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
+from django.db import models
+from django.utils import timezone
+
 
 class Node(models.Model):
     class NodeStatus(Enum):
-        WAITING = "WAITING"
         PENDING = "PENDING"
         RESERVED = "RESERVED"
         UNAVAILABLE = "UNAVAILABLE"
@@ -25,7 +22,7 @@ class Node(models.Model):
     status = models.CharField(
         max_length=50,
         choices=[(choice.name, choice.value) for choice in NodeStatus],
-        default=NodeStatus.WAITING.name,
+        default=NodeStatus.PENDING.name,
     )
     connection_status = models.CharField(
         max_length=50,
@@ -35,20 +32,20 @@ class Node(models.Model):
     last_seen = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return self.name
+        return f"{self.pk}"
 
 
 class Gpu(models.Model):
-    class GPUStatus(models.TextChoices):
-        WAITING = 'WAITING', _('WAITING')
-        PENDING = 'PENDING', _('PENDING')
-        RESERVED = 'RESERVED', _('RESERVED')
-        UNAVALIBLE = 'UNAVALIBLE', _('UNAVALIBLE')
+    class GPUStatus(Enum):
+        RUNNING = "RUNNING"
+        PENDING = "PENDING"
+        RESERVED = "RESERVED"  # not implemented
+        UNAVAILABLE = "UNAVAILABLE"  # High usage not from job or error
 
-    class GPUSpeed(models.TextChoices):
-        SLOW = 'SLOW', _('SLOW')
-        NORMAL = 'NORMAL', _('NORMAL')
-        FAST = 'FAST', _('FAST')
+    class GPUSpeed(Enum):
+        SLOW = "SLOW"
+        NORMAL = "NORMAL"
+        FAST = "FAST"
 
     device_id = models.PositiveSmallIntegerField()
     uuid = models.UUIDField(unique=True)
@@ -64,12 +61,24 @@ class Gpu(models.Model):
     status = models.CharField(
         max_length=50,
         choices=[(choice.name, choice.value) for choice in GPUStatus],
-        default=GPUStatus.WAITING.name,
+        default=GPUStatus.PENDING.name,
     )
     last_update = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"GPU-{self.id}, {self.node}/{self.id}"
+        return f"{self.pk}"
+
+
+class CustomUser(models.Model):
+    auth = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="user_details"
+    )
+    concurrent_jobs = models.SmallIntegerField(
+        default=10, choices=[(x, str(x)) for x in range(20)]
+    )
+
+    def __str__(self):
+        return f"{self.auth.username}"
 
 
 class Job(models.Model):
@@ -77,8 +86,8 @@ class Job(models.Model):
         LOW = "LOW"
         NORMAL = "NORMAL"
         HIGH = "HIGH"
+
     class JobStatus(Enum):
-        WAITING = "WAITING"
         PENDING = "PENDING"
         FINISHED = "FINISHED"
         INTERRUPTED = "INTERRUPTED"
@@ -87,8 +96,11 @@ class Job(models.Model):
         SLOW = "SLOW"
         NORMAL = "NORMAL"
         FAST = "FAST"
+        # This next field is only to remove the enum conflict with the GPU speed
+        UNDEF = "UNDEF"
 
     path = models.CharField(max_length=500)
+    user = models.CharField(max_length=150)
     port = models.PositiveIntegerField(null=True, blank=True)
     submit_time = models.DateTimeField(null=True, blank=True)
     start_time = models.DateTimeField(null=True, blank=True)
@@ -108,7 +120,7 @@ class Job(models.Model):
     status = models.CharField(
         max_length=50,
         choices=[(choice.name, choice.value) for choice in JobStatus],
-        default=JobStatus.WAITING.name,
+        default=JobStatus.PENDING.name,
     )
     node = models.ForeignKey(
         Node, on_delete=models.SET_NULL, null=True, blank=True, related_name="node"
@@ -119,31 +131,15 @@ class Job(models.Model):
     output = models.TextField(null=True, blank=True)
     error = models.TextField(null=True, blank=True)
     flags = models.CharField(max_length=150, null=True, blank=True)
-    user = models.CharField(max_length=150)
 
     def __str__(self):
-        return f"{self.id}:{self.path[-50:]}"
+        return f"{self.pk}"
 
 
 class ManagerSettings(models.Model):
     queue_watchdog = models.BooleanField(default=False)
+
     def save(self, *args, **kwargs):
         if not self.pk and ManagerSettings.objects.exists():
-            raise ValidationError('Może istnieć tylko jeden wpis ManagerSettings.')
+            raise ValidationError("There can only be one entry of ManagerSettings.")
         return super().save(*args, **kwargs)
-
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    concurrent_jobs = models.IntegerField(
-        default=0, choices=[(x, str(x)) for x in range(11)]
-    )
-
-    def __str__(self):
-        return self.user.username
-
-
-@receiver(post_save, sender=User)
-def create_or_update_user_profile(sender, instance, created, **_kwargs):  # noqa: ARG001
-    if created:
-        UserProfile.objects.create(user=instance)
-    instance.userprofile.save()

@@ -22,34 +22,17 @@ export enum ConnectionStatusEnum {
  * * `SLOW` - SLOW
  * * `NORMAL` - NORMAL
  * * `FAST` - FAST
+ * * `UNDEF` - UNDEF
  */
 export enum GpuPartitionEnum {
 	SLOW = 'SLOW',
 	NORMAL = 'NORMAL',
-	FAST = 'FAST'
+	FAST = 'FAST',
+	UNDEF = 'UNDEF'
 }
 
 export interface Gpus {
 	readonly id: number;
-	/**
-	 * The speed of the GPU.
-	 *
-	 * * `SLOW` - SLOW
-	 * * `NORMAL` - NORMAL
-	 * * `FAST` - FAST
-	 * @default "NORMAL"
-	 */
-	speed?: SpeedEnum;
-	/**
-	 * The current status of the GPU.
-	 *
-	 * * `WAITING` - WAITING
-	 * * `PENDING` - PENDING
-	 * * `RESERVED` - RESERVED
-	 * * `UNAVALIBLE` - UNAVALIBLE
-	 * @default "WAITING"
-	 */
-	status?: GpusStatusEnum;
 	/** The associated node ID. */
 	node: number;
 	/**
@@ -66,6 +49,12 @@ export interface Gpus {
 	uuid: string;
 	model: string;
 	/**
+	 * * `SLOW` - SLOW
+	 * * `NORMAL` - NORMAL
+	 * * `FAST` - FAST
+	 */
+	speed?: SpeedEnum;
+	/**
 	 * The utilization of the GPU (must be <= 100).
 	 * @format int64
 	 * @min 0
@@ -74,6 +63,13 @@ export interface Gpus {
 	util: number;
 	is_running_amumax?: boolean;
 	/**
+	 * * `RUNNING` - RUNNING
+	 * * `PENDING` - PENDING
+	 * * `RESERVED` - RESERVED
+	 * * `UNAVAILABLE` - UNAVAILABLE
+	 */
+	status?: GpusStatusEnum;
+	/**
 	 * The timestamp of the last update (read-only, auto-generated).
 	 * @format date-time
 	 */
@@ -81,16 +77,16 @@ export interface Gpus {
 }
 
 /**
- * * `WAITING` - WAITING
+ * * `RUNNING` - RUNNING
  * * `PENDING` - PENDING
  * * `RESERVED` - RESERVED
- * * `UNAVALIBLE` - UNAVALIBLE
+ * * `UNAVAILABLE` - UNAVAILABLE
  */
 export enum GpusStatusEnum {
-	WAITING = 'WAITING',
+	RUNNING = 'RUNNING',
 	PENDING = 'PENDING',
 	RESERVED = 'RESERVED',
-	UNAVALIBLE = 'UNAVALIBLE'
+	UNAVAILABLE = 'UNAVAILABLE'
 }
 
 export interface Job {
@@ -121,6 +117,7 @@ export interface Job {
 	 * * `SLOW` - SLOW
 	 * * `NORMAL` - NORMAL
 	 * * `FAST` - FAST
+	 * * `UNDEF` - UNDEF
 	 */
 	gpu_partition?: GpuPartitionEnum;
 	/**
@@ -130,14 +127,11 @@ export interface Job {
 	 */
 	duration?: number;
 	/**
-	 * * `WAITING` - WAITING
 	 * * `PENDING` - PENDING
 	 * * `FINISHED` - FINISHED
 	 * * `INTERRUPTED` - INTERRUPTED
 	 */
 	status?: JobStatusEnum;
-	output?: string | null;
-	error?: string | null;
 	/** @maxLength 150 */
 	flags?: string | null;
 	/** @maxLength 150 */
@@ -147,19 +141,17 @@ export interface Job {
 }
 
 /**
- * * `WAITING` - WAITING
  * * `PENDING` - PENDING
  * * `FINISHED` - FINISHED
  * * `INTERRUPTED` - INTERRUPTED
  */
 export enum JobStatusEnum {
-	WAITING = 'WAITING',
 	PENDING = 'PENDING',
 	FINISHED = 'FINISHED',
 	INTERRUPTED = 'INTERRUPTED'
 }
 
-export interface MS {
+export interface ManagerSettings {
 	readonly id: number;
 	queue_watchdog?: boolean;
 }
@@ -176,7 +168,6 @@ export interface Nodes {
 	 */
 	number_of_gpus: number;
 	/**
-	 * * `WAITING` - WAITING
 	 * * `PENDING` - PENDING
 	 * * `RESERVED` - RESERVED
 	 * * `UNAVAILABLE` - UNAVAILABLE
@@ -192,13 +183,11 @@ export interface Nodes {
 }
 
 /**
- * * `WAITING` - WAITING
  * * `PENDING` - PENDING
  * * `RESERVED` - RESERVED
  * * `UNAVAILABLE` - UNAVAILABLE
  */
 export enum NodesStatusEnum {
-	WAITING = 'WAITING',
 	PENDING = 'PENDING',
 	RESERVED = 'RESERVED',
 	UNAVAILABLE = 'UNAVAILABLE'
@@ -232,6 +221,7 @@ export interface PatchedJob {
 	 * * `SLOW` - SLOW
 	 * * `NORMAL` - NORMAL
 	 * * `FAST` - FAST
+	 * * `UNDEF` - UNDEF
 	 */
 	gpu_partition?: GpuPartitionEnum;
 	/**
@@ -241,14 +231,11 @@ export interface PatchedJob {
 	 */
 	duration?: number;
 	/**
-	 * * `WAITING` - WAITING
 	 * * `PENDING` - PENDING
 	 * * `FINISHED` - FINISHED
 	 * * `INTERRUPTED` - INTERRUPTED
 	 */
 	status?: JobStatusEnum;
-	output?: string | null;
-	error?: string | null;
 	/** @maxLength 150 */
 	flags?: string | null;
 	/** @maxLength 150 */
@@ -257,7 +244,7 @@ export interface PatchedJob {
 	gpu?: number | null;
 }
 
-export interface PatchedMS {
+export interface PatchedManagerSettings {
 	readonly id?: number;
 	queue_watchdog?: boolean;
 }
@@ -298,6 +285,10 @@ export interface TokenObtainPair {
 export interface TokenRefresh {
 	readonly access: string;
 	refresh: string;
+}
+
+export interface Output {
+	output: string;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -708,6 +699,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		 * No description
 		 *
 		 * @tags jobs
+		 * @name JobsOutputRetrieve
+		 * @request GET:/api/jobs/{id}/output/
+		 * @secure
+		 */
+		jobsOutputRetrieve: (id: number, params: RequestParams = {}) =>
+			this.request<Output, any>({
+				path: `/api/jobs/${id}/output/`,
+				method: 'GET',
+				secure: true,
+				format: 'json',
+				...params
+			}),
+
+		/**
+		 * No description
+		 *
+		 * @tags jobs
 		 * @name JobsStartCreate
 		 * @request POST:/api/jobs/{id}/start/
 		 * @secure
@@ -727,106 +735,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		 * No description
 		 *
 		 * @tags manager-settings
-		 * @name ManagerSettingsList
-		 * @request GET:/api/manager-settings/
-		 * @secure
-		 */
-		managerSettingsList: (params: RequestParams = {}) =>
-			this.request<MS[], any>({
-				path: `/api/manager-settings/`,
-				method: 'GET',
-				secure: true,
-				format: 'json',
-				...params
-			}),
-
-		/**
-		 * No description
-		 *
-		 * @tags manager-settings
-		 * @name ManagerSettingsCreate
-		 * @request POST:/api/manager-settings/
-		 * @secure
-		 */
-		managerSettingsCreate: (data: MS, params: RequestParams = {}) =>
-			this.request<MS, any>({
-				path: `/api/manager-settings/`,
-				method: 'POST',
-				body: data,
-				secure: true,
-				type: ContentType.Json,
-				format: 'json',
-				...params
-			}),
-
-		/**
-		 * No description
-		 *
-		 * @tags manager-settings
-		 * @name ManagerSettingsRetrieve
-		 * @request GET:/api/manager-settings/{id}/
-		 * @secure
-		 */
-		managerSettingsRetrieve: (id: number, params: RequestParams = {}) =>
-			this.request<MS, any>({
-				path: `/api/manager-settings/${id}/`,
-				method: 'GET',
-				secure: true,
-				format: 'json',
-				...params
-			}),
-
-		/**
-		 * No description
-		 *
-		 * @tags manager-settings
-		 * @name ManagerSettingsUpdate
-		 * @request PUT:/api/manager-settings/{id}/
-		 * @secure
-		 */
-		managerSettingsUpdate: (id: number, data: MS, params: RequestParams = {}) =>
-			this.request<MS, any>({
-				path: `/api/manager-settings/${id}/`,
-				method: 'PUT',
-				body: data,
-				secure: true,
-				type: ContentType.Json,
-				format: 'json',
-				...params
-			}),
-
-		/**
-		 * No description
-		 *
-		 * @tags manager-settings
 		 * @name ManagerSettingsPartialUpdate
 		 * @request PATCH:/api/manager-settings/{id}/
 		 * @secure
 		 */
-		managerSettingsPartialUpdate: (id: number, data: PatchedMS, params: RequestParams = {}) =>
-			this.request<MS, any>({
+		managerSettingsPartialUpdate: (
+			id: number,
+			data: PatchedManagerSettings,
+			params: RequestParams = {}
+		) =>
+			this.request<ManagerSettings, any>({
 				path: `/api/manager-settings/${id}/`,
 				method: 'PATCH',
 				body: data,
 				secure: true,
 				type: ContentType.Json,
 				format: 'json',
-				...params
-			}),
-
-		/**
-		 * No description
-		 *
-		 * @tags manager-settings
-		 * @name ManagerSettingsDestroy
-		 * @request DELETE:/api/manager-settings/{id}/
-		 * @secure
-		 */
-		managerSettingsDestroy: (id: number, params: RequestParams = {}) =>
-			this.request<void, any>({
-				path: `/api/manager-settings/${id}/`,
-				method: 'DELETE',
-				secure: true,
 				...params
 			}),
 

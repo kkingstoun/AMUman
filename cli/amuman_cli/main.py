@@ -1,4 +1,6 @@
+import dataclasses
 import logging
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional, Union
@@ -28,16 +30,27 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 log = logging.getLogger("rich")
 
 
-class Priority(str, Enum):
-    Fast = "Fast"
-    Normal = "Normal"
-    Slow = "Slow"
+class JobPriority(str, Enum):
+    LOW = "LOW"
+    NORMAL = "NORMAL"
+    HIGH = "HIGH"
 
 
 class GPUPartition(str, Enum):
-    Fast = "Fast"
-    Normal = "Normal"
-    Slow = "Slow"
+    SLOW = "SLOW"
+    NORMAL = "NORMAL"
+    FAST = "FAST"
+    # This next field is only to remove the enum conflict with the GPU speed
+    UNDEF = "UNDEF"
+
+
+@dataclass
+class Job:
+    path: str
+    user: str
+    priority: str = JobPriority.NORMAL.value
+    gpu_partition: str = GPUPartition.NORMAL.value
+    duration: int = 1
 
 
 def warning(message: str) -> None:
@@ -136,14 +149,14 @@ def queue(  # noqa: C901
         ),
     ] = default_config_path,
     priority: Annotated[
-        Priority,
+        JobPriority,
         typer.Option(
             "--priority",
             "-p",
             help="Job priority in the queue.",
             case_sensitive=False,
         ),
-    ] = Priority.Normal,
+    ] = JobPriority.NORMAL,
     gpu_partition: Annotated[
         GPUPartition,
         typer.Option(
@@ -152,7 +165,7 @@ def queue(  # noqa: C901
             help="Speed of GPUs that will run your jobs.",
             case_sensitive=False,
         ),
-    ] = GPUPartition.Normal,
+    ] = GPUPartition.NORMAL,
     estimated_time: Annotated[
         int,
         typer.Option(
@@ -226,21 +239,27 @@ def queue(  # noqa: C901
         shared_dir_root = shared_dir_root_input
 
     warning_if_not_mounted(shared_dir_root)
-    url = f"{manager_url}/manager/task/add_task/"
     if log.level <= 20:
-        print(f"[bold blue3]Submitting jobs to {manager_url}/manager/task/")
+        print(f"[bold blue3]Submitting jobs to {manager_url}/jobs/")
     for input_path in paths:
         path = sanitize_path(input_path, shared_dir_root)
         if path is None:
             continue
-        data = {
-            "path": str(path),
-            "priority": priority.name,
-            "gpu_partition": gpu_partition.name,
-            "est": estimated_time,
-        }
+        data = Job(
+            path=str(path),
+            user="test",
+            priority=priority.value,
+            gpu_partition=gpu_partition.value,
+            duration=estimated_time,
+        )
         try:
-            response = httpx.post(url, data=data)
+            response = httpx.post(
+                f"{manager_url}/api/jobs/",
+                data=dataclasses.asdict(data),
+                headers={
+                    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA5NTU1ODM4LCJpYXQiOjE3MDk1NTIyMzgsImp0aSI6ImIxMjM3OGI3OWIzNzRlZmZiODFlMTRiNmE0ZGI5NDU4IiwidXNlcl9pZCI6MX0.o_m6kTPQLNmEm4SpbZVt2Yc7QkB1pjRbUn_I3gq5oQk"
+                },
+            )
             if log.level <= 20 and response.status_code < 400:
                 print(f"[bold green] \u2713 {path}")
             if response.status_code >= 400:

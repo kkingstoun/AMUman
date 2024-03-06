@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Main from '$lib/Table/TableLayout.svelte';
+	import TableLayout from '$lib/Table/TableLayout.svelte';
 </script>
 
-<Main item_type="gpus" />
+<TableLayout item_type="gpus" />

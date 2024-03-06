@@ -2,7 +2,7 @@ import logging
 import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import requests
 
@@ -17,7 +17,7 @@ class GPU:
     uuid: str = field(default="")
     gpu_util: int = field(default=0)
     mem_util: int = field(default=0)
-    status: str = field(default="Waiting")  # Use default value from GPUStatus
+    status: str = field(default="PENDING")  # Use default value from GPUStatus
     is_running_amumax: bool = field(default=False)
     refresh_time: datetime = field(
         default_factory=lambda: datetime.now()
@@ -37,7 +37,7 @@ class GPU:
         self.status = self.get_gpu_load_status()
         self.speed = self.get_gpu_performance_category()
         self.is_running_amumax = self.check_is_amumax_running()
-        self.refresh_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.refresh_time = datetime.now()
 
     def query_nvidia_smi(self, query: str) -> str:
         try:
@@ -63,7 +63,7 @@ class GPU:
 
     def get_gpu_load_status(self, threshold: int = 30) -> str:
         if self.gpu_util < threshold and self.mem_util < threshold:
-            status = "WAITING"
+            status = "PENDING"
         else:
             status = "UNAVAILABLE"
         log.debug(f"GPU {self.device_id} status: {status}")
@@ -138,7 +138,7 @@ class GPU:
         log.debug(f"GPU {self.device_id} UUID: {uuid}")
         return uuid
 
-    def to_dict(self) -> Dict[str, any]:
+    def to_dict(self) -> Dict[str, Any]:
         data = {
             "device_id": self.device_id,
             "node": self.node_id,

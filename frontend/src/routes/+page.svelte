@@ -1,5 +1,8 @@
-<script lang="ts">
-	import Main from '$lib/Table/TableLayout.svelte';
-</script>
+<script>
+	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
-<Main item_type="jobs" />
+	onMount(() => {
+		goto('/jobs');
+	});
+</script>

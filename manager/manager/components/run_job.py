@@ -13,9 +13,10 @@ class RunJob:
         self.time_break = 5
 
     def find_gpu(self, partition):
-        gpu = Gpu.objects.filter(status="WAITING",
-                                #  speed=partition                 #TEMPORARY DISABLED
-                                 ).first()
+        gpu = Gpu.objects.filter(
+            status="PENDING",
+            #  speed=partition                 #TEMPORARY DISABLED
+        ).first()
         if gpu is None:
             time.sleep(self.time_break)
             self.time_break += 5
@@ -24,13 +25,14 @@ class RunJob:
             return None
         return gpu
 
-
-    def check_connection(self,gpu):
+    def check_connection(self, gpu):
         for _ in range(5):
             if gpu.node.connection_status == "CONNECTED":
                 return True
             else:
-                print(f"Node {gpu.node.name} is not connected. Attempting to reconnect in {self.time_break} seconds...")
+                print(
+                    f"Node {gpu.node.name} is not connected. Attempting to reconnect in {self.time_break} seconds..."
+                )
                 time.sleep(self.time_break)
                 self.time_break += 5  # Zwiększenie opóźnienia dla kolejnej próby
 
@@ -43,19 +45,19 @@ class RunJob:
             if gpu is None:
                 gpu = self.find_gpu(job.gpu_partition)
             if self.check_connection(gpu):
-                job.node=gpu.node
-                job.gpu=gpu
+                job.node = gpu.node
+                job.gpu = gpu
                 job.save()
                 self.send_run_command(job, gpu)
                 time.sleep(3)
                 if request is not None:
-                    return self.handle_response( 
+                    return self.handle_response(
                         request,
                         f"Job {job.id} is running on GPU {gpu.id}.",
                         "success",
                         200,
                     )
-            
+
         except Exception as e:
             time.sleep(self.time_break)
             self.time_break += 5
@@ -67,7 +69,6 @@ class RunJob:
                 logger.error(e)
 
     def send_run_command(self, job, _gpu):
-
         try:
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
