@@ -1,17 +1,17 @@
 import { writable } from 'svelte/store';
-import type { Nodes, Job, Gpus } from '$api/Api';
+import type { Node, Job, Gpu } from '$api/Api';
 
 export const refreshInterval = writable(60 * 1000);
 export const timeSinceLastFetch = writable('Never');
 export const lastFetchTime = writable(0);
 
 export type ItemTypeString = "nodes" | "jobs" | "gpus";
-export type ItemType = Nodes | Job | Gpus;
+export type ItemType = Node | Job | Gpu;
 
 interface ItemList {
-    nodes: Nodes[];
+    nodes: Node[];
     jobs: Job[];
-    gpus: Gpus[];
+    gpus: Gpu[];
 }
 export const itemlist = writable<ItemList>({
     nodes: [],
@@ -29,7 +29,7 @@ export const selectedItems = writable<SelectedItems>(
 );
 
 interface SortState {
-    column: keyof Nodes;
+    column: keyof Node;
     direction: 1 | -1; // 1 for ascending, -1 for descending
 }
 interface SortStates {
@@ -44,9 +44,9 @@ export const sortStates = writable<SortStates>({
 });
 
 interface KeyLists {
-    nodes: (keyof Nodes)[];
+    nodes: (keyof Node)[];
     jobs: (keyof Job)[];
-    gpus: (keyof Gpus)[];
+    gpus: (keyof Gpu)[];
 }
 export const shownColumns = writable<KeyLists>({
     nodes: [
@@ -58,11 +58,8 @@ export const shownColumns = writable<KeyLists>({
     jobs: [
         'id',
         'path',
-        'port',
+        'user',
         'submit_time',
-        'start_time',
-        'end_time',
-        'priority',
         'status'
     ],
     gpus: [

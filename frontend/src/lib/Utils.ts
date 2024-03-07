@@ -1,7 +1,7 @@
 import type { ItemType } from '$stores/Tables';
 import { toasts, type ToastColor } from '$stores/Other';
 import moment from 'moment';
-import type { Job, Gpus, Nodes } from '$api/Api';
+import type { Job, Gpu, Node } from '$api/Api';
 
 export function formatString(input: string): string {
     const replacedString = input.replace(/_/g, ' ');
@@ -58,10 +58,10 @@ export function formatDate(time: string | undefined): string {
 export function isJob(item: ItemType): item is Job {
     return 'path' in item;
 }
-export function isNode(item: ItemType): item is Nodes {
+export function isNode(item: ItemType): item is Node {
     return 'number_of_gpus' in item;
 }
-export function isGpu(item: ItemType): item is Gpus {
+export function isGpu(item: ItemType): item is Gpu {
     return 'speed' in item;
 }
 export function formatDateTime(dateString?: string | null): string {
