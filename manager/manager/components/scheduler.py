@@ -1,8 +1,12 @@
 import threading
 import time
+from venv import logger
 
 from schedule import Scheduler
+import logging
 
+
+log = logging.getLogger("rich")
 
 class RepeatTimer(threading.Timer):
     running: bool = False
@@ -56,18 +60,26 @@ class ThreadedScheduler(Scheduler):
         """Metoda wykonująca 'run_pending' w pętli, z możliwością zatrzymania."""
         while not self._stop_event.is_set():
             self.run_pending()
+            log.debug("Scheduler is running")
             time.sleep(self.interval)
 
+    def initiate_thread(self):
+        self.thread = threading.Thread(target=self.run_continuously, daemon=True)
+        self.thread.start()
     def start(self):
         try:
-            if not self.thread.is_alive():
-                self.thread = threading.Thread(
-                    target=self.run_continuously, daemon=True
-                )
-                self.thread.start()
-        except AttributeError:
-            self.thread = threading.Thread(target=self.run_continuously, daemon=True)
-            self.thread.start()
+            if self.thread is not None:
+                if not self.thread.is_alive():
+                    self.thread = threading.Thread(
+                        target=self.run_continuously, daemon=True
+                    )
+                    self.thread.start()
+                else:
+                    self.initiate_thread()
+            else:
+                self.initiate_thread()
+        except AttributeError as e:
+            log.exception(f"Scheduler thread not defined {e}")
 
     def stop(self):
         """Zatrzymaj scheduler, sygnalizując wątkowi, by zakończył działanie."""

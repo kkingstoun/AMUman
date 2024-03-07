@@ -45,7 +45,7 @@ class QueueManager:
         ).order_by("-priority", "-gpu_partition", "submit_time")
 
     @property
-    def WAITING_gpus(self):
+    def pending_gpus(self):
         """
         Get the first available GPU from the WAITING GPUs.
 
@@ -55,7 +55,7 @@ class QueueManager:
             The first available GPU, or None if no GPUs are available.
         """
         speed_order = Case(
-            When(gpu_speed="Fast", then=Value(3)),
+            When(gpu_speed="FAST", then=Value(3)),
             When(gpu_speed="NORMAL", then=Value(2)),
             When(gpu_speed="SLOW", then=Value(1)),
             default=Value(0),
@@ -63,7 +63,7 @@ class QueueManager:
         )
 
         gpus = (
-            Gpu.objects.filter(status="WAITING")
+            Gpu.objects.filter(status="PENDING")
             .annotate(speed_as_number=speed_order)
             .order_by("-speed_as_number")
         )
