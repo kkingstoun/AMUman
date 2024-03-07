@@ -57,6 +57,15 @@ def warning(message: str) -> None:
     print(f"[bold orange1]Warning: {message}[/bold orange1]")
 
 
+def get_token(manager_url: str, username: str, password: str) -> str:
+    response = httpx.post(
+        f"{manager_url}/api/token/",
+        data={"username": username, "password": password},
+    )
+    response.raise_for_status()
+    return response.json()["access"]
+
+
 def init_config(config_path: Path) -> Dict[str, Union[str, Path]]:
     print(
         f"[bold red]No config was found[/bold red] at `{config_path}`,[bold green] creating one:[/bold green]"
@@ -64,21 +73,41 @@ def init_config(config_path: Path) -> Dict[str, Union[str, Path]]:
     config_path.parent.mkdir(parents=True, exist_ok=True)
     manager_url: str = Prompt.ask(
         "[bold green]AMUman manager URL [/bold green]",
-        default="http://amuman-manager:8000",
+        default="http://amuman-manager-dev:8000",
     )
     shared_dir_root: str = Prompt.ask(
         "[bold green]Full path to the shared storage. [/bold green]",
-        default="/shared",
+        default="/mnt/smb",
     )
+    while True:
+        username: str = Prompt.ask(
+            "[bold green]Your username [/bold green]",
+        )
+        password: str = Prompt.ask(
+            "[bold green]Your password [/bold green]",
+            password=True,
+        )
+        try:
+            token = get_token(manager_url, username, password)
+            break
+        except httpx.HTTPStatusError:
+            print("[bold red]Invalid credentials")
+            continue
+        except httpx.HTTPError as e:
+            print(f"[bold red]An HTTP error occurred: {e}")
+            continue
+
     config: Dict[str, Union[str, Path]] = {
         "manager_url": manager_url,
         "shared_dir_root": shared_dir_root,
+        "token": token,
     }
     config_path.write_text(toml.dumps(config))
     print("[bold green]Successfully created the config file.[/bold green]")
     print(
         "[bold blue]Run `amuman-cli --install-completion` to benefit from shell completion. [/bold blue]"
     )
+    print("")
     return config
 
 
@@ -89,7 +118,7 @@ def read_config(config_path: Path) -> Dict[str, Union[str, Path]]:
         print(f"Configuration file not found at {config_path}, initializing...")
         config = init_config(config_path)
 
-    required_keys: List[str] = ["manager_url", "shared_dir_root"]
+    required_keys: List[str] = ["manager_url", "shared_dir_root", ""]
     missing_keys: List[str] = [key for key in required_keys if key not in config]
     if missing_keys:
         print(f"Missing keys: {missing_keys}")
@@ -256,9 +285,7 @@ def queue(  # noqa: C901
             response = httpx.post(
                 f"{manager_url}/api/jobs/",
                 data=dataclasses.asdict(data),
-                headers={
-                    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzA5NTU1ODM4LCJpYXQiOjE3MDk1NTIyMzgsImp0aSI6ImIxMjM3OGI3OWIzNzRlZmZiODFlMTRiNmE0ZGI5NDU4IiwidXNlcl9pZCI6MX0.o_m6kTPQLNmEm4SpbZVt2Yc7QkB1pjRbUn_I3gq5oQk"
-                },
+                headers={"Authorization": f"Bearer {config['token']}"},
             )
             if log.level <= 20 and response.status_code < 400:
                 print(f"[bold green] \u2713 {path}")

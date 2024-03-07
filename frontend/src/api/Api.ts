@@ -9,6 +9,51 @@
  * ---------------------------------------------------------------
  */
 
+export interface AuthUser {
+	readonly id: number;
+	/** @maxLength 128 */
+	password: string;
+	/** @format date-time */
+	last_login?: string | null;
+	/**
+	 * Superuser status
+	 * Designates that this user has all permissions without explicitly assigning them.
+	 */
+	is_superuser?: boolean;
+	/**
+	 * Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+	 * @maxLength 150
+	 * @pattern ^[\w.@+-]+$
+	 */
+	username: string;
+	/** @maxLength 150 */
+	first_name?: string;
+	/** @maxLength 150 */
+	last_name?: string;
+	/**
+	 * Email address
+	 * @format email
+	 * @maxLength 254
+	 */
+	email?: string;
+	/**
+	 * Staff status
+	 * Designates whether the user can log into this admin site.
+	 */
+	is_staff?: boolean;
+	/**
+	 * Active
+	 * Designates whether this user should be treated as active. Unselect this instead of deleting accounts.
+	 */
+	is_active?: boolean;
+	/** @format date-time */
+	date_joined?: string;
+	/** The groups this user belongs to. A user will get all permissions granted to each of their groups. */
+	groups?: number[];
+	/** Specific permissions for this user. */
+	user_permissions?: number[];
+}
+
 /**
  * * `CONNECTED` - CONNECTED
  * * `DISCONNECTED` - DISCONNECTED
@@ -18,20 +63,16 @@ export enum ConnectionStatusEnum {
 	DISCONNECTED = 'DISCONNECTED'
 }
 
-/**
- * * `SLOW` - SLOW
- * * `NORMAL` - NORMAL
- * * `FAST` - FAST
- * * `UNDEF` - UNDEF
- */
-export enum GpuPartitionEnum {
-	SLOW = 'SLOW',
-	NORMAL = 'NORMAL',
-	FAST = 'FAST',
-	UNDEF = 'UNDEF'
+export interface CustomUser {
+	username: string;
+	password: string;
+	/** @format email */
+	email: string;
+	readonly concurrent_jobs: number;
+	readonly auth: AuthUser;
 }
 
-export interface Gpus {
+export interface Gpu {
 	readonly id: number;
 	/** The associated node ID. */
 	node: number;
@@ -68,7 +109,7 @@ export interface Gpus {
 	 * * `RESERVED` - RESERVED
 	 * * `UNAVAILABLE` - UNAVAILABLE
 	 */
-	status?: GpusStatusEnum;
+	status?: GpuStatusEnum;
 	/**
 	 * The timestamp of the last update (read-only, auto-generated).
 	 * @format date-time
@@ -77,12 +118,25 @@ export interface Gpus {
 }
 
 /**
+ * * `SLOW` - SLOW
+ * * `NORMAL` - NORMAL
+ * * `FAST` - FAST
+ * * `UNDEF` - UNDEF
+ */
+export enum GpuPartitionEnum {
+	SLOW = 'SLOW',
+	NORMAL = 'NORMAL',
+	FAST = 'FAST',
+	UNDEF = 'UNDEF'
+}
+
+/**
  * * `RUNNING` - RUNNING
  * * `PENDING` - PENDING
  * * `RESERVED` - RESERVED
  * * `UNAVAILABLE` - UNAVAILABLE
  */
-export enum GpusStatusEnum {
+export enum GpuStatusEnum {
 	RUNNING = 'RUNNING',
 	PENDING = 'PENDING',
 	RESERVED = 'RESERVED',
@@ -93,6 +147,8 @@ export interface Job {
 	readonly id: number;
 	/** @maxLength 500 */
 	path: string;
+	/** @maxLength 150 */
+	user: string;
 	/**
 	 * @format int64
 	 * @min 0
@@ -134,8 +190,6 @@ export interface Job {
 	status?: JobStatusEnum;
 	/** @maxLength 150 */
 	flags?: string | null;
-	/** @maxLength 150 */
-	user: string;
 	node?: number | null;
 	gpu?: number | null;
 }
@@ -156,7 +210,7 @@ export interface ManagerSettings {
 	queue_watchdog?: boolean;
 }
 
-export interface Nodes {
+export interface Node {
 	readonly id: number;
 	ip: string;
 	/** @maxLength 15 */
@@ -172,7 +226,7 @@ export interface Nodes {
 	 * * `RESERVED` - RESERVED
 	 * * `UNAVAILABLE` - UNAVAILABLE
 	 */
-	status?: NodesStatusEnum;
+	status?: NodeStatusEnum;
 	/**
 	 * * `CONNECTED` - CONNECTED
 	 * * `DISCONNECTED` - DISCONNECTED
@@ -187,16 +241,27 @@ export interface Nodes {
  * * `RESERVED` - RESERVED
  * * `UNAVAILABLE` - UNAVAILABLE
  */
-export enum NodesStatusEnum {
+export enum NodeStatusEnum {
 	PENDING = 'PENDING',
 	RESERVED = 'RESERVED',
 	UNAVAILABLE = 'UNAVAILABLE'
+}
+
+export interface PatchedCustomUser {
+	username?: string;
+	password?: string;
+	/** @format email */
+	email?: string;
+	readonly concurrent_jobs?: number;
+	readonly auth?: AuthUser;
 }
 
 export interface PatchedJob {
 	readonly id?: number;
 	/** @maxLength 500 */
 	path?: string;
+	/** @maxLength 150 */
+	user?: string;
 	/**
 	 * @format int64
 	 * @min 0
@@ -238,8 +303,6 @@ export interface PatchedJob {
 	status?: JobStatusEnum;
 	/** @maxLength 150 */
 	flags?: string | null;
-	/** @maxLength 150 */
-	user?: string;
 	node?: number | null;
 	gpu?: number | null;
 }
@@ -528,7 +591,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		 * @secure
 		 */
 		gpusList: (params: RequestParams = {}) =>
-			this.request<Gpus[], any>({
+			this.request<Gpu[], any>({
 				path: `/api/gpus/`,
 				method: 'GET',
 				secure: true,
@@ -544,8 +607,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		 * @request POST:/api/gpus/
 		 * @secure
 		 */
-		gpusCreate: (data: Gpus, params: RequestParams = {}) =>
-			this.request<Gpus, any>({
+		gpusCreate: (data: Gpu, params: RequestParams = {}) =>
+			this.request<Gpu, any>({
 				path: `/api/gpus/`,
 				method: 'POST',
 				body: data,
@@ -564,7 +627,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		 * @secure
 		 */
 		gpusRetrieve: (id: number, params: RequestParams = {}) =>
-			this.request<Gpus, any>({
+			this.request<Gpu, any>({
 				path: `/api/gpus/${id}/`,
 				method: 'GET',
 				secure: true,
@@ -763,7 +826,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		 * @secure
 		 */
 		nodesList: (params: RequestParams = {}) =>
-			this.request<Nodes[], any>({
+			this.request<Node[], any>({
 				path: `/api/nodes/`,
 				method: 'GET',
 				secure: true,
@@ -779,8 +842,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		 * @request POST:/api/nodes/
 		 * @secure
 		 */
-		nodesCreate: (data: Nodes, params: RequestParams = {}) =>
-			this.request<Nodes, any>({
+		nodesCreate: (data: Node, params: RequestParams = {}) =>
+			this.request<Node, any>({
 				path: `/api/nodes/`,
 				method: 'POST',
 				body: data,
@@ -799,7 +862,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		 * @secure
 		 */
 		nodesRetrieve: (id: number, params: RequestParams = {}) =>
-			this.request<Nodes, any>({
+			this.request<Node, any>({
 				path: `/api/nodes/${id}/`,
 				method: 'GET',
 				secure: true,
@@ -996,6 +1059,113 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 				body: data,
 				type: ContentType.Json,
 				format: 'json',
+				...params
+			}),
+
+		/**
+		 * No description
+		 *
+		 * @tags users
+		 * @name UsersList
+		 * @request GET:/api/users/
+		 * @secure
+		 */
+		usersList: (params: RequestParams = {}) =>
+			this.request<CustomUser[], any>({
+				path: `/api/users/`,
+				method: 'GET',
+				secure: true,
+				format: 'json',
+				...params
+			}),
+
+		/**
+		 * No description
+		 *
+		 * @tags users
+		 * @name UsersCreate
+		 * @request POST:/api/users/
+		 * @secure
+		 */
+		usersCreate: (data: CustomUser, params: RequestParams = {}) =>
+			this.request<CustomUser, any>({
+				path: `/api/users/`,
+				method: 'POST',
+				body: data,
+				secure: true,
+				type: ContentType.Json,
+				format: 'json',
+				...params
+			}),
+
+		/**
+		 * No description
+		 *
+		 * @tags users
+		 * @name UsersRetrieve
+		 * @request GET:/api/users/{id}/
+		 * @secure
+		 */
+		usersRetrieve: (id: number, params: RequestParams = {}) =>
+			this.request<CustomUser, any>({
+				path: `/api/users/${id}/`,
+				method: 'GET',
+				secure: true,
+				format: 'json',
+				...params
+			}),
+
+		/**
+		 * No description
+		 *
+		 * @tags users
+		 * @name UsersUpdate
+		 * @request PUT:/api/users/{id}/
+		 * @secure
+		 */
+		usersUpdate: (id: number, data: CustomUser, params: RequestParams = {}) =>
+			this.request<CustomUser, any>({
+				path: `/api/users/${id}/`,
+				method: 'PUT',
+				body: data,
+				secure: true,
+				type: ContentType.Json,
+				format: 'json',
+				...params
+			}),
+
+		/**
+		 * No description
+		 *
+		 * @tags users
+		 * @name UsersPartialUpdate
+		 * @request PATCH:/api/users/{id}/
+		 * @secure
+		 */
+		usersPartialUpdate: (id: number, data: PatchedCustomUser, params: RequestParams = {}) =>
+			this.request<CustomUser, any>({
+				path: `/api/users/${id}/`,
+				method: 'PATCH',
+				body: data,
+				secure: true,
+				type: ContentType.Json,
+				format: 'json',
+				...params
+			}),
+
+		/**
+		 * No description
+		 *
+		 * @tags users
+		 * @name UsersDestroy
+		 * @request DELETE:/api/users/{id}/
+		 * @secure
+		 */
+		usersDestroy: (id: number, params: RequestParams = {}) =>
+			this.request<void, any>({
+				path: `/api/users/${id}/`,
+				method: 'DELETE',
+				secure: true,
 				...params
 			})
 	};

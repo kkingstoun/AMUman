@@ -1,11 +1,10 @@
 dev cmd="None":
-	podman network ls | grep amuman-dev || podman network create amuman-dev
+	podman network create --ignore amuman-dev
 	podman build . -f dev.dockerfile -t amuman-cli
-	podman run --rm -it \
+	podman run --rm -it --replace --tz local --pull newer \
 		--name amuman-cli \
 		--network amuman-dev \
 		-v ./..:/app \
 		-v ./../mock_nas:/mnt/smb \
 		-w /app/cli \
-		--env-file ../.env \
 		amuman-cli {{cmd}}

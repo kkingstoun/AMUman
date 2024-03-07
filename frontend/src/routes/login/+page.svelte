@@ -50,5 +50,8 @@
 				</div>
 			</form>
 		</div>
+		<div class="p-3">
+			Don't have an account? <a href="/register" class="text-primary-600">Register</a>
+		</div>
 	</div>
 </main>

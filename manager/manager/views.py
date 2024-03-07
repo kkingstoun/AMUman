@@ -32,11 +32,9 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     serializer_class = CustomUserSerializer
 
     def get_permissions(self):
-        return (
-            [permissions.AllowAny()]
-            if self.action == "create"
-            else [permissions.IsAdminUser()]
-        )
+        if self.action == "create":
+            return [permissions.AllowAny()]
+        return [permissions.IsAdminUser()]
 
     def create(self, request, *_args, **_kwargs):
         serializer = self.get_serializer(data=request.data)

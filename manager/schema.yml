@@ -783,50 +783,68 @@ paths:
           description: No response body
 components:
   schemas:
-    ConcurrentJobsEnum:
-      enum:
-      - 0
-      - 1
-      - 2
-      - 3
-      - 4
-      - 5
-      - 6
-      - 7
-      - 8
-      - 9
-      - 10
-      - 11
-      - 12
-      - 13
-      - 14
-      - 15
-      - 16
-      - 17
-      - 18
-      - 19
-      type: integer
-      description: |-
-        * `0` - 0
-        * `1` - 1
-        * `2` - 2
-        * `3` - 3
-        * `4` - 4
-        * `5` - 5
-        * `6` - 6
-        * `7` - 7
-        * `8` - 8
-        * `9` - 9
-        * `10` - 10
-        * `11` - 11
-        * `12` - 12
-        * `13` - 13
-        * `14` - 14
-        * `15` - 15
-        * `16` - 16
-        * `17` - 17
-        * `18` - 18
-        * `19` - 19
+    AuthUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        password:
+          type: string
+          maxLength: 128
+        last_login:
+          type: string
+          format: date-time
+          nullable: true
+        is_superuser:
+          type: boolean
+          title: Superuser status
+          description: Designates that this user has all permissions without explicitly
+            assigning them.
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        is_staff:
+          type: boolean
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+        is_active:
+          type: boolean
+          title: Active
+          description: Designates whether this user should be treated as active. Unselect
+            this instead of deleting accounts.
+        date_joined:
+          type: string
+          format: date-time
+        groups:
+          type: array
+          items:
+            type: integer
+          description: The groups this user belongs to. A user will get all permissions
+            granted to each of their groups.
+        user_permissions:
+          type: array
+          items:
+            type: integer
+          description: Specific permissions for this user.
+      required:
+      - id
+      - password
+      - username
     ConnectionStatusEnum:
       enum:
       - CONNECTED
@@ -844,17 +862,21 @@ components:
         password:
           type: string
           writeOnly: true
+        email:
+          type: string
+          format: email
+          writeOnly: true
         concurrent_jobs:
-          allOf:
-          - $ref: '#/components/schemas/ConcurrentJobsEnum'
+          type: integer
           readOnly: true
         auth:
           allOf:
-          - $ref: '#/components/schemas/Nested'
+          - $ref: '#/components/schemas/AuthUser'
           readOnly: true
       required:
       - auth
       - concurrent_jobs
+      - email
       - password
       - username
     Gpu:
@@ -972,12 +994,6 @@ components:
           format: int64
         status:
           $ref: '#/components/schemas/JobStatusEnum'
-        output:
-          type: string
-          nullable: true
-        error:
-          type: string
-          nullable: true
         flags:
           type: string
           nullable: true
@@ -1012,68 +1028,6 @@ components:
           type: boolean
       required:
       - id
-    Nested:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        password:
-          type: string
-          maxLength: 128
-        last_login:
-          type: string
-          format: date-time
-          nullable: true
-        is_superuser:
-          type: boolean
-          title: Superuser status
-          description: Designates that this user has all permissions without explicitly
-            assigning them.
-        username:
-          type: string
-          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
-            only.
-          pattern: ^[\w.@+-]+$
-          maxLength: 150
-        first_name:
-          type: string
-          maxLength: 150
-        last_name:
-          type: string
-          maxLength: 150
-        email:
-          type: string
-          format: email
-          title: Email address
-          maxLength: 254
-        is_staff:
-          type: boolean
-          title: Staff status
-          description: Designates whether the user can log into this admin site.
-        is_active:
-          type: boolean
-          title: Active
-          description: Designates whether this user should be treated as active. Unselect
-            this instead of deleting accounts.
-        date_joined:
-          type: string
-          format: date-time
-        groups:
-          type: array
-          items:
-            type: integer
-          description: The groups this user belongs to. A user will get all permissions
-            granted to each of their groups.
-        user_permissions:
-          type: array
-          items:
-            type: integer
-          description: Specific permissions for this user.
-      required:
-      - id
-      - password
-      - username
     Node:
       type: object
       properties:
@@ -1121,13 +1075,16 @@ components:
         password:
           type: string
           writeOnly: true
+        email:
+          type: string
+          format: email
+          writeOnly: true
         concurrent_jobs:
-          allOf:
-          - $ref: '#/components/schemas/ConcurrentJobsEnum'
+          type: integer
           readOnly: true
         auth:
           allOf:
-          - $ref: '#/components/schemas/Nested'
+          - $ref: '#/components/schemas/AuthUser'
           readOnly: true
     PatchedJob:
       type: object
@@ -1174,12 +1131,6 @@ components:
           format: int64
         status:
           $ref: '#/components/schemas/JobStatusEnum'
-        output:
-          type: string
-          nullable: true
-        error:
-          type: string
-          nullable: true
         flags:
           type: string
           nullable: true

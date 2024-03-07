@@ -1,5 +1,6 @@
 <script>
 	import { Toggle } from 'flowbite-svelte';
+	import NavBar from '$lib/Navbar/NavBar.svelte';
 	let checked = false;
 	function handleClick() {
 		console.log(`Current toggle status: ${checked}`);
@@ -8,6 +9,7 @@
 	}
 </script>
 
+<NavBar />
 <main class="p-5">
 	<Toggle bind:checked on:click={handleClick} aria-checked={checked}>Autorun jobs</Toggle>
 </main>

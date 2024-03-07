@@ -3,7 +3,7 @@
 	import { PriorityEnum, GpuPartitionEnum, JobStatusEnum } from '$api/Api';
 	import { api } from '$stores/Auth';
 	import { getRequestParams } from '$api/Auth';
-
+	import NavBar from '$lib/Navbar/NavBar.svelte';
 	let job: Job = {
 		id: 0,
 		user: 'username',
@@ -29,6 +29,7 @@
 	}
 </script>
 
+<NavBar />
 <div class="flex flex-col items-center mx-auto w-5/12">
 	<h1 class="text-4xl text-white">New Job</h1>
 	<form class="space-y-4 text-white p-4 rounded w-full">
