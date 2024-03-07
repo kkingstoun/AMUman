@@ -1,5 +1,3 @@
-set dotenv-load
-
 dev cmd="None":
 	podman network create --ignore amuman-dev
 	podman build . -f dev.dockerfile -t amuman
@@ -12,16 +10,3 @@ dev cmd="None":
 		-v ./../mock_nas:/mnt/smb \
 		amuman {{cmd}}
 
-staging:
-	podman network create --ignore amuman-staging
-	podman build . -t amuman-manager-staging
-	podman run --rm -it --replace --tz local --pull newer \
-		--name amuman-manager-staging \
-		--network amuman-staging \
-		-v ./staging:/manager \
-		-e SECRET_KEY=$SECRET_KEY \
-		-e DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL \
-		-e DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME \
-		-e DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD \
-		-e DOMAIN_URL=$DOMAIN_URL \
-		amuman-manager-staging 
