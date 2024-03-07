@@ -109,9 +109,6 @@ MIDDLEWARE = [
 ]
 if DEBUG:
     MIDDLEWARE.append(
-        "manager.middleware.generate_initial_data.InitializeManagerSettingsMiddleware"
-    )
-    MIDDLEWARE.append(
         "manager.middleware.generate_initial_data.GenerateRandomJobsMiddleware"
     )
 
