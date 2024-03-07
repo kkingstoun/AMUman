@@ -18,10 +18,10 @@
 				accessToken.set(localStorageAccessToken);
 			}
 			isLoading = false;
-			goto('/jobs');
+			// goto('/jobs');
 		} else {
 			isLoading = false;
-			goto('/login');
+			// goto('/login');
 		}
 	});
 </script>
@@ -38,7 +38,6 @@
 	</div>
 {:else}
 	<div class="flex flex-col h-screen bg-gray-900">
-		<NavBar />
 		<slot />
 	</div>
 {/if}

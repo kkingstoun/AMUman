@@ -96,6 +96,7 @@ export const headers = writable<KeyLists>({
         'flags',
         'node',
         'gpu',
+        'user',
     ],
     gpus: [
         'id',
