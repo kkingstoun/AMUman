@@ -7,12 +7,3 @@ dev:
 		-v ./..:/app \
 		-w /app/frontend \
 		docker.io/node:21 bash
-
-staging:
-	podman network create --ignore amuman-staging
-	podman run --rm -it --replace --tz local --pull newer \
-		--name amuman-frontend-staging \
-		--network amuman-staging \
-		-v ./..:/app \
-		-w /app/frontend \
-		docker.io/node:21 bash 

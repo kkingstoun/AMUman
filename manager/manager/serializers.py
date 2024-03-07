@@ -3,7 +3,7 @@ from django.core.validators import MaxValueValidator
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import CustomUser, Gpu, Job, ManagerSettings, Node
+from .models import CustomUser, Gpu, Job, Node
 
 
 class AuthUserSerializer(serializers.ModelSerializer):
@@ -120,14 +120,3 @@ class GpuSerializer(serializers.ModelSerializer):
             return self.update(gpu, self.validated_data)
         else:
             return super().save(**kwargs)
-
-
-class ManagerSettingsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ManagerSettings
-        fields = "__all__"
-
-    def create(self, validated_data):
-        if ManagerSettings.objects.exists():
-            raise serializers.ValidationError("You cannoc duplicate this entrypoint.")
-        return ManagerSettings.objects.create(**validated_data)

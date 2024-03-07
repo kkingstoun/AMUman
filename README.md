@@ -78,6 +78,22 @@ To run node
 python manage.py runserver 8000 --settings=amudmin.settings_node```
 ```
 
+## Staging
+Requirements:
+ - Podman
+ - Just
+
+Create a file `manager/.env` with the following keys:
+```bash
+DOMAIN_URL=
+SECRET_KEY=
+DJANGO_SUPERUSER_EMAIL=
+DJANGO_SUPERUSER_USERNAME=
+DJANGO_SUPERUSER_PASSWORD=
+```
+Then run
+`just staging`
+
 ## Authors
 
 Mateusz Zelent and Matehieu Moalic

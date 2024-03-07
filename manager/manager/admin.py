@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import CustomUser, Gpu, Job, ManagerSettings, Node
+from .models import CustomUser, Gpu, Job, Node
 
 
 @admin.register(Job)
@@ -45,12 +45,6 @@ class GpusAdmin(admin.ModelAdmin):
         return obj.get_status_display()
 
     get_status_display.short_description = "Status"
-
-
-@admin.register(ManagerSettings)
-class ManagerSettingsAdmin(admin.ModelAdmin):
-    list_display = [field.name for field in ManagerSettings._meta.fields]
-    ordering = ["-queue_watchdog"]
 
 
 @admin.register(CustomUser)

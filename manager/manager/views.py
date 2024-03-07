@@ -14,12 +14,11 @@ from rest_framework.fields import CharField
 from rest_framework.response import Response
 
 from .components.run_job import RunJob
-from .models import CustomUser, Gpu, Job, ManagerSettings, Node
+from .models import CustomUser, Gpu, Job, Node
 from .serializers import (
     CustomUserSerializer,
     GpuSerializer,
     JobSerializer,
-    ManagerSettingsSerializer,
     NodeSerializer,
     RefreshNodeSerializer,
 )
@@ -254,10 +253,3 @@ class NodesViewSet(viewsets.ModelViewSet):
                 )
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ManagerSettingsViewSet(viewsets.ModelViewSet):
-    queryset = ManagerSettings.objects.all()
-    serializer_class = ManagerSettingsSerializer
-    permission_classes: ClassVar = [permissions.IsAuthenticated]
-    http_method_names = ["patch", "head", "options"]

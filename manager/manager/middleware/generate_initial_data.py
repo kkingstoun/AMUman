@@ -5,7 +5,7 @@ from django.contrib.auth.models import User as AuthUser
 from django.core.exceptions import MiddlewareNotUsed
 from django.utils import timezone
 
-from manager.models import Job, ManagerSettings
+from manager.models import Job
 
 
 class GenerateRandomJobsMiddleware:
@@ -57,24 +57,6 @@ class GenerateRandomJobsMiddleware:
                 )
                 job.save()
             print("Successfully generated 10 random job entries")
-
-    def __call__(self, request):
-        response = self.get_response(request)
-        return response
-
-
-class InitializeManagerSettingsMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-        self.initialize_default_settings()
-        raise MiddlewareNotUsed(
-            "InitializeManagerSettingsMiddleware is disabled after initial use."
-        )
-
-    def initialize_default_settings(self):
-        if not ManagerSettings.objects.exists():
-            ManagerSettings.objects.create(queue_watchdog=False)
-            print("Successfully created default ManagerSettings entry")
 
     def __call__(self, request):
         response = self.get_response(request)

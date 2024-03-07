@@ -1,20 +1,15 @@
-import logging
-import logging.config
 import os
 from datetime import timedelta
 from pathlib import Path
 
-from rich.logging import RichHandler
-
 DEBUG = os.environ.get("DEBUG", "True") != "FALSE"
-
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
     SECRET_KEY = "django-insecure-i-(^@udvkc6^^9mkwpn&8kk0!u0n-bn4$b4mfbii1(bzw_pq@"
     LOGLEVEL = "DEBUG"
     CORS_ALLOW_ALL_ORIGINS = True
 else:
-    ALLOWED_HOSTS = [os.environ["DOMAIN_URL"], "amuman-manager-staging"]
+    ALLOWED_HOSTS = [os.environ["DOMAIN_URL"], "amuman-manager-staging" "localhost" "*"]
     SECRET_KEY = os.environ["SECRET_KEY"]
     LOGLEVEL = "INFO"
     SESSION_COOKIE_SECURE = True
@@ -26,24 +21,36 @@ else:
     SECURE_HSTS_PRELOAD = True
     CORS_ALLOW_ALL_ORIGINS = False
 
-logging.basicConfig(
-    level=LOGLEVEL,
-    format="%(name)s - %(message)s",
-    datefmt="[%X]",
-    handlers=[RichHandler(rich_tracebacks=True)],
-)
-
-log = logging.getLogger("rich")
-logging.getLogger("django.utils.autoreload").setLevel(logging.WARNING)
-logging.getLogger("django.channels.server").setLevel(logging.WARNING)
-logging.getLogger("django.request").setLevel(logging.WARNING)
-logging.getLogger("django.db.backends").setLevel(logging.WARNING)
-logging.getLogger("asyncio").setLevel(logging.WARNING)
-logging.getLogger("daphne.server").setLevel(logging.WARNING)
-logging.getLogger("daphne.ws_protocol").setLevel(logging.WARNING)
-logging.getLogger("daphne.http_protocol").setLevel(logging.WARNING)
-
-
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "django_rich_logging": {
+            "class": "django_rich_logging.logging.DjangoRequestHandler",
+            "columns": [
+                {"header": "Masdethod", "forawdmat": "[white]{method}", "style": "{"},
+                {"header": "Path", "format": "[white bold]{path}", "style": "{"},
+                {"header": "Size", "format": "[white]{size}", "style": "{"},
+                {"header": "Status", "format": "{status_code}", "style": "{"},
+                {
+                    "header": "Time",
+                    "format": "[white]{created}",
+                    "style": "{",
+                    "datefmt": "%H:%M:%S",
+                },
+            ],
+        },
+    },
+    "loggers": {
+        "django.server": {"level": "DEBUG", "handlers": ["django_rich_logging"]},
+        "django.request": {"level": "CRITICAL"},
+        "rich": {
+            "handlers": ["django_rich_logging"],
+            "level": "DEBUG",
+            "propagate": True,
+        },
+    },
+}
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 INSTALLED_APPS = [
@@ -60,7 +67,21 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
     "channels",
+    "constance",
 ]
+
+CONSTANCE_CONFIG = {
+    "autorun_jobs": (True, ""),
+}
+
+
+# Needed for the admin panel
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "manager/static"),
+]
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
 
 CHANNEL_LAYERS = {
     "default": {
@@ -87,9 +108,6 @@ MIDDLEWARE = [
     "manager.middleware.scheduler_middleware.SchedulerMiddleware",
 ]
 if DEBUG:
-    MIDDLEWARE.append(
-        "manager.middleware.generate_initial_data.InitializeManagerSettingsMiddleware"
-    )
     MIDDLEWARE.append(
         "manager.middleware.generate_initial_data.GenerateRandomJobsMiddleware"
     )
