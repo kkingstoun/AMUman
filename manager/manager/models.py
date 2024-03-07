@@ -91,6 +91,7 @@ class Job(models.Model):
         PENDING = "PENDING"
         FINISHED = "FINISHED"
         INTERRUPTED = "INTERRUPTED"
+        RUNNING = "RUNNING"
 
     class GPUPartition(Enum):
         SLOW = "SLOW"

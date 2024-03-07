@@ -37,7 +37,7 @@ class NodeClient:
             f"Manager URL: '{self.manager_url}', Node ID: {self.node_id}, Node Name: '{self.node_name}'"
         )
         self.reconnect_attempts: int = 10
-        self.reconnect_delay: int = 30
+        self.reconnect_delay: int = 10
         self.gpm: Optional[GPUMonitor] = None
         self.access_token: str
         self.refresh_token: Optional[str] = None

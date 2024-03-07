@@ -1013,11 +1013,13 @@ components:
       - PENDING
       - FINISHED
       - INTERRUPTED
+      - RUNNING
       type: string
       description: |-
         * `PENDING` - PENDING
         * `FINISHED` - FINISHED
         * `INTERRUPTED` - INTERRUPTED
+        * `RUNNING` - RUNNING
     ManagerSettings:
       type: object
       properties:
