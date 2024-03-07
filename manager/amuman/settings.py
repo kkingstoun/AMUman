@@ -7,14 +7,13 @@ from pathlib import Path
 from rich.logging import RichHandler
 
 DEBUG = os.environ.get("DEBUG", "True") != "FALSE"
-
 if DEBUG:
     ALLOWED_HOSTS = ["*"]
     SECRET_KEY = "django-insecure-i-(^@udvkc6^^9mkwpn&8kk0!u0n-bn4$b4mfbii1(bzw_pq@"
     LOGLEVEL = "DEBUG"
     CORS_ALLOW_ALL_ORIGINS = True
 else:
-    ALLOWED_HOSTS = [os.environ["DOMAIN_URL"], "amuman-manager-staging"]
+    ALLOWED_HOSTS = [os.environ["DOMAIN_URL"], "amuman-manager-staging" "localhost" "*"]
     SECRET_KEY = os.environ["SECRET_KEY"]
     LOGLEVEL = "INFO"
     SESSION_COOKIE_SECURE = True
@@ -55,11 +54,20 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
     "drf_spectacular",
     "channels",
 ]
+
+# Needed for the admin panel
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "manager/static"),
+]
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
 
 CHANNEL_LAYERS = {
     "default": {
