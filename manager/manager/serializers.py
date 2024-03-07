@@ -6,30 +6,38 @@ from rest_framework import serializers
 from .models import CustomUser, Gpu, Job, ManagerSettings, Node
 
 
+class AuthUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"
+
+
 class CustomUserSerializer(serializers.ModelSerializer):
     username = serializers.CharField(write_only=True)
     password = serializers.CharField(write_only=True)
+    email = serializers.EmailField(write_only=True)
+    concurrent_jobs = serializers.IntegerField(read_only=True)
+    auth = AuthUserSerializer(read_only=True)
 
     class Meta:
         model = CustomUser
-        fields = ["username", "password", "concurrent_jobs", "auth"]
+        fields = ["username", "password", "email", "concurrent_jobs", "auth"]
         depth = 1
-        read_only_fields = ["concurrent_jobs"]
-
-    def validate_username(self, value):
-        if User.objects.filter(username=value).exists():
-            raise serializers.ValidationError(
-                "A user with that username already exists."
-            )
-        return value
 
     def create(self, validated_data):
         user_data = {
             "username": validated_data.pop("username"),
             "password": validated_data.pop("password"),
+            "email": validated_data.pop("email"),
+            "is_active": False,
         }
+        # Check if username already exists
+        if User.objects.filter(username=user_data["username"]).exists():
+            raise serializers.ValidationError(
+                {"username": "A user with that username already exists."}
+            )
         user = User.objects.create_user(**user_data)
-        custom_user = CustomUser.objects.create(auth=user)
+        custom_user = CustomUser.objects.create(auth=user, **validated_data)
         return custom_user
 
 
@@ -42,8 +50,7 @@ class NodeSerializer(serializers.ModelSerializer):
 class JobSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
-        fields = "__all__"
-        # exclude = ["output", "error"]
+        exclude = ["output", "error"]
 
 
 class RefreshNodeSerializer(serializers.Serializer):
