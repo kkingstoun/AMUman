@@ -1,7 +1,6 @@
 from enum import Enum
 
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
@@ -134,12 +133,3 @@ class Job(models.Model):
 
     def __str__(self):
         return f"{self.pk}"
-
-
-class ManagerSettings(models.Model):
-    queue_watchdog = models.BooleanField(default=False)
-
-    def save(self, *args, **kwargs):
-        if not self.pk and ManagerSettings.objects.exists():
-            raise ValidationError("There can only be one entry of ManagerSettings.")
-        return super().save(*args, **kwargs)

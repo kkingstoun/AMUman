@@ -23,7 +23,6 @@
 		<NavLi href="/jobs">Jobs</NavLi>
 		<NavLi href="/nodes">Nodes</NavLi>
 		<NavLi href="/gpus">GPUs</NavLi>
-		<NavLi href="/settings">Settings</NavLi>
 		<Logout />
 		<Github />
 	</NavUl>
