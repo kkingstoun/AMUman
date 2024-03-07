@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pip install --upgrade pip && \
     pip install debugpy
 
-WORKDIR /app
+WORKDIR /app/manager
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 ENV SMB_MOUNT_POINT=/mnt/smb

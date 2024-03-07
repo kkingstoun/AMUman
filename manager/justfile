@@ -1,39 +1,27 @@
+set dotenv-load
+
 dev cmd="None":
-	podman network ls | grep amuman-dev || podman network create amuman-dev
+	podman network create --ignore amuman-dev
 	podman build . -f dev.dockerfile -t amuman
-	podman run --rm -it --replace \
+	podman run --rm -it --tz local --pull newer \
 		--name amuman-manager-dev \
 		--network amuman-dev \
 		-p 8000:8000 \
 		-p 5678:5678 \
 		-v ./..:/app \
 		-v ./../mock_nas:/mnt/smb \
-		-w /app/manager \
 		amuman {{cmd}}
 
 staging:
-	podman network ls | grep amuman-proxy || podman network create amuman-proxy
+	podman network create --ignore amuman-staging
 	podman build . -t amuman-manager-staging
-	podman run --rm -it \
-		--name amuman-staging \
-		--network amuman-proxy \
-		--env-file ../.env \
-		--cap-add SYS_ADMIN \
-		--cap-add DAC_READ_SEARCH \
-		amuman-manager-staging
-
-deploy:
-	podman run --rm -it \
-		--name amuman-staging \
-		--network amuman-proxy \
-		-v ./manager_config:/app \
-		--cap-add SYS_ADMIN \
-		--cap-add DAC_READ_SEARCH \
-		-e SMB_USER=smb_user \
-		-e SMB_PASSWORD=smb_pw \
-		-e SMB_URL=some_url \
-		-e SECRET_KEY=changeme \
-		-e DJANGO_SUPERUSER_EMAIL=admin@pm.me \
-		-e DJANGO_SUPERUSER_USERNAME=admin \
-		-e DJANGO_SUPERUSER_PASSWORD=changeme \
-		ghcr.io/kkingstoun/amuman:0.0.4
+	podman run --rm -it --replace --tz local --pull newer \
+		--name amuman-manager-staging \
+		--network amuman-staging \
+		-v ./staging:/manager \
+		-e SECRET_KEY=$SECRET_KEY \
+		-e DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL \
+		-e DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME \
+		-e DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD \
+		-e DOMAIN_URL=$DOMAIN_URL \
+		amuman-manager-staging 

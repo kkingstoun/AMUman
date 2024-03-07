@@ -1,5 +1,5 @@
 dev cmd="None":
-	podman network ls | grep amuman-dev || podman network create amuman-dev
+	podman network create --ignore amuman-dev
 	podman build . -f dev.dockerfile -t amuman-cli
 	podman run --rm -it \
 		--name amuman-cli \
