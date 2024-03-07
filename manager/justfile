@@ -3,7 +3,7 @@ set dotenv-load
 dev cmd="None":
 	podman network create --ignore amuman-dev
 	podman build . -f dev.dockerfile -t amuman
-	podman run --rm -it --tz local --pull newer \
+	podman run --rm -it --replace --tz local --pull newer \
 		--name amuman-manager-dev \
 		--network amuman-dev \
 		-p 8000:8000 \

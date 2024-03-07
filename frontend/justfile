@@ -1,6 +1,6 @@
 dev:
 	podman network create --ignore amuman-dev
-	podman run --rm -it --replace \
+	podman run --rm -it --replace --tz local --pull newer \
 		--name amuman-frontend-dev \
 		--network amuman-dev \
 		-p 3000:3000 \

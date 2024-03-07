@@ -1,7 +1,7 @@
 dev cmd="bash":
 	podman network create --ignore amuman-dev
 	podman build . -f dev.dockerfile -t amuman-node-dev
-	podman run --rm -it \
+	podman run --rm -it --replace --tz local --pull newer \
 		--name amuman-node-dev \
 		--network amuman-dev \
 		-v ./..:/app \
@@ -17,7 +17,7 @@ dev cmd="bash":
 staging:
 	podman network create --ignore amuman-staging
 	podman build . -t amuman-node-staging
-	podman run --rm -it \
+	podman run --rm -it --replace --tz local --pull newer \
 		--name amuman-node-staging \
 		--network amuman-dev \
 		-v ./..:/app \
