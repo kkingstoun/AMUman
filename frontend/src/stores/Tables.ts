@@ -1,10 +1,12 @@
 import { writable } from 'svelte/store';
 import type { Node, Job, Gpu } from '$api/Api';
+import { DateTime } from 'luxon';
 
-export const refreshInterval = writable(60 * 1000);
-export const timeSinceLastFetch = writable('Never');
-export const lastFetchTime = writable(0);
-
+export const refreshInterval = writable(30 * 1000);
+export const lastFetchTime = writable<DateTime | null>(null);
+export const isRefreshing = writable(false);
+export const refreshLastFetchTimeInterval = writable<ReturnType<typeof setInterval>>();
+export const refreshItemsInterval = writable<ReturnType<typeof setInterval>>();
 export type ItemTypeString = "nodes" | "jobs" | "gpus";
 export type ItemType = Node | Job | Gpu;
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
-	import moment from 'moment';
+	import { DateTime } from 'luxon';
 	import {
 		Table,
 		TableBody,
@@ -17,10 +17,11 @@
 		refreshInterval,
 		itemlist,
 		sortStates,
-		lastFetchTime,
 		selectedItems,
-		timeSinceLastFetch,
-		type ItemType
+		type ItemType,
+		isRefreshing,
+		refreshLastFetchTimeInterval,
+		refreshItemsInterval
 	} from '$stores/Tables';
 	import Drawer from '$lib/Drawer/Layout.svelte';
 	import DeleteItem from './DeleteItem.svelte';
@@ -28,22 +29,12 @@
 	import RunJob from './RunJob.svelte';
 	import { formatValue, formatString, formatDateTime, isJob, getPropertyValue } from '../Utils';
 	import type { ItemTypeString } from '$stores/Tables';
-	import type { Job } from '$api/Api';
 	import Badge from '$lib/Table/Badge.svelte';
 
 	export let item_type: ItemTypeString;
 
-	let refreshLastFetchTimeInterval: ReturnType<typeof setInterval>;
-	function refreshTimeSinceLastFetch() {
-		$timeSinceLastFetch = moment($lastFetchTime).fromNow();
-	}
-
-	let refreshJobsInterval: ReturnType<typeof setInterval>;
 	onMount(async () => {
 		await fetchItems(item_type);
-		// This only refreshes the text that shows the time since last fetch
-		refreshTimeSinceLastFetch();
-		refreshLastFetchTimeInterval = setInterval(refreshTimeSinceLastFetch, 1000 * 60);
 
 		const localStorageSortState = localStorage.getItem('sortState');
 		if (localStorageSortState) {
@@ -52,14 +43,18 @@
 
 		sortItems(item_type);
 		// This refreshes the jobs every minute
-		refreshJobsInterval = setInterval(() => {
+		$refreshItemsInterval = setInterval(() => {
 			fetchItems(item_type);
+			$isRefreshing = true;
+			setTimeout(() => {
+				$isRefreshing = false;
+			}, 1000);
 		}, $refreshInterval); // Refresh every minute
 	});
 
 	onDestroy(() => {
-		clearInterval(refreshLastFetchTimeInterval);
-		clearInterval(refreshJobsInterval);
+		clearInterval($refreshLastFetchTimeInterval);
+		clearInterval($refreshItemsInterval);
 	});
 
 	function updateSortState(column: string): void {

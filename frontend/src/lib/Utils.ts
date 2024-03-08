@@ -1,7 +1,7 @@
 import type { ItemType } from '$stores/Tables';
 import { toasts, type ToastColor } from '$stores/Other';
-import moment from 'moment';
 import type { Job, Gpu, Node } from '$api/Api';
+import { DateTime } from 'luxon';
 
 export function formatString(input: string): string {
     const replacedString = input.replace(/_/g, ' ');
@@ -13,13 +13,8 @@ export function formatString(input: string): string {
 export function formatValue(
     item: ItemType,
     key: string,
-    format?: string
 ): string | number | null | undefined {
     const value = item[key as keyof ItemType];
-    if (format === 'datetime') {
-        if (!value) return '-';
-        return moment(value).fromNow();
-    }
     return value;
 }
 
@@ -50,11 +45,6 @@ export function newToast(message: string, color: ToastColor): void {
 
 }
 
-export function formatDate(time: string | undefined): string {
-    if (!time) return '-';
-    return moment(time).fromNow();
-}
-
 export function isJob(item: ItemType): item is Job {
     return 'path' in item;
 }
@@ -66,9 +56,9 @@ export function isGpu(item: ItemType): item is Gpu {
 }
 export function formatDateTime(dateString?: string | null): string {
     if (!dateString) return '-';
-    return (
-        moment(dateString).format('YYYY-MM-DD HH:mm:ss') + ' (' + moment(dateString).fromNow() + ')'
-    );
+    dateString = DateTime.fromISO(dateString).toRelative()
+    if (dateString) return dateString;
+    else return '-';
 };
 
 export function getPropertyValue(item: ItemType, property: string): string | undefined {
