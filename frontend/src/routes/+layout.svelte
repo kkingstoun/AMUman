@@ -6,7 +6,9 @@
 	import { goto } from '$app/navigation';
 	import ToastList from '$lib/ToastList.svelte';
 	let isLoading = true;
+
 	onMount(() => {
+		window.fetch = fetch; // suppress warnings
 		document.documentElement.classList.add('dark');
 		let localStorageRefreshToken = localStorage.getItem('refresh_token');
 		if (localStorageRefreshToken) {
@@ -27,7 +29,7 @@
 	<title>Amuman</title>
 </svelte:head>
 
-<ToastList />
+<!-- <ToastList /> -->
 
 <div class="bg-gray-900">
 	{#if isLoading}
