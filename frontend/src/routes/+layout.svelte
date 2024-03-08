@@ -29,7 +29,7 @@
 	<title>Amuman</title>
 </svelte:head>
 
-<!-- <ToastList /> -->
+<ToastList />
 
 <div class="bg-gray-900">
 	{#if isLoading}

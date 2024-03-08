@@ -32,19 +32,18 @@ export type ColorType =
     | undefined;
 
 export function newToast(message: string, color: ToastColor): void {
+    const id = Date.now(); // Using a timestamp as a simple unique ID
     toasts.update((t) => {
-        const toast = { message, color };
+        const toast = { message, color, id };
         return [...t, toast];
     });
-    // // Remove the toast after 3 seconds
-    // setTimeout(() => {
-    //     toasts.update((t) => {
-    //         return t.slice(1);
-    //     });
-    // }, 3000);
 
+    setTimeout(() => {
+        toasts.update((t) => {
+            return t.filter(toast => toast.id !== id); // Remove the toast by ID
+        });
+    }, 2000);
 }
-
 export function isJob(item: ItemType): item is Job {
     return 'path' in item;
 }

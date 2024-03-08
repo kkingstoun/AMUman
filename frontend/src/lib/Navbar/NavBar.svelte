@@ -2,7 +2,6 @@
 	import { Navbar, NavBrand, NavUl, NavHamburger, NavLi } from 'flowbite-svelte';
 	import Logout from './Logout.svelte';
 	import Github from './Github.svelte';
-	import { newToast } from '$lib/Utils';
 </script>
 
 <Navbar class="!bg-gray-800">
@@ -12,13 +11,6 @@
 	</NavBrand>
 	<NavHamburger />
 	<NavUl>
-		<NavLi
-			href="/"
-			on:click={() => {
-				newToast('hi', 'blue');
-				newToast('hi2', 'green');
-			}}>Toast</NavLi
-		>
 		<NavLi href="/newjob">New Job</NavLi>
 		<NavLi href="/jobs">Jobs</NavLi>
 		<NavLi href="/nodes">Nodes</NavLi>

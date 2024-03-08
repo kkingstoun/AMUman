@@ -4,6 +4,7 @@
 	import { api } from '$stores/Auth';
 	import { getRequestParams } from '$api/Auth';
 	import NavBar from '$lib/Navbar/NavBar.svelte';
+	import { newToast } from '$lib/Utils';
 	let job: Job = {
 		id: 0,
 		user: 'username',
@@ -19,13 +20,18 @@
 	const maxFlagsLength = 150;
 
 	async function submitJob() {
-		let res = await api.jobsCreate(job, getRequestParams());
-		if (res.status === 201) {
-			console.log('Job created');
-		} else {
-			console.error('Job creation failed');
-		}
-		job.path = '';
+		api
+			.jobsCreate(job, getRequestParams())
+			.then((res) => {
+				newToast(`Job ${res.data.id} submitted`, 'green');
+				job.path = '';
+			})
+			.catch((res) => {
+				// make a toast for all fields in res.error
+				for (let field in res.error) {
+					newToast(res.error[field], 'red');
+				}
+			});
 	}
 </script>
 

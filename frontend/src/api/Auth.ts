@@ -15,7 +15,6 @@ export function getRequestParams(): RequestParams {
     // If no access token, try to refresh it
     const refreshTokenString = get(refreshToken);
     if (refreshTokenString) {
-        console.log('Refreshing token');
         if (isTokenExpired(refreshTokenString)) {
             newToast('Session expired', "red");
             goto('/login');
