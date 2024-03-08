@@ -1,9 +1,7 @@
 <script lang="ts">
 	import 'tailwindcss/tailwind.css';
 	import { Spinner } from 'flowbite-svelte';
-	import { newToast } from '$lib/Utils';
 	import { accessToken, refreshToken } from '$stores/Auth';
-	import NavBar from '$lib/Navbar/NavBar.svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import ToastList from '$lib/ToastList.svelte';
@@ -18,10 +16,9 @@
 				accessToken.set(localStorageAccessToken);
 			}
 			isLoading = false;
-			// goto('/jobs');
 		} else {
 			isLoading = false;
-			// goto('/login');
+			goto('/login');
 		}
 	});
 </script>
@@ -30,17 +27,19 @@
 	<title>Amuman</title>
 </svelte:head>
 
-<!-- <ToastList /> -->
+<ToastList />
 
-{#if isLoading}
-	<div class="text-center align-middle">
-		<Spinner size={8} />
-	</div>
-{:else}
-	<div class="flex flex-col h-screen bg-gray-900">
-		<slot />
-	</div>
-{/if}
+<div class="bg-gray-900">
+	{#if isLoading}
+		<div class="flex justify-center items-center h-screen">
+			<Spinner size={12} />
+		</div>
+	{:else}
+		<div class="flex flex-col h-screen">
+			<slot />
+		</div>
+	{/if}
+</div>
 
 <style>
 	:global(:root) {
