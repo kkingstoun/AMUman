@@ -986,16 +986,7 @@ components:
         * `PENDING` - PENDING
         * `FINISHED` - FINISHED
         * `INTERRUPTED` - INTERRUPTED
-    ManagerSettings:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        queue_watchdog:
-          type: boolean
-      required:
-      - id
+        * `RUNNING` - RUNNING
     Node:
       type: object
       properties:
