@@ -1,23 +1,26 @@
-from django.db.models.signals import post_save
+from constance.signals import config_updated
 from django.dispatch import receiver
 
 from manager.components.scheduler import ThreadedScheduler
 
 from .components.queue import QueueManager
-from .models import ManagerSettings
 
 
-@receiver(post_save, sender=ManagerSettings)
-def manage_scheduler_on_change(sender, instance, **kwargs):  # noqa: ARG001
+@receiver(config_updated)
+def constance_updated(sender, key, old_value, new_value, **kwargs):
     scheduler = ThreadedScheduler.get_instance()
-    if instance.queue_watchdog is True:
+    if key == "autorun_jobs" and new_value is True and not old_value:
         try:
-            scheduler.every(1).seconds.do(QueueManager().schedule_jobs)
-            scheduler.start()
+            # Sprawdzamy, czy zadanie już istnieje, aby nie duplikować
+            if not scheduler.get_jobs():
+                scheduler.every(1).seconds.do(QueueManager().schedule_jobs)
+                scheduler.start()
+            else:
+                scheduler.start()
         except Exception as e:
-            print(e)
+            print(f"Error starting scheduler: {e}")
     else:
         try:
             scheduler.stop()
         except Exception as e:
-            print(e)
+            print(f"Error stopping scheduler: {e}")

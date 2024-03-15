@@ -5,7 +5,7 @@ from django.core.cache import cache
 from django.db.models import Case, IntegerField, Value, When
 
 from manager.models import Gpu, Job
-
+from .run_job import RunJob
 log = logging.getLogger("rich")
 
 class QueueManager:
@@ -46,21 +46,13 @@ class QueueManager:
         """
         Schedule jobs to run on available GPUs. Wait and retry if no GPUs are available.
         """
+        print("dupa")
+        self.rt = RunJob()
         while True:
             for job in self.ordered_jobs:
                 available_gpu = self.pending_gpus
                 if available_gpu:
-                    print(f"Running job {job.id} on GPU {available_gpu.id}")
-                    # Tutaj implementujemy logikę uruchamiania zadania na wybranym GPU.
-                    # Następnie aktualizujemy statusy zadań i GPU odpowiednio.
-                    # Przykład aktualizacji statusu (zakładając, że statusy są odpowiednio obsługiwane w modelach):
-                    job.status = Job.JobStatus.RUNNING # Przykładowa aktualizacja statusu zadania
-                    job.gpu = available_gpu
-                    job.save()
-
-                    available_gpu.status = Gpu.GPUStatus.RUNNING.value  # Przykładowa aktualizacja statusu GPU
-                    available_gpu.save()
-                    break  # Wyjdź z pętli for, aby ponownie rozpocząć od nowych zadań w kolejce
+                    self.rt.run_job(job=job,gpu=available_gpu) # Wyjdź z pętli for, aby ponownie rozpocząć od nowych zadań w kolejce
                 else:
                     # Jeśli nie ma dostępnych GPU, logujemy i czekamy
                     log.warning("No available GPUs. Waiting 30 seconds to retry...")

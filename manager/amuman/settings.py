@@ -71,7 +71,7 @@ INSTALLED_APPS = [
 ]
 
 CONSTANCE_CONFIG = {
-    "autorun_jobs": (True, ""),
+    "autorun_jobs": (False, ""),
 }
 
 

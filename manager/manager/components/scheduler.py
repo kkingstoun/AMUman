@@ -63,29 +63,25 @@ class ThreadedScheduler(Scheduler):
             log.debug("Scheduler is running")
             time.sleep(self.interval)
 
+    # def initiate_thread(self):
+        # self.thread = threading.Thread(target=self.run_continuously, daemon=True)
+        # self.thread.start()
+        
     def initiate_thread(self):
-        self.thread = threading.Thread(target=self.run_continuously, daemon=True)
-        self.thread.start()
+        if self.thread is None or not self.thread.is_alive():
+            self._stop_event.clear()  # Upewnij się, że flaga stopu jest wyczyszczona
+            self.thread = threading.Thread(target=self.run_continuously, daemon=True)
+            self.thread.start()
+            
     def start(self):
-        try:
-            if self.thread is not None:
-                if not self.thread.is_alive():
-                    self.thread = threading.Thread(
-                        target=self.run_continuously, daemon=True
-                    )
-                    self.thread.start()
-                else:
-                    self.initiate_thread()
-            else:
-                self.initiate_thread()
-        except AttributeError as e:
-            log.exception(f"Scheduler thread not defined {e}")
+        self.initiate_thread()
 
     def stop(self):
         """Zatrzymaj scheduler, sygnalizując wątkowi, by zakończył działanie."""
         self._stop_event.set()  # Ustawienie flagi zatrzymania
         if self.thread is not None:
             self.thread.join()  # Oczekiwanie na zakończenie wątku
+            self.thread=None
 
     @classmethod
     def get_instance(cls, *args, **kwargs):
