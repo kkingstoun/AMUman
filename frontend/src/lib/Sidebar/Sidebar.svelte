@@ -18,8 +18,8 @@
 {#if $sidebarIsOpen}
 	<Sidebar class="h-full">
 		<SidebarWrapper class="!bg-gray-800 !rounded-none h-full">
-			<ItemFilters {item_type} />
 			<ColumnFilters {item_type} />
+			<ItemFilters {item_type} />
 		</SidebarWrapper>
 	</Sidebar>
 {/if}

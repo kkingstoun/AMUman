@@ -5,7 +5,8 @@ import { DateTime } from 'luxon';
 import { get, type Writable } from 'svelte/store';
 import { accessToken, refreshToken } from '$stores/Auth';
 import { sidebarIsOpen } from '$stores/Other';
-import { shownColumns, sortStates } from '$stores/Tables';
+import { shownColumns, sortStates, headers } from '$stores/Tables';
+import { type KeyLists } from '$stores/Tables'; // Import the KeyLists type from the appropriate location
 
 export function formatString(input: string): string {
     const replacedString = input.replace(/_/g, ' ');
@@ -95,4 +96,24 @@ export function initStores(): void {
     InitOneStore(sidebarIsOpen, 'sidebarIsOpen');
     InitOneStore(shownColumns, 'shownColumns');
     InitOneStore(sortStates, 'sortStates');
+}
+
+export function orderShownColumnsLikeHeaders(): void {
+    console.log('orderShownColumnsLikeHeaders');
+    const currentHeaders = get(headers);
+
+    shownColumns.update(currentShownColumns => {
+        // Iterate over each key in currentShownColumns and reorder according to currentHeaders
+        Object.keys(currentShownColumns).forEach(key => {
+            if (currentHeaders[key as keyof KeyLists]) { // Add type assertion to keyof KeyLists
+                currentShownColumns[key as keyof KeyLists] = (currentShownColumns[key as keyof KeyLists] as (keyof Node)[] & (keyof Job)[] & (keyof Gpu)[]).sort((a, b) => {
+                    // Use the order in currentHeaders[key] to sort currentShownColumns[key]
+                    return (currentHeaders[key as keyof KeyLists] as ("id" | "status")[])
+                        .indexOf(a as "id" | "status") - (currentHeaders[key as keyof KeyLists] as ("id" | "status")[]).indexOf(b as "id" | "status");
+                });
+            }
+        });
+
+        return currentShownColumns; // Return the newly ordered shownColumns
+    });
 }
