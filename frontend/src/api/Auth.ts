@@ -6,32 +6,21 @@ import { get } from 'svelte/store';
 import { goto } from '$app/navigation';
 
 
-function getAccessToken(): string | null {
-    if (isAccessTokenExpired()) {
-        if (!isRefreshTokenExpired()) {
-            api.tokenRefreshCreate({ refresh: get(refreshToken) || "", access: '' }).then((res) => {
-                if (res.data.access) {
-                    localStorage.setItem('access_token', res.data.access);
-                    accessToken.set(res.data.access);
-                }
-            }
-            ).catch((res) => {
-                console.error('Token refresh failed', res);
-            });
-        }
-    }
-    return get(accessToken);
-}
-
 export function getRequestParams(): RequestParams {
     const accessTokenString = get(accessToken);
-    if (accessTokenString) {
+
+    if (accessTokenString && !isTokenExpired(accessTokenString)) {
         return { headers: { Authorization: `Bearer ${accessTokenString}` } };
     }
     // If no access token, try to refresh it
     const refreshTokenString = get(refreshToken);
     if (refreshTokenString) {
         console.log('Refreshing token');
+        if (isTokenExpired(refreshTokenString)) {
+            newToast('Session expired', "red");
+            goto('/login');
+            return {};
+        }
         api.tokenRefreshCreate({ refresh: refreshTokenString, access: '' }).then((res) => {
             if (res.data.access) {
                 localStorage.setItem('access_token', res.data.access);
@@ -94,20 +83,6 @@ function tokenExpiry(token: string): number {
     const { exp } = JSON.parse(jsonPayload);
     return exp;
 }
-function isTokenExpired(token: string): boolean {
+export function isTokenExpired(token: string): boolean {
     return tokenExpiry(token) < Date.now() / 1000;
 }
-function isAccessTokenExpired(): boolean {
-    const accessTokenString = get(accessToken);
-    if (accessTokenString) {
-        return isTokenExpired(accessTokenString);
-    }
-    return true;
-}
-function isRefreshTokenExpired(): boolean {
-    const refreshTokenString = get(refreshToken);
-    if (refreshTokenString) {
-        return isTokenExpired(refreshTokenString);
-    }
-    return true;
-} 

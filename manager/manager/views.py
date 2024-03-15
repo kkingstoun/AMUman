@@ -98,7 +98,7 @@ class JobsViewSet(viewsets.ModelViewSet):
             gpu = Gpu.objects.filter(status="PENDING").first()
             if not gpu:
                 return Response(
-                    {"error": "Gpu unavalible."}, status=status.HTTP_400_BAD_REQUEST
+                    {"error": "Gpu unavailable."}, status=status.HTTP_400_BAD_REQUEST
                 )
 
             self.rt = RunJob()

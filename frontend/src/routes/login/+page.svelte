@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { Button } from 'flowbite-svelte';
 	import { handleLogin } from '$api/Auth';
-	import Toast from '$lib/ToastList.svelte';
-
 	let username = 'admin';
 	let password = 'admin';
 </script>

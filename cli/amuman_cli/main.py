@@ -1,9 +1,9 @@
 import dataclasses
 import logging
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import List, Optional
 
 import httpx
 import toml
@@ -45,6 +45,13 @@ class GPUPartition(str, Enum):
 
 
 @dataclass
+class Config:
+    manager_url: str
+    shared_dir_root: str
+    token: str
+
+
+@dataclass
 class Job:
     path: str
     user: str
@@ -57,16 +64,16 @@ def warning(message: str) -> None:
     print(f"[bold orange1]Warning: {message}[/bold orange1]")
 
 
-def get_token(manager_url: str, username: str, password: str) -> str:
+def authenticate(manager_url: str, username: str, password: str) -> str:
     response = httpx.post(
         f"{manager_url}/api/token/",
         data={"username": username, "password": password},
     )
     response.raise_for_status()
-    return response.json()["access"]
+    return response.json()["refresh"]
 
 
-def init_config(config_path: Path) -> Dict[str, Union[str, Path]]:
+def init_config(config_path: Path) -> Config:
     print(
         f"[bold red]No config was found[/bold red] at `{config_path}`,[bold green] creating one:[/bold green]"
     )
@@ -79,6 +86,7 @@ def init_config(config_path: Path) -> Dict[str, Union[str, Path]]:
         "[bold green]Full path to the shared storage. [/bold green]",
         default="/mnt/smb",
     )
+    refresh_token: str
     while True:
         username: str = Prompt.ask(
             "[bold green]Your username [/bold green]",
@@ -88,7 +96,7 @@ def init_config(config_path: Path) -> Dict[str, Union[str, Path]]:
             password=True,
         )
         try:
-            token = get_token(manager_url, username, password)
+            refresh_token = authenticate(manager_url, username, password)
             break
         except httpx.HTTPStatusError:
             print("[bold red]Invalid credentials")
@@ -97,12 +105,12 @@ def init_config(config_path: Path) -> Dict[str, Union[str, Path]]:
             print(f"[bold red]An HTTP error occurred: {e}")
             continue
 
-    config: Dict[str, Union[str, Path]] = {
-        "manager_url": manager_url,
-        "shared_dir_root": shared_dir_root,
-        "token": token,
-    }
-    config_path.write_text(toml.dumps(config))
+    config: Config = Config(
+        manager_url=manager_url,
+        shared_dir_root=shared_dir_root,
+        token=refresh_token,
+    )
+    config_path.write_text(toml.dumps(asdict(config)))
     print("[bold green]Successfully created the config file.[/bold green]")
     print(
         "[bold blue]Run `amuman-cli --install-completion` to benefit from shell completion. [/bold blue]"
@@ -111,15 +119,23 @@ def init_config(config_path: Path) -> Dict[str, Union[str, Path]]:
     return config
 
 
-def read_config(config_path: Path) -> Dict[str, Union[str, Path]]:
+def read_config(config_path: Path) -> Config:
     try:
-        config: Dict[str, Union[str, Path]] = toml.loads(config_path.read_text())
+        config_dict = toml.loads(config_path.read_text())
+        config = Config(
+            manager_url=config_dict["manager_url"],
+            shared_dir_root=config_dict["shared_dir_root"],
+            token=config_dict["token"],
+        )
     except FileNotFoundError:
         print(f"Configuration file not found at {config_path}, initializing...")
         config = init_config(config_path)
 
-    required_keys: List[str] = ["manager_url", "shared_dir_root", ""]
-    missing_keys: List[str] = [key for key in required_keys if key not in config]
+    required_keys: List[str] = ["manager_url", "shared_dir_root", "token"]
+    missing_keys: List[str] = [
+        key for key in required_keys if key not in asdict(config)
+    ]
+
     if missing_keys:
         print(f"Missing keys: {missing_keys}")
         config = init_config(config_path)
@@ -258,18 +274,19 @@ def queue(  # noqa: C901
         else:
             config = init_config(config_path)
     if manager_url_input is None:
-        manager_url: str = str(config["manager_url"])
+        manager_url: str = str(config.manager_url)
     else:
         manager_url = manager_url_input
 
     if shared_dir_root_input is None:
-        shared_dir_root: Path = Path(config["shared_dir_root"])
+        shared_dir_root: Path = Path(config.shared_dir_root)
     else:
         shared_dir_root = shared_dir_root_input
 
     warning_if_not_mounted(shared_dir_root)
     if log.level <= 20:
         print(f"[bold blue3]Submitting jobs to {manager_url}/jobs/")
+    token = get_access_token(manager_url, config.token)
     for input_path in paths:
         path = sanitize_path(input_path, shared_dir_root)
         if path is None:
@@ -285,7 +302,7 @@ def queue(  # noqa: C901
             response = httpx.post(
                 f"{manager_url}/api/jobs/",
                 data=dataclasses.asdict(data),
-                headers={"Authorization": f"Bearer {config['token']}"},
+                headers={"Authorization": f"Bearer {token}"},
             )
             if log.level <= 20 and response.status_code < 400:
                 print(f"[bold green] \u2713 {path}")
@@ -295,6 +312,15 @@ def queue(  # noqa: C901
         except httpx.HTTPError as e:
             print(f"[bold red] \u274C {path}")
             log.error(f"An HTTP error occurred: {e}")
+
+
+def get_access_token(manager_url: str, refresh_token: str) -> str:
+    response = httpx.post(
+        f"{manager_url}/api/token/refresh/",
+        data={"refresh": refresh_token},
+    )
+    response.raise_for_status()
+    return response.json()["access"]
 
 
 def entrypoint() -> None:

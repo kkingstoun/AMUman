@@ -205,11 +205,6 @@ export enum JobStatusEnum {
 	INTERRUPTED = 'INTERRUPTED'
 }
 
-export interface ManagerSettings {
-	readonly id: number;
-	queue_watchdog?: boolean;
-}
-
 export interface Node {
 	readonly id: number;
 	ip: string;
@@ -305,11 +300,6 @@ export interface PatchedJob {
 	flags?: string | null;
 	node?: number | null;
 	gpu?: number | null;
-}
-
-export interface PatchedManagerSettings {
-	readonly id?: number;
-	queue_watchdog?: boolean;
 }
 
 /**
@@ -787,29 +777,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 			this.request<Job, any>({
 				path: `/api/jobs/${id}/start/`,
 				method: 'POST',
-				body: data,
-				secure: true,
-				type: ContentType.Json,
-				format: 'json',
-				...params
-			}),
-
-		/**
-		 * No description
-		 *
-		 * @tags manager-settings
-		 * @name ManagerSettingsPartialUpdate
-		 * @request PATCH:/api/manager-settings/{id}/
-		 * @secure
-		 */
-		managerSettingsPartialUpdate: (
-			id: number,
-			data: PatchedManagerSettings,
-			params: RequestParams = {}
-		) =>
-			this.request<ManagerSettings, any>({
-				path: `/api/manager-settings/${id}/`,
-				method: 'PATCH',
 				body: data,
 				secure: true,
 				type: ContentType.Json,

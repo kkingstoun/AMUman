@@ -4,6 +4,7 @@ import { get } from 'svelte/store';
 import { newToast } from '$lib/Utils';
 import { getRequestParams } from './Auth';
 import type { Job } from './Api';
+import { DateTime } from 'luxon';
 
 export async function fetchItems(item_type: 'jobs' | 'nodes' | 'gpus') {
     try {
@@ -25,7 +26,7 @@ export async function fetchItems(item_type: 'jobs' | 'nodes' | 'gpus') {
         });
 
         sortItems(item_type); // Assuming this function exists and is correctly implemented
-        lastFetchTime.set(Date.now());
+        lastFetchTime.set(DateTime.now());
     } catch (err) {
         console.error(err);
         newToast(`Failed to fetch ${item_type}`, "red");
