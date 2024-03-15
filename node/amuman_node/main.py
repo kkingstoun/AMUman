@@ -2,11 +2,13 @@ import asyncio
 import json
 import logging
 import os
+import socket
 import uuid
 from typing import Any, Optional, Union
 
 import requests
 import websockets
+from websockets.exceptions import ConnectionClosed, ConnectionClosedError, ConnectionClosedOK
 from rich.logging import RichHandler
 
 from amuman_node.gpu_monitor import GPUMonitor
@@ -42,18 +44,27 @@ class NodeClient:
         self.access_token: str
         self.refresh_token: Optional[str] = None
 
-    async def start(self) -> None:
-        if self.register_with_manager():
-            # pass
-            await self.websocket_loop()
+        self.reply_timeout = 10
+        self.ping_timeout = 5
+        self.sleep_time = 5
 
+    async def start(self) -> None:
+        while True:
+            try:
+                if self.register_with_manager():
+                    # pass
+                    await self.websocket_loop()
+            except Exception as e:
+                log.error(f"Cannot register to manager! {e}")
+                await asyncio.sleep(self.sleep_time)
+            
     def authenticate(self) -> bool:
         try:
             response = requests.post(
                 f"http://{self.manager_url}/api/token/",
                 json={
-                    "username": "admin",
-                    "password": "admin",
+                    "username": os.getenv("NODE_USER", "admin"),
+                    "password": os.getenv("NODE_PASSWORD", "admin"),
                 },
             )
             log.debug(
@@ -134,25 +145,38 @@ class NodeClient:
 
     async def websocket_loop(self) -> None:
         while True:
+            log.debug('Creating new connection...')
             try:
                 async with websockets.connect(
                     f"ws://{self.manager_url}/ws/node/?token={self.access_token}&node_id={self.node_id}"
-                ) as websocket:
-                    log.debug(f"Registering with the manager: {self.manager_url}")
-                    await self.register_websocket(websocket)
-                    log.debug(f"Registered with the manager: {self.manager_url}")
-                    await self.handle_connection(websocket)
-            except websockets.exceptions.WebSocketException as e:
-                log.warning(f"WebSocket connection failed: {e}")
-            except Exception as e:
-                log.exception(f"Unexpected error: {e}")
-            finally:
-                if self.reconnect_attempts > 0:
-                    log.info(f"Reconnecting in {self.reconnect_delay} seconds...")
-                    await asyncio.sleep(self.reconnect_delay)
-                    self.reconnect_attempts -= 1
-                else:
-                    log.error("Maximum reconnect attempts reached. Giving up.")
+                ) as ws:
+                    while True:
+                        try:
+                            log.debug(f"Registering with the manager: {self.manager_url}")
+                            await self.register_websocket(ws)
+                            log.debug(f"Registered with the manager: {self.manager_url}")
+                            await self.handle_connection(ws)
+                        except (asyncio.TimeoutError, ConnectionClosed, ConnectionClosedError, ConnectionClosedOK):
+                            try:
+                                pong = await ws.ping()
+                                await asyncio.wait_for(pong, timeout=self.ping_timeout)
+                                log.debug('Ping OK, keeping connection alive...')
+                                continue
+                            except Exception:
+                                log.debug(
+                                    f'Ping error - retrying connection in {self.sleep_time} sec (Ctrl-C to quit)')
+                                await asyncio.sleep(self.sleep_time)
+                                break
+            except socket.gaierror:
+                log.debug(
+                    f'Socket error - retrying connection in {self.sleep_time} sec (Ctrl-C to quit)')
+                await asyncio.sleep(self.sleep_time)
+                continue
+            except ConnectionRefusedError:
+                log.debug('Nobody seems to listen to this endpoint. Please check the URL.')
+                log.debug(f'Retrying connection in {self.sleep_time} sec (Ctrl-C to quit)')
+                await asyncio.sleep(self.sleep_time)
+                continue
 
     async def handle_connection(
         self, websocket: websockets.WebSocketClientProtocol
