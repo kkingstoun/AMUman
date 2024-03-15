@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
-	import { DateTime } from 'luxon';
 	import {
 		Table,
 		TableBody,

@@ -55,7 +55,7 @@ export function isGpu(item: ItemType): item is Gpu {
 }
 export function formatDateTime(dateString?: string | null): string {
     if (!dateString) return '-';
-    dateString = DateTime.fromISO(dateString).toRelative()
+    dateString = DateTime.fromISO(dateString).setLocale('en-GB').toRelative();
     if (dateString) return dateString;
     else return '-';
 };

@@ -21,7 +21,7 @@ export async function fetchItems<T extends ItemTypeString>(itemType: T): Promise
             return itemList;
         });
         sortItems(itemType);
-        lastFetchTime.set(DateTime.now());
+        lastFetchTime.set(DateTime.now().setLocale('en-GB'));
     }).catch((err) => {
         newToast(`Failed to fetch ${itemType}. Err: ${err}`, "red");
     });
