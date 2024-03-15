@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import type { Node, Job, Gpu } from '$api/Api';
+import type { Node, Job, Gpu } from '$api/OpenApi';
 import { DateTime } from 'luxon';
 
 export const refreshInterval = writable(30 * 1000);
@@ -9,6 +9,13 @@ export const refreshLastFetchTimeInterval = writable<ReturnType<typeof setInterv
 export const refreshItemsInterval = writable<ReturnType<typeof setInterval>>();
 export type ItemTypeString = "nodes" | "jobs" | "gpus";
 export type ItemType = Node | Job | Gpu;
+
+export interface ItemTypeMap {
+    nodes: Node[];
+    jobs: Job[];
+    gpus: Gpu[];
+
+}
 
 interface ItemList {
     nodes: Node[];
@@ -45,7 +52,7 @@ export const sortStates = writable<SortStates>({
     gpus: { column: 'id', direction: 1 }
 });
 
-interface KeyLists {
+export interface KeyLists {
     nodes: (keyof Node)[];
     jobs: (keyof Job)[];
     gpus: (keyof Gpu)[];

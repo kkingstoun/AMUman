@@ -24,7 +24,7 @@
 		"test:unit": "vitest",
 		"lint": "prettier --plugin-search-dir . --check . && eslint .",
 		"format": "prettier --plugin-search-dir . --write .",
-		"gen-api": "npx -y swagger-typescript-api --add-readonly -p 'http://amuman-manager-dev:8000/api/schema/?format=yaml&lang=en' -o ./src/api"
+		"gen-api": "npx -y swagger-typescript-api --add-readonly -p 'http://amuman-manager-dev:8000/api/schema/?format=yaml&lang=en' -o ./src/api/OpenApi.ts"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-node": "^4.0.1",

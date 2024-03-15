@@ -16,6 +16,7 @@ export type ToastColor =
     | undefined;
 
 type Toast = {
+    id: number;
     message: string;
     color: ToastColor;
 };

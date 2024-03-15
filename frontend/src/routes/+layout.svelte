@@ -1,25 +1,20 @@
 <script lang="ts">
 	import 'tailwindcss/tailwind.css';
 	import { Spinner } from 'flowbite-svelte';
-	import { accessToken, refreshToken } from '$stores/Auth';
+	import { initStores } from '$lib/Utils';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import ToastList from '$lib/ToastList.svelte';
+	import { refreshToken } from '$stores/Auth';
 	let isLoading = true;
-
 	onMount(() => {
 		window.fetch = fetch; // suppress warnings
 		document.documentElement.classList.add('dark');
-		let localStorageRefreshToken = localStorage.getItem('refresh_token');
-		if (localStorageRefreshToken) {
-			refreshToken.set(localStorageRefreshToken);
-			let localStorageAccessToken = localStorage.getItem('access_token');
-			if (localStorageAccessToken) {
-				accessToken.set(localStorageAccessToken);
-			}
-			isLoading = false;
-		} else {
-			isLoading = false;
+
+		initStores();
+
+		isLoading = false;
+		if (!$refreshToken) {
 			goto('/login');
 		}
 	});
@@ -29,7 +24,7 @@
 	<title>Amuman</title>
 </svelte:head>
 
-<!-- <ToastList /> -->
+<ToastList />
 
 <div class="bg-gray-900">
 	{#if isLoading}

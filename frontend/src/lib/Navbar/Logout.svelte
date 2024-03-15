@@ -3,8 +3,6 @@
 	import { accessToken, refreshToken } from '$stores/Auth';
 
 	function handleLogout() {
-		localStorage.removeItem('access_token');
-		localStorage.removeItem('refresh_token');
 		accessToken.set(null);
 		refreshToken.set(null);
 	}

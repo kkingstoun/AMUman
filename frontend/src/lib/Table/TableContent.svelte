@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
-	import { DateTime } from 'luxon';
 	import {
 		Table,
 		TableBody,
@@ -36,11 +35,6 @@
 	onMount(async () => {
 		await fetchItems(item_type);
 
-		const localStorageSortState = localStorage.getItem('sortState');
-		if (localStorageSortState) {
-			$sortStates = JSON.parse(localStorageSortState);
-		}
-
 		sortItems(item_type);
 		// This refreshes the jobs every minute
 		$refreshItemsInterval = setInterval(() => {
@@ -64,7 +58,6 @@
 			$sortStates[item_type].column = column as keyof ItemType;
 			$sortStates[item_type].direction = 1; // Default to ascending for a new column
 		}
-		localStorage.setItem('sortState', JSON.stringify($sortStates));
 		sortItems(item_type);
 	}
 

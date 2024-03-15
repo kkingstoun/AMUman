@@ -1,9 +1,10 @@
 <script lang="ts">
-	import type { Job } from '$api/Api';
-	import { PriorityEnum, GpuPartitionEnum, JobStatusEnum } from '$api/Api';
+	import type { Job } from '$api/OpenApi';
+	import { PriorityEnum, GpuPartitionEnum, JobStatusEnum } from '$api/OpenApi';
 	import { api } from '$stores/Auth';
-	import { getRequestParams } from '$api/Auth';
+	import { authenticatedApiCall } from '$api/Auth';
 	import NavBar from '$lib/Navbar/NavBar.svelte';
+	import { newToast } from '$lib/Utils';
 	let job: Job = {
 		id: 0,
 		user: 'username',
@@ -16,22 +17,24 @@
 	};
 
 	const maxPathLength = 500;
-	const maxFlagsLength = 150;
 
 	async function submitJob() {
-		let res = await api.jobsCreate(job, getRequestParams());
-		if (res.status === 201) {
-			console.log('Job created');
-		} else {
-			console.error('Job creation failed');
-		}
-		job.path = '';
+		await authenticatedApiCall(api.jobsCreate, job)
+			.then((res) => {
+				job.path = '';
+				newToast(`Job ${res.data.id} submitted`, 'green');
+			})
+			.catch((res) => {
+				for (let field in res.error) {
+					newToast(res.error[field], 'red');
+				}
+			});
 	}
 </script>
 
 <NavBar />
-<div class="flex flex-col items-center mx-auto w-5/12">
-	<h1 class="text-4xl text-white">New Job</h1>
+<div class="flex flex-col items-center mx-auto w-5/12 min-w-96">
+	<h1 class="text-4xl text-white mt-10">New Job</h1>
 	<form class="space-y-4 text-white p-4 rounded w-full">
 		<div>
 			<label for="path" class="block">Path</label>
@@ -61,25 +64,6 @@
 					<option value={option}>{option}</option>
 				{/each}
 			</select>
-		</div>
-		<div>
-			<label for="status" class="block">Status</label>
-			<select id="status" bind:value={job.status} class="input">
-				<option value="" disabled>Select status</option>
-				{#each Object.values(JobStatusEnum) as option}
-					<option value={option}>{option}</option>
-				{/each}
-			</select>
-		</div>
-		<div>
-			<label for="flags" class="block">Flags</label>
-			<input
-				type="text"
-				id="flags"
-				bind:value={job.flags}
-				class="input"
-				maxlength={maxFlagsLength}
-			/>
 		</div>
 		<div>
 			<label for="duration" class="block">Duration (Hours)</label>

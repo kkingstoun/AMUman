@@ -1,7 +1,7 @@
 <script lang="ts">
 	import TableContent from './TableContent.svelte';
 	import TableTitle from './TableTitle.svelte';
-	import Sidebar from './Sidebar.svelte';
+	import Sidebar from '../Sidebar/Sidebar.svelte';
 
 	import type { ItemTypeString } from '$stores/Tables';
 	export let item_type: ItemTypeString;

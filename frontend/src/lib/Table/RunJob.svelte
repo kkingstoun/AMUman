@@ -2,7 +2,7 @@
 	import { Button } from 'flowbite-svelte';
 	import { PlayOutline } from 'flowbite-svelte-icons';
 	import { runJob } from '$api/Table';
-	import type { Job } from '$api/Api';
+	import type { Job } from '$api/OpenApi';
 	export let job: Job;
 </script>
 
