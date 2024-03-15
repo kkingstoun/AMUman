@@ -82,3 +82,21 @@ export async function deleteItem<T extends ItemTypeString>(itemType: T, id: numb
         }
     });
 }
+
+
+export async function deleteSelectedItems(item_type: 'jobs' | 'nodes' | 'gpus') {
+    const itemList = get(itemlist)[item_type];
+    const selectedItemIds = get(selectedItems)[item_type];
+
+    for (const item of itemList) {
+        if (item.id && selectedItemIds.includes(item.id)) {
+            await deleteItem(item_type, item.id); // Assuming deleteItem accepts item_type and id
+
+            // Update selectedItems to remove the deleted item's id
+            selectedItems.update(current => {
+                const updatedSelectedIds = current[item_type].filter(id => id !== item.id);
+                return { ...current, [item_type]: updatedSelectedIds };
+            });
+        }
+    }
+}
