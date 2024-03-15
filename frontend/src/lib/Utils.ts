@@ -99,7 +99,6 @@ export function initStores(): void {
 }
 
 export function orderShownColumnsLikeHeaders(): void {
-    console.log('orderShownColumnsLikeHeaders');
     const currentHeaders = get(headers);
 
     shownColumns.update(currentShownColumns => {

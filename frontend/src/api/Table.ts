@@ -57,7 +57,7 @@ export async function runJob(job: Job) {
 
     }).catch((res) => {
         for (let field in res.error) {
-            newToast(`s ${res.error[field]}`, 'red');
+            newToast(`${res.error[field]}`, 'red');
         }
     });
 }
