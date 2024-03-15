@@ -1,14 +1,23 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Job } from '$api/Api';
-	import { getJobOutput } from '$api/Table';
+	import { api } from '$stores/Auth';
+	import { authenticatedApiCall } from '$api/Auth';
+	import { newToast } from '$lib/Utils';
 	export let job: Job;
 	import Prism from 'prismjs';
 	import 'prismjs/components/prism-go'; // Ensure the import path is correct
 
 	let output = 'waiting for output...';
 	onMount(async () => {
-		output = await getJobOutput(job);
+		output = await authenticatedApiCall(api.jobsOutputRetrieve, job.id)
+			.then((res) => {
+				return res.data.output;
+			})
+			.catch((err) => {
+				newToast(`Failed to retrieve output for job ${job.id}`, 'red');
+				return `Failed to retrieve output: ${(err as Error).message || String(err)}`;
+			});
 	});
 </script>
 
