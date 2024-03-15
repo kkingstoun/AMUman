@@ -1,7 +1,7 @@
 import { api, accessToken, refreshToken } from '$stores/Auth';
 import { newToast } from '$lib/Utils';
 
-import type { HttpResponse, Output, RequestParams } from './Api';
+import type { HttpResponse, Output, RequestParams } from './OpenApi';
 import { get } from 'svelte/store';
 import { goto } from '$app/navigation';
 

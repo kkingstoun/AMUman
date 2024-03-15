@@ -3,7 +3,7 @@ import { api } from '$stores/Auth';
 import { get } from 'svelte/store';
 import { newToast } from '$lib/Utils';
 import { authenticatedApiCall } from './Auth';
-import type { Job } from './Api';
+import type { Job } from './OpenApi';
 import { DateTime } from 'luxon';
 
 

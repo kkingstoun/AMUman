@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { Job } from '$api/Api';
-	import { PriorityEnum, GpuPartitionEnum, JobStatusEnum } from '$api/Api';
+	import type { Job } from '$api/OpenApi';
+	import { PriorityEnum, GpuPartitionEnum, JobStatusEnum } from '$api/OpenApi';
 	import { api } from '$stores/Auth';
 	import { authenticatedApiCall } from '$api/Auth';
 	import NavBar from '$lib/Navbar/NavBar.svelte';

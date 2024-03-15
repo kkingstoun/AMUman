@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Job } from '$api/Api';
+	import type { Job } from '$api/OpenApi';
 	import { api } from '$stores/Auth';
 	import { authenticatedApiCall } from '$api/Auth';
 	import { newToast } from '$lib/Utils';

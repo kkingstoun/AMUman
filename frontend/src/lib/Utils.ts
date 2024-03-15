@@ -1,6 +1,6 @@
 import type { ItemType } from '$stores/Tables';
 import { toasts, type ToastColor } from '$stores/Other';
-import type { Job, Gpu, Node } from '$api/Api';
+import type { Job, Gpu, Node } from '$api/OpenApi';
 import { DateTime } from 'luxon';
 import { get, type Writable } from 'svelte/store';
 import { accessToken, refreshToken } from '$stores/Auth';
