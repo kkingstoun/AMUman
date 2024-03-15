@@ -29,6 +29,7 @@
 	import { formatValue, formatString, formatDateTime, isJob, getPropertyValue } from '../Utils';
 	import type { ItemTypeString } from '$stores/Tables';
 	import Badge from '$lib/Table/Badge.svelte';
+	import Pagination from './Pagination.svelte';
 
 	export let item_type: ItemTypeString;
 
@@ -124,4 +125,5 @@
 			</TableBodyRow>
 		{/each}
 	</TableBody>
+	<Pagination />
 </Table>
