@@ -1,12 +1,12 @@
 import { api, accessToken, refreshToken } from '$stores/Auth';
 import { newToast } from '$lib/Utils';
 
-import type { RequestParams } from './Api';
+import type { HttpResponse, Output, RequestParams } from './Api';
 import { get } from 'svelte/store';
 import { goto } from '$app/navigation';
 
 
-export function getRequestParams(): RequestParams {
+export function getRequestParams(): RequestParams | null {
     const accessTokenString = get(accessToken);
 
     if (accessTokenString && !isTokenExpired(accessTokenString)) {
@@ -29,11 +29,24 @@ export function getRequestParams(): RequestParams {
         ).catch((res) => {
             console.error('Token refresh failed', res);
         });
-        return {};
+        return null;
     }
-    newToast('Not authenticated', "red");
-    goto('/login');
-    return {};
+    return null;
+}
+
+type ApiFunction<T> = (...args: any[]) => Promise<HttpResponse<T, any>>;
+
+export async function authenticatedApiCall<T>(
+    apiFunction: ApiFunction<T>,
+    ...apiFunctionArgs: any[]
+): Promise<HttpResponse<T, any>> {
+    const requestParams = getRequestParams();
+    if (!requestParams) {
+        newToast('Not authenticated.', "red");
+        goto('/login');
+    }
+
+    return apiFunction(...apiFunctionArgs, requestParams);
 }
 
 
