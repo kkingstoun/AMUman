@@ -10,6 +10,13 @@ export const refreshItemsInterval = writable<ReturnType<typeof setInterval>>();
 export type ItemTypeString = "nodes" | "jobs" | "gpus";
 export type ItemType = Node | Job | Gpu;
 
+export interface ItemTypeMap {
+    nodes: Node[];
+    jobs: Job[];
+    gpus: Gpu[];
+
+}
+
 interface ItemList {
     nodes: Node[];
     jobs: Job[];

@@ -1,59 +1,32 @@
-import { sortStates, itemlist, lastFetchTime, selectedItems, type ItemTypeString, type ItemType } from '$stores/Tables';
+import { sortStates, itemlist, lastFetchTime, selectedItems, type ItemTypeString, type ItemType, type ItemTypeMap } from '$stores/Tables';
 import { api } from '$stores/Auth';
 import { get } from 'svelte/store';
 import { newToast } from '$lib/Utils';
-import { getRequestParams, authenticatedApiCall } from './Auth';
+import { authenticatedApiCall } from './Auth';
 import type { Job } from './Api';
 import { DateTime } from 'luxon';
 
-export async function fetchJobs(): Promise<void> {
-    await authenticatedApiCall(api.jobsList).then((res) => {
-        itemlist.update(itemList => {
-            itemList.jobs = res.data;
-            return itemList;
-        });
 
-    }).catch((err) => {
-        newToast(`Failed to fetch jobs. Err: ${err}`, "red");
-    });
-
-}
-export async function fetchNodes(): Promise<void> {
-    await authenticatedApiCall(api.nodesList).then((res) => {
-        itemlist.update(itemList => {
-            itemList.nodes = res.data;
-            return itemList;
-        });
-
-    }).catch((err) => {
-        newToast(`Failed to fetch nodes. Err: ${err}`, "red");
-    });
-
-}
-export async function fetchGpus(): Promise<void> {
-    await authenticatedApiCall(api.gpusList).then((res) => {
-        itemlist.update(itemList => {
-            itemList.gpus = res.data;
-            return itemList;
-        });
-
-    }).catch((err) => {
-        newToast(`Failed to fetch gpus. Err: ${err}`, "red");
-    });
-
-}
-export async function fetchItems(item_type: ItemTypeString): Promise<void> {
-    if (item_type === 'jobs') {
-        return fetchJobs();
-    } else if (item_type === 'nodes') {
-        return fetchJobs();
-    } else if (item_type === 'gpus') {
-        return fetchJobs();
+export async function fetchItems<T extends ItemTypeString>(itemType: T): Promise<void> {
+    // Determine which API call to use based on the itemType
+    const apiCall = (api as any)[`${itemType}List`];
+    if (!apiCall) {
+        newToast(`API call for ${itemType} does not exist.`, "red");
+        return;
     }
-    sortItems("jobs");
-    lastFetchTime.set(DateTime.now());
 
+    await authenticatedApiCall(apiCall).then((res) => {
+        itemlist.update(itemList => {
+            itemList[itemType] = res.data as ItemTypeMap[T];
+            return itemList;
+        });
+        sortItems(itemType);
+        lastFetchTime.set(DateTime.now());
+    }).catch((err) => {
+        newToast(`Failed to fetch ${itemType}. Err: ${err}`, "red");
+    });
 }
+
 
 export function sortItems(item_type: 'jobs' | 'nodes' | 'gpus'): void {
     itemlist.update(list => {
@@ -79,49 +52,33 @@ export function sortItems(item_type: 'jobs' | 'nodes' | 'gpus'): void {
 }
 
 export async function runJob(job: Job) {
-    api.jobsStartCreate(job.id, job, getRequestParams()!).then(() => {
+    await authenticatedApiCall(api.jobsStartCreate, job.id, job).then((res) => {
         newToast(`Started job ${job.id}`, "green");
-    }).catch(err => {
-        console.error(err);
-        newToast(`Failed to run job ${job.id}`, "red");
+
+    }).catch((res) => {
+        for (let field in res.error) {
+            newToast(`s ${res.error[field]}`, 'red');
+        }
     });
 }
 
-export async function deleteItem(item_type: 'jobs' | 'nodes' | 'gpus', id: number) {
-    try {
-        // Dynamically call the correct API method based on item_type
-        if (item_type === 'jobs') {
-            await api.jobsDestroy(id, getRequestParams()!);
-        } else if (item_type === 'nodes') {
-            await api.nodesDestroy(id, getRequestParams()!); // Assuming similar API exists
-        } else if (item_type === 'gpus') {
-            await api.gpusDestroy(id, getRequestParams()!); // Assuming similar API exists
-        }
+export async function deleteItem<T extends ItemTypeString>(itemType: T, id: number): Promise<void> {
+    // Determine which API call to use based on the itemType
+    const apiCall = (api as any)[`${itemType}Destroy`];
+    if (!apiCall) {
+        newToast(`API call for ${itemType} does not exist.`, "red");
+        return;
+    }
 
-        // Update the store by removing the deleted item
+    await authenticatedApiCall(apiCall, id).then((res) => {
         itemlist.update(list => {
-            const updatedList = list[item_type].filter(item => item.id !== id);
-            return { ...list, [item_type]: updatedList };
+            const updatedList = list[itemType].filter(item => item.id !== id);
+            return { ...list, [itemType]: updatedList };
         });
-    } catch (err) {
-        console.error(err);
-        newToast(`Failed to delete ${item_type.slice(0, -1)} ${id}`, "red"); // Adjust the message dynamically
-    }
-}
-
-export async function deleteSelectedItems(item_type: 'jobs' | 'nodes' | 'gpus') {
-    const itemList = get(itemlist)[item_type];
-    const selectedItemIds = get(selectedItems)[item_type];
-
-    for (const item of itemList) {
-        if (item.id && selectedItemIds.includes(item.id)) {
-            await deleteItem(item_type, item.id); // Assuming deleteItem accepts item_type and id
-
-            // Update selectedItems to remove the deleted item's id
-            selectedItems.update(current => {
-                const updatedSelectedIds = current[item_type].filter(id => id !== item.id);
-                return { ...current, [item_type]: updatedSelectedIds };
-            });
+    }).catch((res) => {
+        newToast(`Failed to delete ${itemType.slice(0, -1)} ${id}`, "red");
+        for (let field in res.error) {
+            newToast(`s ${res.error[field]}`, 'red');
         }
-    }
+    });
 }

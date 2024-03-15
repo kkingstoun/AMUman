@@ -28,7 +28,6 @@
 				for (let field in res.error) {
 					newToast(res.error[field], 'red');
 				}
-				// newToast(`Failed to retrieve output for job ${job.id}`, 'red');
 			});
 	}
 </script>
