@@ -2,6 +2,10 @@ import type { ItemType } from '$stores/Tables';
 import { toasts, type ToastColor } from '$stores/Other';
 import type { Job, Gpu, Node } from '$api/Api';
 import { DateTime } from 'luxon';
+import { get, type Writable } from 'svelte/store';
+import { accessToken, refreshToken } from '$stores/Auth';
+import { sidebarIsOpen } from '$stores/Other';
+import { shownColumns, sortStates } from '$stores/Tables';
 
 export function formatString(input: string): string {
     const replacedString = input.replace(/_/g, ' ');
@@ -62,4 +66,33 @@ export function formatDateTime(dateString?: string | null): string {
 
 export function getPropertyValue(item: ItemType, property: string): string | undefined {
     return (item as any)[property];
+}
+
+function getLocalStorageItem<T>(store: Writable<T>, key: string): T {
+    const item = localStorage.getItem(key);
+    if (item) {
+        try {
+            return JSON.parse(item) as T;
+        } catch (error) {
+            console.error(`Error parsing ${key} from localStorage:`, error);
+            return get(store); // Fall back to the store's default value
+        }
+    }
+    return get(store); // Return the store's default value if the item is not found
+}
+function subscribeAndPersist<T>(store: Writable<T>, key: string): void {
+    store.subscribe((value) => {
+        localStorage.setItem(key, JSON.stringify(value));
+    });
+}
+function InitOneStore<T>(store: Writable<T>, key: string): void {
+    store.set(getLocalStorageItem(store, key));
+    subscribeAndPersist(store, key);
+}
+export function initStores(): void {
+    InitOneStore(accessToken, 'accessToken');
+    InitOneStore(refreshToken, 'refresh');
+    InitOneStore(sidebarIsOpen, 'sidebarIsOpen');
+    InitOneStore(shownColumns, 'shownColumns');
+    InitOneStore(sortStates, 'sortStates');
 }

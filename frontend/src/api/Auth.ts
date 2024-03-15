@@ -22,7 +22,6 @@ export function getRequestParams(): RequestParams | null {
         }
         api.tokenRefreshCreate({ refresh: refreshTokenString, access: '' }).then((res) => {
             if (res.data.access) {
-                localStorage.setItem('access_token', res.data.access);
                 accessToken.set(res.data.access);
             }
         }
@@ -55,8 +54,6 @@ export async function handleLogin(username: string, password: string) {
         .tokenCreate({ username, password, access: '', refresh: '' })
         .then((res) => {
             if (res.data.access && res.data.refresh) {
-                localStorage.setItem('access_token', res.data.access);
-                localStorage.setItem('refresh_token', res.data.refresh);
                 accessToken.set(res.data.access);
                 refreshToken.set(res.data.refresh);
                 newToast('Login successful!', "green");
@@ -73,19 +70,6 @@ export async function handleLogin(username: string, password: string) {
         });
 }
 
-export function initTokens() {
-    let localStorageRefreshToken = localStorage.getItem('refresh_token');
-    if (localStorageRefreshToken) {
-        refreshToken.set(localStorageRefreshToken);
-        let localStorageAccessToken = localStorage.getItem('access_token');
-        if (localStorageAccessToken) {
-            accessToken.set(localStorageAccessToken);
-        }
-        goto('/jobs');
-    } else {
-        goto('/login');
-    }
-}
 function tokenExpiry(token: string): number {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
