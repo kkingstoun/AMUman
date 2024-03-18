@@ -1,4 +1,4 @@
-dev:
+dev cmd="bash -c 'npm i && npm run dev'":
 	podman network create --ignore amuman-dev
 	podman run --rm -it --replace --tz local --pull newer \
 		--name amuman-frontend-dev \
@@ -6,4 +6,4 @@ dev:
 		-p 3000:3000 \
 		-v ./..:/app \
 		-w /app/frontend \
-		docker.io/node:21 bash
+		docker.io/node:21 {{cmd}}
