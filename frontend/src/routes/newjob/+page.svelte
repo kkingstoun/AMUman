@@ -4,7 +4,8 @@
 	import { api } from '$stores/Auth';
 	import { authenticatedApiCall } from '$api/Auth';
 	import NavBar from '$lib/Navbar/NavBar.svelte';
-	import { newToast } from '$lib/Utils';
+	import { newToast } from '$stores/Toast';
+
 	let job: Job = {
 		id: 0,
 		user: 'username',

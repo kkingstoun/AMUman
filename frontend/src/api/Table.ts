@@ -1,7 +1,8 @@
 import { sortStates, itemlist, lastFetchTime, selectedItems, type ItemTypeString, type ItemType, type ItemTypeMap } from '$stores/Tables';
 import { api } from '$stores/Auth';
 import { get } from 'svelte/store';
-import { newToast } from '$lib/Utils';
+import { newToast } from '$stores/Toast';
+
 import { authenticatedApiCall } from './Auth';
 import type { Job } from './OpenApi';
 import { DateTime } from 'luxon';

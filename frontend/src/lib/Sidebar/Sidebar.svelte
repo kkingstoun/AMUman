@@ -2,7 +2,7 @@
 	import { Sidebar, SidebarWrapper } from 'flowbite-svelte';
 	import type { ItemTypeString } from '$stores/Tables';
 	import { AngleLeftOutline, AngleRightOutline } from 'flowbite-svelte-icons';
-	import { sidebarIsOpen } from '$stores/Other';
+	import { sidebarIsOpen } from '$stores/Sidebar';
 	import ItemFilters from './ItemFilters.svelte';
 	import ColumnFilters from './ColumnFilters.svelte';
 

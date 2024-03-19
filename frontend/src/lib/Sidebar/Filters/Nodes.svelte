@@ -2,7 +2,8 @@
 	import { Button, Dropdown, DropdownItem } from 'flowbite-svelte';
 	import { authenticatedApiCall } from '$api/Auth';
 	import { api } from '$stores/Auth';
-	import { newToast } from '$lib/Utils';
+	import { newToast } from '$stores/Toast';
+
 	import { ChevronDownSolid } from 'flowbite-svelte-icons';
 
 	let users: string[] = [];

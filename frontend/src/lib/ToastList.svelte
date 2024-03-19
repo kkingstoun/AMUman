@@ -2,7 +2,7 @@
 	import { Toast, Button } from 'flowbite-svelte';
 	import { CheckCircleSolid } from 'flowbite-svelte-icons';
 	import { fly } from 'svelte/transition';
-	import { toasts } from '$stores/Other';
+	import { toasts } from '$stores/Toast';
 </script>
 
 <div class="fixed w-full right-0 top-0">

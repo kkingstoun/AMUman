@@ -3,7 +3,8 @@
 	import type { Job } from '$api/OpenApi';
 	import { api } from '$stores/Auth';
 	import { authenticatedApiCall } from '$api/Auth';
-	import { newToast } from '$lib/Utils';
+	import { newToast } from '$stores/Toast';
+
 	export let job: Job;
 	import Prism from 'prismjs';
 	import 'prismjs/components/prism-go'; // Ensure the import path is correct

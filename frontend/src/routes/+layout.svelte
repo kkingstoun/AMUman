@@ -1,7 +1,7 @@
 <script lang="ts">
 	import 'tailwindcss/tailwind.css';
 	import { Spinner } from 'flowbite-svelte';
-	import { initStores } from '$lib/Utils';
+	import { initStores } from '$stores/Init';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import ToastList from '$lib/ToastList.svelte';
