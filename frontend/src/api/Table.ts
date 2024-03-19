@@ -22,8 +22,10 @@ export async function fetchItems<T extends ItemTypeString>(itemType: T): Promise
         });
         sortItems(itemType);
         lastFetchTime.set(DateTime.now().setLocale('en-GB'));
-    }).catch((err) => {
-        newToast(`Failed to fetch ${itemType}. Err: ${err}`, "red");
+    }).catch((res) => {
+        for (let field in res.error) {
+            newToast(`Failed to fetch jobs: ${res.error[field]}`, 'red');
+        }
     });
 }
 
@@ -57,7 +59,7 @@ export async function runJob(job: Job) {
 
     }).catch((res) => {
         for (let field in res.error) {
-            newToast(`${res.error[field]}`, 'red');
+            newToast(`Failed to run job: ${res.error[field]}`, 'red');
         }
     });
 }
