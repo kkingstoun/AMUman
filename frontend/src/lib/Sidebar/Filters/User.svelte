@@ -3,6 +3,7 @@
 	import { authenticatedApiCall } from '$api/Auth';
 	import { api } from '$stores/Auth';
 	import { newToast } from '$stores/Toast';
+	import { itemFilters } from '$stores/Sidebar';
 
 	import { ChevronDownSolid } from 'flowbite-svelte-icons';
 
@@ -22,17 +23,16 @@
 			});
 	}
 	let dropdownOpen = false;
-	let selectedUser: string = 'All';
 </script>
 
 <Button outline color="dark" size="xs" on:click={getUsers} class="w-full"
-	>{selectedUser}<ChevronDownSolid class="w-3 h-3 ms-2 text-white dark:text-white" /></Button
+	>{$itemFilters.user}<ChevronDownSolid class="w-3 h-3 ms-2 text-white dark:text-white" /></Button
 >
 <Dropdown class="overflow-y-auto py-1 h-48" bind:open={dropdownOpen}>
 	<DropdownItem
 		class="flex items-center text-base font-semibold gap-2"
 		on:click={() => {
-			selectedUser = 'All';
+			$itemFilters.user = 'All';
 			dropdownOpen = false;
 		}}
 	>
@@ -42,7 +42,7 @@
 		<DropdownItem
 			class="flex items-center text-base font-semibold gap-2"
 			on:click={() => {
-				selectedUser = user;
+				$itemFilters.user = user;
 				dropdownOpen = false;
 			}}
 		>
