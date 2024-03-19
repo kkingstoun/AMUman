@@ -1,5 +1,5 @@
 import { get, type Writable } from 'svelte/store';
-import { accessToken, refreshToken } from '$stores/Auth';
+import { accessToken, refreshToken, username } from '$stores/Auth';
 import { sidebarIsOpen } from '$stores/Sidebar';
 import { shownColumns, sortStates } from '$stores/Tables';
 
@@ -25,11 +25,10 @@ function InitOneStore<T>(store: Writable<T>, key: string): void {
     subscribeAndPersist(store, key);
 }
 export function initStores(): void {
+    InitOneStore(username, 'username');
     InitOneStore(accessToken, 'accessToken');
-    InitOneStore(refreshToken, 'refresh');
+    InitOneStore(refreshToken, 'refreshToken');
     InitOneStore(sidebarIsOpen, 'sidebarIsOpen');
     InitOneStore(shownColumns, 'shownColumns');
     InitOneStore(sortStates, 'sortStates');
-    console.log('Stores initialized');
-    console.log('accessToken:', get(sidebarIsOpen));
 }

@@ -54,15 +54,20 @@ class JobsViewSet(viewsets.ModelViewSet):
     permission_classes: ClassVar = [permissions.IsAuthenticated]
 
     def list(self, request, *_args, **_kwargs):
-        if request.user.is_authenticated:
-            log.debug(f"User {request.user} is authenticated.")
-        else:
-            log.debug(f"User {request.user} is not authenticated.")
-        max_id = request.query_params.get("max_id")
-        if max_id is not None:
-            queryset = self.queryset.filter(id__lt=max_id)
-        else:
-            queryset = self.get_queryset()
+        queryset = self.get_queryset()  # Start with all jobs
+
+        # Loop through each query parameter you expect
+        query_params = request.query_params
+        for param, value in query_params.items():
+            if param == "max_id" and value.isdigit():
+                queryset = queryset.filter(id__lt=int(value))
+            elif param == "user" and value:
+                queryset = queryset.filter(user__eq=value)
+            # Add more conditions as needed for other query parameters
+
+        # Apply additional filters or ordering as needed
+        # queryset = queryset.filter(...).order_by(...)
+
         return Response(JobSerializer(queryset, many=True).data)
 
     def retrieve(self, _request, *_args, **_kwargs):

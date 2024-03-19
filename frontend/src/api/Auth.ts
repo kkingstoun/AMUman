@@ -49,7 +49,11 @@ export async function authenticatedApiCall<T>(
 }
 
 
-export async function handleLogin(username: string, password: string) {
+export async function handleLogin(username: string | null, password: string) {
+    if (!username) {
+        newToast('Username is required!', "red");
+        return;
+    }
     api
         .tokenCreate({ username, password, access: '', refresh: '' })
         .then((res) => {
