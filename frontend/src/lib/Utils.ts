@@ -1,11 +1,8 @@
 import type { ItemType } from '$stores/Tables';
-import { toasts, type ToastColor } from '$stores/Other';
 import type { Job, Gpu, Node } from '$api/OpenApi';
 import { DateTime } from 'luxon';
-import { get, type Writable } from 'svelte/store';
-import { accessToken, refreshToken } from '$stores/Auth';
-import { sidebarIsOpen } from '$stores/Other';
-import { shownColumns, sortStates, headers } from '$stores/Tables';
+import { get } from 'svelte/store';
+import { shownColumns, headers } from '$stores/Tables';
 import { type KeyLists } from '$stores/Tables'; // Import the KeyLists type from the appropriate location
 
 export function formatString(input: string): string {
@@ -23,32 +20,7 @@ export function formatValue(
     return value;
 }
 
-export type ColorType =
-    | 'none'
-    | 'red'
-    | 'yellow'
-    | 'green'
-    | 'indigo'
-    | 'purple'
-    | 'pink'
-    | 'blue'
-    | 'dark'
-    | 'primary'
-    | undefined;
 
-export function newToast(message: string, color: ToastColor): void {
-    const id = Date.now(); // Using a timestamp as a simple unique ID
-    toasts.update((t) => {
-        const toast = { message, color, id };
-        return [...t, toast];
-    });
-
-    setTimeout(() => {
-        toasts.update((t) => {
-            return t.filter(toast => toast.id !== id); // Remove the toast by ID
-        });
-    }, 2000);
-}
 export function isJob(item: ItemType): item is Job {
     return 'path' in item;
 }
@@ -69,34 +41,6 @@ export function getPropertyValue(item: ItemType, property: string): string | und
     return (item as any)[property];
 }
 
-function getLocalStorageItem<T>(store: Writable<T>, key: string): T {
-    const item = localStorage.getItem(key);
-    if (item) {
-        try {
-            return JSON.parse(item) as T;
-        } catch (error) {
-            console.error(`Error parsing ${key} from localStorage:`, error);
-            return get(store); // Fall back to the store's default value
-        }
-    }
-    return get(store); // Return the store's default value if the item is not found
-}
-function subscribeAndPersist<T>(store: Writable<T>, key: string): void {
-    store.subscribe((value) => {
-        localStorage.setItem(key, JSON.stringify(value));
-    });
-}
-function InitOneStore<T>(store: Writable<T>, key: string): void {
-    store.set(getLocalStorageItem(store, key));
-    subscribeAndPersist(store, key);
-}
-export function initStores(): void {
-    InitOneStore(accessToken, 'accessToken');
-    InitOneStore(refreshToken, 'refresh');
-    InitOneStore(sidebarIsOpen, 'sidebarIsOpen');
-    InitOneStore(shownColumns, 'shownColumns');
-    InitOneStore(sortStates, 'sortStates');
-}
 
 export function orderShownColumnsLikeHeaders(): void {
     const currentHeaders = get(headers);

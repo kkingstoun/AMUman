@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { Button } from 'flowbite-svelte';
 	import { api } from '$stores/Auth';
-	import { newToast } from '$lib/Utils';
+	import { newToast } from '$stores/Toast';
+
 	import { goto } from '$app/navigation';
 
 	let username = 'admin';

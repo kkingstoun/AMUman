@@ -20,6 +20,9 @@ RUN echo "${DOMAIN_URL} localhost:12502 {\n\
 	handle /api* {\n\
 		reverse_proxy localhost:8000\n\
 	}\n\
+	handle /admin* {\n\
+		reverse_proxy localhost:8000\n\
+	}\n\
 	handle {\n\
 		reverse_proxy localhost:3000\n\
 	}\n\
@@ -34,7 +37,8 @@ ENV DJANGO_SUPERUSER_EMAIL=
 ENV DJANGO_SUPERUSER_USERNAME=
 ENV DJANGO_SUPERUSER_PASSWORD=
 ENV DOMAIN_URL=
-ENV DEBUG=FALSE
+ENV DEBUG=TRUE
+
 
 CMD redis-server /etc/redis/redis.conf \
     && ./manager/manage.py makemigrations manager \
@@ -42,6 +46,6 @@ CMD redis-server /etc/redis/redis.conf \
     && ./manager/manage.py makemigrations \
     && ./manager/manage.py migrate \
     && ./manager/manage.py createsuperuser --noinput \
-    && ./manager/manage.py runserver 0.0.0.0:8000 &\
+    ; ./manager/manage.py runserver 0.0.0.0:8000 &\
     node /app/frontend/build&\
     caddy run --config /etc/caddy/Caddyfile

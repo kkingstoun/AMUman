@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button } from 'flowbite-svelte';
 	import { handleLogin } from '$api/Auth';
-	let username = 'admin';
+	import { username } from '$stores/Auth';
 	let password = 'admin';
 </script>
 
@@ -27,7 +27,7 @@
 					<label for="username">Username:</label>
 					<input
 						id="username"
-						bind:value={username}
+						bind:value={$username}
 						type="text"
 						class="border rounded w-full p-2 bg-gray-700 text-white"
 					/>
@@ -42,7 +42,7 @@
 					/>
 				</div>
 				<div class="mt-2">
-					<Button class="font-extrabold" on:click={() => handleLogin(username, password)}
+					<Button class="font-extrabold" on:click={() => handleLogin($username, password)}
 						>Login</Button
 					>
 				</div>

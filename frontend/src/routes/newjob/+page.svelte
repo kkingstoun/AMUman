@@ -2,9 +2,10 @@
 	import type { Job } from '$api/OpenApi';
 	import { PriorityEnum, GpuPartitionEnum, JobStatusEnum } from '$api/OpenApi';
 	import { api } from '$stores/Auth';
-	import { authenticatedApiCall } from '$api/Auth';
+	import { getRequestParams } from '$api/Auth';
 	import NavBar from '$lib/Navbar/NavBar.svelte';
-	import { newToast } from '$lib/Utils';
+	import { newToast } from '$stores/Toast';
+
 	let job: Job = {
 		id: 0,
 		user: 'username',
@@ -19,16 +20,20 @@
 	const maxPathLength = 500;
 
 	async function submitJob() {
-		await authenticatedApiCall(api.jobsCreate, job)
-			.then((res) => {
-				job.path = '';
-				newToast(`Job ${res.data.id} submitted`, 'green');
-			})
-			.catch((res) => {
-				for (let field in res.error) {
-					newToast(res.error[field], 'red');
-				}
-			});
+		const params = getRequestParams();
+		if (params !== null) {
+			await api
+				.jobsCreate(job, params)
+				.then((res) => {
+					job.path = '';
+					newToast(`Job ${res.data.id} submitted`, 'green');
+				})
+				.catch((res) => {
+					for (let field in res.error) {
+						newToast(res.error[field], 'red');
+					}
+				});
+		}
 	}
 </script>
 

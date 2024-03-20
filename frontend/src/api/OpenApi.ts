@@ -242,6 +242,70 @@ export enum NodeStatusEnum {
 	UNAVAILABLE = 'UNAVAILABLE'
 }
 
+export interface PaginatedCustomUserList {
+	/** @example 123 */
+	count?: number;
+	/**
+	 * @format uri
+	 * @example "http://api.example.org/accounts/?offset=400&limit=100"
+	 */
+	next?: string | null;
+	/**
+	 * @format uri
+	 * @example "http://api.example.org/accounts/?offset=200&limit=100"
+	 */
+	previous?: string | null;
+	results?: CustomUser[];
+}
+
+export interface PaginatedGpuList {
+	/** @example 123 */
+	count?: number;
+	/**
+	 * @format uri
+	 * @example "http://api.example.org/accounts/?offset=400&limit=100"
+	 */
+	next?: string | null;
+	/**
+	 * @format uri
+	 * @example "http://api.example.org/accounts/?offset=200&limit=100"
+	 */
+	previous?: string | null;
+	results?: Gpu[];
+}
+
+export interface PaginatedJobList {
+	/** @example 123 */
+	count?: number;
+	/**
+	 * @format uri
+	 * @example "http://api.example.org/accounts/?offset=400&limit=100"
+	 */
+	next?: string | null;
+	/**
+	 * @format uri
+	 * @example "http://api.example.org/accounts/?offset=200&limit=100"
+	 */
+	previous?: string | null;
+	results?: Job[];
+}
+
+export interface PaginatedNodeList {
+	/** @example 123 */
+	count?: number;
+	/**
+	 * @format uri
+	 * @example "http://api.example.org/accounts/?offset=400&limit=100"
+	 */
+	next?: string | null;
+	/**
+	 * @format uri
+	 * @example "http://api.example.org/accounts/?offset=200&limit=100"
+	 */
+	previous?: string | null;
+	results?: Node[];
+}
+
 export interface PatchedCustomUser {
 	username?: string;
 	password?: string;
@@ -580,10 +644,19 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		 * @request GET:/api/gpus/
 		 * @secure
 		 */
-		gpusList: (params: RequestParams = {}) =>
-			this.request<Gpu[], any>({
+		gpusList: (
+			query?: {
+				/** Number of results to return per page. */
+				limit?: number;
+				/** The initial index from which to return the results. */
+				offset?: number;
+			},
+			params: RequestParams = {}
+		) =>
+			this.request<PaginatedGpuList, any>({
 				path: `/api/gpus/`,
 				method: 'GET',
+				query: query,
 				secure: true,
 				format: 'json',
 				...params
@@ -649,10 +722,34 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		 * @request GET:/api/jobs/
 		 * @secure
 		 */
-		jobsList: (params: RequestParams = {}) =>
-			this.request<Job[], any>({
+		jobsList: (
+			query?: {
+				gpu?: number;
+				/** Number of results to return per page. */
+				limit?: number;
+				node?: number;
+				/** The initial index from which to return the results. */
+				offset?: number;
+				/**
+				 * * `LOW` - LOW
+				 * * `NORMAL` - NORMAL
+				 * * `HIGH` - HIGH
+				 */
+				priority?: 'HIGH' | 'LOW' | 'NORMAL';
+				/**
+				 * * `PENDING` - PENDING
+				 * * `FINISHED` - FINISHED
+				 * * `INTERRUPTED` - INTERRUPTED
+				 */
+				status?: 'FINISHED' | 'INTERRUPTED' | 'PENDING';
+				user?: string;
+			},
+			params: RequestParams = {}
+		) =>
+			this.request<PaginatedJobList, any>({
 				path: `/api/jobs/`,
 				method: 'GET',
+				query: query,
 				secure: true,
 				format: 'json',
 				...params
@@ -792,10 +889,19 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		 * @request GET:/api/nodes/
 		 * @secure
 		 */
-		nodesList: (params: RequestParams = {}) =>
-			this.request<Node[], any>({
+		nodesList: (
+			query?: {
+				/** Number of results to return per page. */
+				limit?: number;
+				/** The initial index from which to return the results. */
+				offset?: number;
+			},
+			params: RequestParams = {}
+		) =>
+			this.request<PaginatedNodeList, any>({
 				path: `/api/nodes/`,
 				method: 'GET',
+				query: query,
 				secure: true,
 				format: 'json',
 				...params
@@ -1037,10 +1143,19 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		 * @request GET:/api/users/
 		 * @secure
 		 */
-		usersList: (params: RequestParams = {}) =>
-			this.request<CustomUser[], any>({
+		usersList: (
+			query?: {
+				/** Number of results to return per page. */
+				limit?: number;
+				/** The initial index from which to return the results. */
+				offset?: number;
+			},
+			params: RequestParams = {}
+		) =>
+			this.request<PaginatedCustomUserList, any>({
 				path: `/api/users/`,
 				method: 'GET',
+				query: query,
 				secure: true,
 				format: 'json',
 				...params

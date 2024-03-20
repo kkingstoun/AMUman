@@ -7,7 +7,7 @@
 	import { formatDateTime, formatValue, getPropertyValue, isJob } from '$lib/Utils';
 	import Badge from '$lib/Table/Badge.svelte';
 	import Output from './Output.svelte';
-
+	import DatePicker from '$lib/Drawer/DatePicker.svelte';
 	export let item: ItemType;
 	export let item_type: ItemTypeString;
 	let drawerHidden = true;
@@ -31,6 +31,7 @@
 >
 	<div class="flex items-center">
 		<div class="p-4">
+			<DatePicker />
 			<Heading tag="h5" class="mb-4" customSize="text-3xl font-extrabold"
 				>{item_type} details</Heading
 			>

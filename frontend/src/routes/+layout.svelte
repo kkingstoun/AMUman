@@ -1,7 +1,7 @@
 <script lang="ts">
 	import 'tailwindcss/tailwind.css';
 	import { Spinner } from 'flowbite-svelte';
-	import { initStores } from '$lib/Utils';
+	import { initStores } from '$stores/Init';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import ToastList from '$lib/ToastList.svelte';
@@ -42,6 +42,8 @@
 	:global(:root) {
 		--accent-color: #3d1999;
 		--accent-color-hover: #2f0e6e;
+		--date-picker-background: #1b1e27;
+		--date-picker-foreground: #f7f7f7;
 		color-scheme: dark;
 	}
 </style>

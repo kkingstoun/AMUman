@@ -6,6 +6,7 @@ from venv import logger
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
@@ -51,20 +52,9 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 class JobsViewSet(viewsets.ModelViewSet):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
-
     permission_classes: ClassVar = [permissions.IsAuthenticated]
-
-    def list(self, request, *_args, **_kwargs):
-        if request.user.is_authenticated:
-            log.debug(f"User {request.user} is authenticated.")
-        else:
-            log.debug(f"User {request.user} is not authenticated.")
-        max_id = request.query_params.get("max_id")
-        if max_id is not None:
-            queryset = self.queryset.filter(id__lt=max_id)
-        else:
-            queryset = self.get_queryset()
-        return Response(JobSerializer(queryset, many=True).data)
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["user", "priority", "node", "gpu", "status"]
 
     def retrieve(self, _request, *_args, **_kwargs):
         data = JobSerializer(instance=self.get_object()).data

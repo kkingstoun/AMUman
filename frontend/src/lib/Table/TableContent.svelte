@@ -22,6 +22,7 @@
 		refreshLastFetchTimeInterval,
 		refreshItemsInterval
 	} from '$stores/Tables';
+	import { pagination } from '$stores/Tables';
 	import Drawer from '$lib/Drawer/Layout.svelte';
 	import DeleteItem from './DeleteItem.svelte';
 	import DeleteSelectedItems from './DeleteSelectedItems.svelte';
@@ -29,6 +30,7 @@
 	import { formatValue, formatString, formatDateTime, isJob, getPropertyValue } from '../Utils';
 	import type { ItemTypeString } from '$stores/Tables';
 	import Badge from '$lib/Table/Badge.svelte';
+	import Pagination from './Pagination.svelte';
 
 	export let item_type: ItemTypeString;
 
@@ -125,3 +127,6 @@
 		{/each}
 	</TableBody>
 </Table>
+{#if $pagination.count !== undefined && item_type === 'jobs'}
+	<Pagination />
+{/if}
