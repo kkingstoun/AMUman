@@ -6,6 +6,7 @@ from venv import logger
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
@@ -50,25 +51,9 @@ class CustomUserViewSet(viewsets.ModelViewSet):
 class JobsViewSet(viewsets.ModelViewSet):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
-
     permission_classes: ClassVar = [permissions.IsAuthenticated]
-
-    def list(self, request, *_args, **_kwargs):
-        queryset = self.get_queryset()  # Start with all jobs
-
-        # Loop through each query parameter you expect
-        query_params = request.query_params
-        for param, value in query_params.items():
-            if param == "max_id" and value.isdigit():
-                queryset = queryset.filter(id__lt=int(value))
-            elif param == "user" and value:
-                queryset = queryset.filter(user__eq=value)
-            # Add more conditions as needed for other query parameters
-
-        # Apply additional filters or ordering as needed
-        # queryset = queryset.filter(...).order_by(...)
-
-        return Response(JobSerializer(queryset, many=True).data)
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["user", "priority", "node", "gpu", "status"]
 
     def retrieve(self, _request, *_args, **_kwargs):
         data = JobSerializer(instance=self.get_object()).data
