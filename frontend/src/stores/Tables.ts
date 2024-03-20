@@ -117,3 +117,8 @@ export const headers = writable<KeyLists>({
     ]
 });
 
+export interface Pagination {
+    count?: number;
+}
+
+export const pagination = writable<Pagination>({});

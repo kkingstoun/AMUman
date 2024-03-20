@@ -49,6 +49,7 @@
 			class="flex items-center text-base font-semibold gap-2"
 			on:click={() => {
 				$jobsFilters.node = undefined;
+				$jobsFilters.offset = 0;
 				dropdownOpen = false;
 				fetchJobs();
 			}}
@@ -61,6 +62,7 @@
 				on:click={() => {
 					$jobsFilters.node = node;
 					dropdownOpen = false;
+					$jobsFilters.offset = 0;
 					fetchJobs();
 				}}
 			>

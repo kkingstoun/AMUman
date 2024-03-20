@@ -6,6 +6,7 @@ import { getRequestParams } from './Auth';
 import type { Job, RequestParams } from '$api/OpenApi';
 import { DateTime } from 'luxon';
 import { jobsFilters, nodesFilters, gpusFilters } from '$stores/Sidebar';
+import { pagination } from '$stores/Tables';
 
 
 export async function fetchJobs(): Promise<void> {
@@ -13,6 +14,11 @@ export async function fetchJobs(): Promise<void> {
     const params = getRequestParams();
     if (params !== null) {
         await api.jobsList(get(jobsFilters), params).then((res) => {
+            pagination.set(
+                {
+                    count: res.data.count,
+                }
+            )
             let data = res.data.results;
             if (data !== undefined) {
                 itemlist.update(itemList => {

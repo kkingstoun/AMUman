@@ -1,24 +1,24 @@
 import { writable } from 'svelte/store';
 
-export const sidebarIsOpen = writable<boolean | null>(null);
+export const sidebarIsOpen = writable<boolean | null>(true);
 
 export type JobQuery = {
     gpu?: number;
-    limit?: number;
     node?: number;
-    offset?: number;
     priority?: 'HIGH' | 'LOW' | 'NORMAL';
     status?: 'FINISHED' | 'INTERRUPTED' | 'PENDING';
     user?: string;
+    limit: number;
+    offset: number;
 };
 export const jobsFilters = writable<JobQuery>({
     user: undefined,
     status: undefined,
     node: undefined,
     gpu: undefined,
-    limit: undefined,
-    offset: undefined,
     priority: undefined,
+    offset: 0,
+    limit: 5,
 });
 
 export type NodeQuery = {

@@ -31,5 +31,5 @@ export function initStores(): void {
     InitOneStore(sidebarIsOpen, 'sidebarIsOpen');
     InitOneStore(shownColumns, 'shownColumns');
     InitOneStore(sortStates, 'sortStates');
-    InitOneStore(jobsFilters, 'itemFilters');
+    InitOneStore(jobsFilters, 'jobsFilters');
 }
