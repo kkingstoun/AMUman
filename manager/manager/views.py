@@ -14,6 +14,7 @@ from rest_framework.fields import CharField
 from rest_framework.response import Response
 
 from .components.run_job import RunJob
+# from .components.refresh_gpu import RefreshGpu
 from .models import CustomUser, Gpu, Job, Node
 from .serializers import (
     CustomUserSerializer,
@@ -119,22 +120,42 @@ class JobsViewSet(viewsets.ModelViewSet):
             fields={"output": CharField()},
         ),
     )
+
     @action(detail=True, methods=["get"])
     def output(self, *_args, **_kwargs):
         try:
-            job = self.get_object()
-            output = job.output if job.output else ""
-            return Response({"output": output}, status=status.HTTP_200_OK)
+            gpu = self.get_object()
+
+            return Response({"Gpus updated"}, status=status.HTTP_200_OK)
         except Job.DoesNotExist:
             return Response(
                 {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
+    @action(detail=True, methods=["get"], url_path='output')
+    def job_output(self, request, pk=None):
+        """Return 'output' for given Job"""
+        try:
+            job = self.get_object()
+            return Response({"output": job.output})
+        except Job.DoesNotExist:
+            return Response({"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+    @action(detail=True, methods=["get"], url_path='output')
+    def job_error(self, request, pk=None):
+        """Return 'output' for given Job"""
+        try:
+            job = self.get_object()
+            return Response({"error": job.error})
+        except Job.DoesNotExist:
+            return Response({"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND)
 
 class GpusViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "delete"]
     queryset = Gpu.objects.all()
     serializer_class = GpuSerializer
+    permission_classes: ClassVar = [permissions.IsAuthenticated]
 
     def create(self, request, *_args, **_kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -173,6 +194,18 @@ class GpusViewSet(viewsets.ModelViewSet):
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+    @action(detail=True, methods=["post"])
+    def refresh(self, _request):
+        try:
+            
+            return Response(
+                {"message": "Gpus updated."},
+                status=status.HTTP_200_OK,
+            )
+        except Exception:
+            return Response(
+                {"error": "{e}"}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class NodesViewSet(viewsets.ModelViewSet):
@@ -188,7 +221,7 @@ class NodesViewSet(viewsets.ModelViewSet):
         serializer_class=RefreshNodeSerializer,
     )
     def refreshnode(self, request):
-        node_id = request.query_params.get("node_id", None)
+        node_id = request.data.get("node_id", None)
         channel_layer = get_channel_layer()
         if channel_layer and node_id:
             async_to_sync(channel_layer.group_send)(

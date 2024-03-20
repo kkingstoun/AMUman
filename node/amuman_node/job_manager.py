@@ -94,9 +94,9 @@ class JobManager:
             )
             log.info(f"AMUmax exited with status {self.job.status}.")
             if self.job.output is not None:
-                log.info(f"AMUmax output: {self.job.output}")
+                log.debug(f"AMUmax output: {self.job.output}")
             else:
-                log.info(f"AMUmax error: {self.job.error}")
+                log.error(f"AMUmax error: {self.job.error}")
                 
 
         except OSError as e:

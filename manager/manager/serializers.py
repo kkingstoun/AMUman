@@ -50,7 +50,8 @@ class NodeSerializer(serializers.ModelSerializer):
 class JobSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
-        fields = "__all__"
+        exclude = ["output", "error"]
+
 
 
 class RefreshNodeSerializer(serializers.Serializer):

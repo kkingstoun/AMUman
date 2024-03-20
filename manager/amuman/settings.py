@@ -71,7 +71,7 @@ INSTALLED_APPS = [
 ]
 
 CONSTANCE_CONFIG = {
-    "autorun_jobs": (False, ""),
+    "autorun_jobs": (True, ""),
 }
 
 
@@ -113,12 +113,6 @@ if DEBUG:
     )
 
 
-STATIC_URL = "/static/"
-
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "manager/static"),
-]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 ROOT_URLCONF = "amuman.urls"
 
