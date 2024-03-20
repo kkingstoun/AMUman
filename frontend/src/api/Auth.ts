@@ -1,7 +1,7 @@
 import { api, accessToken, refreshToken } from '$stores/Auth';
 import { newToast } from '$stores/Toast';
 
-import type { HttpResponse, RequestParams } from './OpenApi';
+import type { HttpResponse, RequestParams } from '$api/OpenApi';
 import { get } from 'svelte/store';
 import { goto } from '$app/navigation';
 
@@ -18,7 +18,7 @@ export function getRequestParams(): RequestParams | null {
         if (isTokenExpired(refreshTokenString)) {
             newToast('Session expired', "red");
             goto('/login');
-            return {};
+            return null;
         }
         api.tokenRefreshCreate({ refresh: refreshTokenString, access: '' }).then((res) => {
             if (res.data.access) {
@@ -32,22 +32,6 @@ export function getRequestParams(): RequestParams | null {
     }
     return null;
 }
-
-type ApiFunction<T> = (...args: any[]) => Promise<HttpResponse<T, any>>;
-
-export async function authenticatedApiCall<T>(
-    apiFunction: ApiFunction<T>,
-    ...apiFunctionArgs: any[]
-): Promise<HttpResponse<T, any>> {
-    const requestParams = getRequestParams();
-    if (!requestParams) {
-        newToast('Not authenticated.', "red");
-        goto('/login');
-    }
-
-    return apiFunction(...apiFunctionArgs, requestParams);
-}
-
 
 export async function handleLogin(username: string | null, password: string) {
     if (!username) {
