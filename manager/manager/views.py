@@ -55,9 +55,10 @@ class JobsViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["user", "priority", "node", "gpu", "status"]
 
-    def retrieve(self, _request, *_args, **_kwargs):
-        data = JobSerializer(instance=self.get_object()).data
-        return Response(data)
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, context={'include_output_error': True})
+        return Response(serializer.data)
 
     def create(self, request, *_args, **_kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -98,45 +99,6 @@ class JobsViewSet(viewsets.ModelViewSet):
                 {"message": f"Job {pk} started successfully."},
                 status=status.HTTP_200_OK,
             )
-        except Job.DoesNotExist:
-            return Response(
-                {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-
-    @extend_schema(
-        responses=inline_serializer(
-            name="output",
-            fields={"output": CharField()},
-        ),
-    )
-    @action(detail=True, methods=["get"])
-    def output(self, *_args, **_kwargs):
-        try:
-            gpu = self.get_object()
-
-            return Response({"Gpus updated"}, status=status.HTTP_200_OK)
-        except Job.DoesNotExist:
-            return Response(
-                {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-
-    @action(detail=True, methods=["get"], url_path="output")
-    def job_output(self, request, pk=None):
-        """Return 'output' for given Job"""
-        try:
-            job = self.get_object()
-            return Response({"output": job.output})
-        except Job.DoesNotExist:
-            return Response(
-                {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND
-            )
-
-    @action(detail=True, methods=["get"], url_path="output")
-    def job_error(self, request, pk=None):
-        """Return 'output' for given Job"""
-        try:
-            job = self.get_object()
-            return Response({"error": job.error})
         except Job.DoesNotExist:
             return Response(
                 {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND

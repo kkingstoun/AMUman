@@ -326,29 +326,6 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/jobs/{id}/output/:
-    get:
-      operationId: jobs_output_retrieve
-      description: Return 'output' for given Job
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        description: A unique integer value identifying this job.
-        required: true
-      tags:
-      - jobs
-      security:
-      - basicAuth: []
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Job'
-          description: ''
   /api/jobs/{id}/start/:
     post:
       operationId: jobs_start_create

@@ -50,7 +50,19 @@ class NodeSerializer(serializers.ModelSerializer):
 class JobSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
-        exclude = ["output", "error"]
+        fields = "__all__"  # Zmienione, aby domyślnie uwzględniać wszystkie pola
+
+    def __init__(self, *args, **kwargs):
+        kwargs.pop('fields', None)
+        kwargs.pop('exclude', None)
+
+        super().__init__(*args, **kwargs)
+
+        if 'context' in kwargs and 'include_output_error' in kwargs['context']:
+            self.fields = {field: self.fields[field] for field in self.fields}
+        else:
+            self.fields.pop('output', None)
+            self.fields.pop('error', None)
 
 
 
