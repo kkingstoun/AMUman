@@ -36,11 +36,11 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 class NodeClient:
     def __init__(self) -> None:
-        self.manager_url: str = os.getenv("MANAGER_URL", "localhost:8000")
+        self.manager_domain: str = os.getenv("MANAGER_DOMAIN", "localhost:8000")
         self.node_id: int = int(os.getenv("NODE_ID", 0))
         self.node_name: str = os.getenv("NODE_NAME", str(uuid.uuid1()))
         log.debug(
-            f"Manager URL: '{self.manager_url}', Node ID: {self.node_id}, Node Name: '{self.node_name}'"
+            f"Manager URL: '{self.manager_domain}', Node ID: {self.node_id}, Node Name: '{self.node_name}'"
         )
         self.reconnect_attempts: int = 10
         self.reconnect_delay: int = 10
@@ -68,7 +68,7 @@ class NodeClient:
     def authenticate(self) -> bool:
         try:
             response = requests.post(
-                f"http://{self.manager_url}/api/token/",
+                f"http://{self.manager_domain}/api/token/",
                 json={
                     "username": os.getenv("NODE_USER", "admin"),
                     "password": os.getenv("NODE_PASSWORD", "admin"),
@@ -109,9 +109,9 @@ class NodeClient:
 
         try:
             log.debug(data)
-            log.debug(f"http://{self.manager_url}/api/nodes/")
+            log.debug(f"http://{self.manager_domain}/api/nodes/")
             response = requests.post(
-                f"http://{self.manager_url}/api/nodes/",
+                f"http://{self.manager_domain}/api/nodes/",
                 json=data,
                 headers={"Authorization": f"Bearer {self.access_token}"},
             )
@@ -119,7 +119,7 @@ class NodeClient:
                 self.node_id = int(response.json().get("id"))
                 log.debug(f"Node registered: {self.node_id=}")
                 self.if_registred = True
-                self.gpm = GPUMonitor(self.node_id, self.manager_url)
+                self.gpm = GPUMonitor(self.node_id, self.manager_domain)
 
                 if response.status_code == 200:
                     self.gpm.api_post("update")
@@ -134,7 +134,7 @@ class NodeClient:
                 log.debug(response.text)
 
         except requests.exceptions.ConnectionError:
-            log.error(f"Couldn't connect to the manager ({self.manager_url})")
+            log.error(f"Couldn't connect to the manager ({self.manager_domain})")
         except requests.exceptions.RequestException as e:
             log.exception(f"Error registering the node: {e}")
         return False
@@ -155,18 +155,22 @@ class NodeClient:
     async def websocket_loop(self) -> None:
         while True:
             log.debug("Creating new connection...")
+            log.debug(
+                f"ws://{self.manager_domain}/ws/node/?token={self.access_token}&node_id={self.node_id}"
+            )
             try:
                 async with websockets.connect(
-                    f"ws://{self.manager_url}/ws/node/?token={self.access_token}&node_id={self.node_id}"
+                    f"ws://{self.manager_domain}/ws/node/?token={self.access_token}&node_id={self.node_id}"
                 ) as ws:
+                    print(ws)
                     while True:
                         try:
                             log.debug(
-                                f"Registering with the manager: {self.manager_url}"
+                                f"Registering with the manager: {self.manager_domain}"
                             )
                             await self.register_websocket(ws)
                             log.debug(
-                                f"Registered with the manager: {self.manager_url}"
+                                f"Registered with the manager: {self.manager_domain}"
                             )
                             await self.handle_connection(ws)
                         except (
@@ -237,7 +241,7 @@ class NodeClient:
             elif command == "run_job":
                 log.info("Running job")
                 self.job_manager: JobManager = JobManager(
-                    self.node_id, self.manager_url, token=self.access_token
+                    self.node_id, self.manager_domain, token=self.access_token
                 )
                 await self.job_manager.run_job(data["job_id"])
             else:

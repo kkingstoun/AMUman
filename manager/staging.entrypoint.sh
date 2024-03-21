@@ -18,8 +18,8 @@ if [ -z "$DJANGO_SUPERUSER_PASSWORD" ]; then
   echo "DJANGO_SUPERUSER_PASSWORD is not set"
     exit 1
 fi
-if [ -z "$DOMAIN_URL" ]; then
-  echo "DOMAIN_URL is not set"
+if [ -z "$DOMAIN" ]; then
+  echo "DOMAIN is not set"
     exit 1
 fi
 

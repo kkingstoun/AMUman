@@ -15,7 +15,6 @@ from rest_framework.fields import CharField
 from rest_framework.response import Response
 
 from .components.run_job import RunJob
-# from .components.refresh_gpu import RefreshGpu
 from .models import CustomUser, Gpu, Job, Node
 from .serializers import (
     CustomUserSerializer,
@@ -110,7 +109,6 @@ class JobsViewSet(viewsets.ModelViewSet):
             fields={"output": CharField()},
         ),
     )
-
     @action(detail=True, methods=["get"])
     def output(self, *_args, **_kwargs):
         try:
@@ -122,24 +120,28 @@ class JobsViewSet(viewsets.ModelViewSet):
                 {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND
             )
 
-    @action(detail=True, methods=["get"], url_path='output')
+    @action(detail=True, methods=["get"], url_path="output")
     def job_output(self, request, pk=None):
         """Return 'output' for given Job"""
         try:
             job = self.get_object()
             return Response({"output": job.output})
         except Job.DoesNotExist:
-            return Response({"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND
+            )
 
-
-    @action(detail=True, methods=["get"], url_path='output')
+    @action(detail=True, methods=["get"], url_path="output")
     def job_error(self, request, pk=None):
         """Return 'output' for given Job"""
         try:
             job = self.get_object()
             return Response({"error": job.error})
         except Job.DoesNotExist:
-            return Response({"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"error": "Job not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
 
 class GpusViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "delete"]
@@ -184,18 +186,16 @@ class GpusViewSet(viewsets.ModelViewSet):
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+
     @action(detail=True, methods=["post"])
     def refresh(self, _request):
         try:
-            
             return Response(
                 {"message": "Gpus updated."},
                 status=status.HTTP_200_OK,
             )
         except Exception:
-            return Response(
-                {"error": "{e}"}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"error": "{e}"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class NodesViewSet(viewsets.ModelViewSet):

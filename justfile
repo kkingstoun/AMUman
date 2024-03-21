@@ -32,17 +32,19 @@ manager:
         -e DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL \
         -e DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME \
         -e DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD \
-        -e DOMAIN_URL=$DOMAIN_URL \
+        -e DOMAIN=$DOMAIN \
         amuman-manager-staging
 
 node:
     podman build ./node -t amuman-node-staging
 
-    podman run -d --replace --tz local --pull newer \
+    podman run --rm -it --replace --tz local --pull newer \
         --name amuman-node-staging \
         --network amuman-staging \
+        --device=nvidia.com/gpu=all \
         -v ./mock_nas:/mnt/smb \
-        -e DOMAIN_URL=$DOMAIN_URL \
+        -e MANAGER_DOMAIN=$DOMAIN \
+        -e NODE_NAME=staging-node-1  \
         amuman-node-staging 
 
 staging: frontend redis manager proxy
