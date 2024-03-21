@@ -187,7 +187,6 @@ class GpusViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["post"])
     def refresh(self, _request):
         try:
-            
             return Response(
                 {"message": "Gpus updated."},
                 status=status.HTTP_200_OK,

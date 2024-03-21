@@ -1,3 +1,4 @@
+import json
 import logging
 import subprocess
 from dataclasses import dataclass, field
@@ -138,7 +139,7 @@ class GPU:
         log.debug(f"GPU {self.device_id} UUID: {uuid}")
         return uuid
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_json(self) -> str:
         data = {
             "device_id": self.device_id,
             "node": self.node_id,
@@ -150,14 +151,14 @@ class GPU:
             "speed": self.speed,
             "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
-        return data
-
+        return json.dumps(data)  # Zwraca ciąg JSON
 
 class GPUMonitor:
-    def __init__(self, node_id: int, manager_url: str) -> None:
+    def __init__(self, node_id: int, manager_url: str, token: str) -> None:
         self.node_id: int = node_id
         self.manager_url: str = manager_url
         self.gpus: List[GPU] = self.get_gpus()
+        self.token=token
 
     def get_gpus(self) -> List[GPU]:
         try:
@@ -173,15 +174,21 @@ class GPUMonitor:
         log.debug(f"GPU api post: {action}")
         action_word = "assigned" if action == "assign" else "updated"
         failure_action_word = "assign" if action == "assign" else "update"
+        headers = {
+                    "Authorization": f"Bearer {self.token}",
+                    "Content-Type": "application/json"
+                   }
         for gpu in self.gpus:
             if action == "update":
                 gpu.update_status()
             try:
-                data = gpu.to_dict()
+                data = gpu.to_json()
                 log.debug(f"Sending {data}")
+                print(data)
                 response = requests.post(
                     f"http://{self.manager_url}/api/gpus/",
-                    json=data,
+                    data=data,
+                    headers=headers,
                 )
                 if response.status_code in [200, 201]:
                     log.info(
