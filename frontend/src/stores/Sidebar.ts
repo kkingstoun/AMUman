@@ -18,7 +18,7 @@ export const jobsFilters = writable<JobQuery>({
     gpu: undefined,
     priority: undefined,
     offset: 0,
-    limit: 5,
+    limit: 50,
 });
 
 export type NodeQuery = {

@@ -21,6 +21,11 @@ else:
     SECURE_HSTS_PRELOAD = True
     CORS_ALLOW_ALL_ORIGINS = False
 
+DOMAIN_URL = os.environ.get("DOMAIN_URL", "http://localhost:8000")
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{DOMAIN_URL}",
+]
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -200,10 +205,11 @@ SIMPLE_JWT = {
 RUN_WEBSOCKET_CLIENT = True
 
 
+REDIS_URL = os.environ.get("REDIS_URL", "localhost:6379")
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": f"redis://{REDIS_URL}/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
