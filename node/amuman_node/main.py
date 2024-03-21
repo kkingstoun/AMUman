@@ -119,8 +119,9 @@ class NodeClient:
                 self.node_id = int(response.json().get("id"))
                 log.debug(f"Node registered: {self.node_id=}")
                 self.if_registred = True
-                self.gpm = GPUMonitor(self.node_id, self.manager_domain)
-
+                self.gpm = GPUMonitor(
+                    self.node_id, self.manager_domain, self.access_token
+                )
                 if response.status_code == 200:
                     self.gpm.api_post("update")
                 elif response.status_code == 201:
