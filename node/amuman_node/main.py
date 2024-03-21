@@ -2,11 +2,13 @@ import asyncio
 import json
 import logging
 import os
+import socket
 import uuid
 from typing import Any, Optional, Union
 
 import requests
 import websockets
+from websockets.exceptions import ConnectionClosed, ConnectionClosedError, ConnectionClosedOK
 from rich.logging import RichHandler
 
 from amuman_node.gpu_monitor import GPUMonitor
@@ -37,23 +39,34 @@ class NodeClient:
             f"Manager URL: '{self.manager_url}', Node ID: {self.node_id}, Node Name: '{self.node_name}'"
         )
         self.reconnect_attempts: int = 10
-        self.reconnect_delay: int = 30
+        self.reconnect_delay: int = 10
         self.gpm: Optional[GPUMonitor] = None
         self.access_token: str
         self.refresh_token: Optional[str] = None
+        self.if_registred=False
+        self.is_connected=False
+
+        self.reply_timeout = 10
+        self.ping_timeout = 5
+        self.sleep_time = 5
 
     async def start(self) -> None:
-        if self.register_with_manager():
-            # pass
-            await self.websocket_loop()
-
+        while True:
+            try:
+                if self.if_registred==False or self.is_connected==True:
+                    if self.register_with_manager():
+                        await self.websocket_loop()
+            except Exception as e:
+                log.error(f"Cannot register to manager! {e}")
+                await asyncio.sleep(self.sleep_time)
+            
     def authenticate(self) -> bool:
         try:
             response = requests.post(
                 f"http://{self.manager_url}/api/token/",
                 json={
-                    "username": "admin",
-                    "password": "admin",
+                    "username": os.getenv("NODE_USER", "admin"),
+                    "password": os.getenv("NODE_PASSWORD", "admin"),
                 },
             )
             log.debug(
@@ -100,6 +113,7 @@ class NodeClient:
             if response.status_code in [200, 201]:
                 self.node_id = int(response.json().get("id"))
                 log.debug(f"Node registered: {self.node_id=}")
+                self.if_registred=True
                 self.gpm = GPUMonitor(self.node_id, self.manager_url)
 
                 if response.status_code == 200:
@@ -108,6 +122,7 @@ class NodeClient:
                     self.gpm.api_post("assign")
                 return True
             else:
+                self.if_registred=False
                 log.error(
                     f"Failed to register node. Status Code: {response.status_code}"
                 )
@@ -134,25 +149,44 @@ class NodeClient:
 
     async def websocket_loop(self) -> None:
         while True:
+            log.debug('Creating new connection...')
             try:
                 async with websockets.connect(
                     f"ws://{self.manager_url}/ws/node/?token={self.access_token}&node_id={self.node_id}"
-                ) as websocket:
-                    log.debug(f"Registering with the manager: {self.manager_url}")
-                    await self.register_websocket(websocket)
-                    log.debug(f"Registered with the manager: {self.manager_url}")
-                    await self.handle_connection(websocket)
-            except websockets.exceptions.WebSocketException as e:
-                log.warning(f"WebSocket connection failed: {e}")
-            except Exception as e:
-                log.exception(f"Unexpected error: {e}")
-            finally:
-                if self.reconnect_attempts > 0:
-                    log.info(f"Reconnecting in {self.reconnect_delay} seconds...")
-                    await asyncio.sleep(self.reconnect_delay)
-                    self.reconnect_attempts -= 1
-                else:
-                    log.error("Maximum reconnect attempts reached. Giving up.")
+                ) as ws:
+                    while True:
+                        try:
+                            log.debug(f"Registering with the manager: {self.manager_url}")
+                            await self.register_websocket(ws)
+                            log.debug(f"Registered with the manager: {self.manager_url}")
+                            await self.handle_connection(ws)
+                        except (asyncio.TimeoutError, ConnectionClosed, ConnectionClosedError, ConnectionClosedOK):
+                            self.is_connected=False
+                            self.is_registered=False
+                            try:
+                                pong = await ws.ping()
+                                await asyncio.wait_for(pong, timeout=self.ping_timeout)
+                                log.debug('Ping OK, keeping connection alive...')
+                                continue
+                            except Exception:
+                                log.debug(
+                                    f'Ping error - retrying connection in {self.sleep_time} sec (Ctrl-C to quit)')
+                                await asyncio.sleep(self.sleep_time)
+                                break
+            except socket.gaierror:
+                self.is_connected=False
+                self.is_registered=False
+                log.debug(
+                    f'Socket error - retrying connection in {self.sleep_time} sec (Ctrl-C to quit)')
+                await asyncio.sleep(self.sleep_time)
+                continue
+            except ConnectionRefusedError:
+                self.is_connected=False
+                self.is_registered=False
+                log.debug('Nobody seems to listen to this endpoint. Please check the URL.')
+                log.debug(f'Retrying connection in {self.sleep_time} sec (Ctrl-C to quit)')
+                await asyncio.sleep(self.sleep_time)
+                continue
 
     async def handle_connection(
         self, websocket: websockets.WebSocketClientProtocol
@@ -194,8 +228,12 @@ class NodeClient:
 
     async def execute_update_gpus(self, node_id: int) -> None:
         if self.gpm and len(self.gpm.gpus) > 0:
-            await self.gpm.check_gpus_status()
-            await self.gpm.submit_update_gpu_status(node_id)
+            for gpu in self.gpm.gpus:
+                log.debug(f"Updating GPU: {gpu.device_id}")
+                await gpu.update_status()
+            await self.gpm.api_post("update")
+            # await self.gpm.update_status()
+            # await self.gpm.submit_update_gpu_status(node_id)
 
 
 def entrypoint() -> None:

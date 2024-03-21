@@ -93,7 +93,11 @@ class JobManager:
                 f"Job started AMUmax for job ID: {self.job.id} (PID: {self.subprocess.pid})"
             )
             log.info(f"AMUmax exited with status {self.job.status}.")
-            log.info(f"AMUmax output: {self.job.error}")
+            if self.job.output is not None:
+                log.debug(f"AMUmax output: {self.job.output}")
+            else:
+                log.error(f"AMUmax error: {self.job.error}")
+                
 
         except OSError as e:
             communicate = f"Failed to job_start subprocess for job ID: {self.job.id}. Executable may not be found. Error: {e}"

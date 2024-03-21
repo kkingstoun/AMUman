@@ -3,6 +3,7 @@ import logging
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Optional
+import json
 
 log = logging.getLogger("rich")
 
@@ -53,4 +54,4 @@ class Job:
         for key, value in result.items():
             if isinstance(value, Enum):
                 result[key] = value.value  # Zamień Enum na wartość tekstową
-        return result
+        return json.dumps(result)

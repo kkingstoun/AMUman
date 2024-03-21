@@ -53,6 +53,7 @@ class JobSerializer(serializers.ModelSerializer):
         exclude = ["output", "error"]
 
 
+
 class RefreshNodeSerializer(serializers.Serializer):
     node_id = serializers.IntegerField(required=False)
 

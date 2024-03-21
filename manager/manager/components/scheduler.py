@@ -1,8 +1,10 @@
+import logging
 import threading
 import time
 
 from schedule import Scheduler
 
+log = logging.getLogger("rich")
 
 class RepeatTimer(threading.Timer):
     running: bool = False
@@ -49,46 +51,30 @@ class ThreadedScheduler(Scheduler):
         self.__initialized = True
         super().__init__()
         self.interval = run_pending_interval
-        self._stop_event = threading.Event()  # Flaga do kontrolowania działania wątku
+        self._stop_event = threading.Event() 
         self.thread = None
 
     def run_continuously(self):
-        """Metoda wykonująca 'run_pending' w pętli, z możliwością zatrzymania."""
         while not self._stop_event.is_set():
             self.run_pending()
+            log.debug("Scheduler is running")
             time.sleep(self.interval)
 
-    def start(self):
-        try:
-            if not self.thread.is_alive():
-                self.thread = threading.Thread(
-                    target=self.run_continuously, daemon=True
-                )
-                self.thread.start()
-        except AttributeError:
+    def initiate_thread(self):
+        if self.thread is None or not self.thread.is_alive():
+            self._stop_event.clear()  # Upewnij się, że flaga stopu jest wyczyszczona
             self.thread = threading.Thread(target=self.run_continuously, daemon=True)
             self.thread.start()
 
+    def start(self):
+        self.initiate_thread()
+
     def stop(self):
-        """Zatrzymaj scheduler, sygnalizując wątkowi, by zakończył działanie."""
-        self._stop_event.set()  # Ustawienie flagi zatrzymania
+        self._stop_event.set()
         if self.thread is not None:
-            self.thread.join()  # Oczekiwanie na zakończenie wątku
+            self.thread.join()
+            self.thread=None
 
     @classmethod
     def get_instance(cls, *args, **kwargs):
-        """Zwróć instancję singletona ThreadedScheduler."""
         return cls(*args, **kwargs)
-
-
-# if __name__ == '__main__':
-#     my_schedule = ThreadedScheduler(run_pending_interval=1)
-#     job1 = my_schedule.every(1).seconds.do(print_work, what_to_say='Did_job1')
-#     job2 = my_schedule.every(2).seconds.do(print_work, what_to_say='Did_job2')
-#     my_schedule.cancel()
-#     my_schedule.start()
-#     time.sleep(7)
-#     my_schedule.cancel_job(job1)
-#     my_schedule.start()
-#     time.sleep(7)
-#     my_schedule.cancel()

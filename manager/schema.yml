@@ -11,7 +11,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -40,7 +39,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '201':
           content:
@@ -63,7 +61,6 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '200':
           content:
@@ -85,10 +82,43 @@ paths:
       security:
       - basicAuth: []
       - jwtAuth: []
-      - {}
       responses:
         '204':
           description: No response body
+  /api/gpus/{id}/refresh/:
+    post:
+      operationId: gpus_refresh_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this gpu.
+        required: true
+      tags:
+      - gpus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Gpu'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Gpu'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Gpu'
+        required: true
+      security:
+      - basicAuth: []
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gpu'
+          description: ''
   /api/jobs/:
     get:
       operationId: jobs_list
@@ -239,6 +269,7 @@ paths:
   /api/jobs/{id}/output/:
     get:
       operationId: jobs_output_retrieve
+      description: Return 'output' for given Job
       parameters:
       - in: path
         name: id
@@ -256,7 +287,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/output'
+                $ref: '#/components/schemas/Job'
           description: ''
   /api/jobs/{id}/start/:
     post:
@@ -980,11 +1011,13 @@ components:
       - PENDING
       - FINISHED
       - INTERRUPTED
+      - RUNNING
       type: string
       description: |-
         * `PENDING` - PENDING
         * `FINISHED` - FINISHED
         * `INTERRUPTED` - INTERRUPTED
+        * `RUNNING` - RUNNING
     Node:
       type: object
       properties:
@@ -1155,13 +1188,6 @@ components:
       required:
       - access
       - refresh
-    output:
-      type: object
-      properties:
-        output:
-          type: string
-      required:
-      - output
   securitySchemes:
     basicAuth:
       type: http
