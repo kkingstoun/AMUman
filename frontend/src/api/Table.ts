@@ -112,7 +112,7 @@ export function sortItems(item_type: 'jobs' | 'nodes' | 'gpus'): void {
 export async function runJob(job: Job) {
     const params = getRequestParams();
     if (params !== null) {
-        await api.jobsStartCreate(job.id, job).then(() => {
+        await api.jobsStartCreate(job.id, job, params).then(() => {
             newToast(`Started job ${job.id}`, "green");
 
         }).catch((res) => {
@@ -130,18 +130,20 @@ export async function deleteItem<T extends ItemTypeString>(itemType: T, id: numb
         newToast(`API call for ${itemType} does not exist.`, "red");
         return;
     }
-
-    await apiCall(id).then(() => {
-        itemlist.update(list => {
-            const updatedList = list[itemType].filter(item => item.id !== id);
-            return { ...list, [itemType]: updatedList };
+    const params = getRequestParams();
+    if (params !== null) {
+        await apiCall(id, params).then(() => {
+            itemlist.update(list => {
+                const updatedList = list[itemType].filter(item => item.id !== id);
+                return { ...list, [itemType]: updatedList };
+            });
+        }).catch((res: any) => {
+            newToast(`Failed to delete ${itemType.slice(0, -1)} ${id}`, "red");
+            for (let field in res.error) {
+                newToast(`s ${res.error[field]}`, 'red');
+            }
         });
-    }).catch((res: any) => {
-        newToast(`Failed to delete ${itemType.slice(0, -1)} ${id}`, "red");
-        for (let field in res.error) {
-            newToast(`s ${res.error[field]}`, 'red');
-        }
-    });
+    }
 }
 
 
