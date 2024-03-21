@@ -8,8 +8,12 @@ from typing import Any, Optional, Union
 
 import requests
 import websockets
-from websockets.exceptions import ConnectionClosed, ConnectionClosedError, ConnectionClosedOK
 from rich.logging import RichHandler
+from websockets.exceptions import (
+    ConnectionClosed,
+    ConnectionClosedError,
+    ConnectionClosedOK,
+)
 
 from amuman_node.gpu_monitor import GPUMonitor
 from amuman_node.job_manager import JobManager
@@ -43,8 +47,8 @@ class NodeClient:
         self.gpm: Optional[GPUMonitor] = None
         self.access_token: str
         self.refresh_token: Optional[str] = None
-        self.if_registred=False
-        self.is_connected=False
+        self.if_registred = False
+        self.is_connected = False
 
         self.reply_timeout = 10
         self.ping_timeout = 5
@@ -53,13 +57,14 @@ class NodeClient:
     async def start(self) -> None:
         while True:
             try:
-                if self.if_registred==False or self.is_connected==True:
-                    if self.register_with_manager():
-                        await self.websocket_loop()
+                if (
+                    not self.if_registred or self.is_connected
+                ) and self.register_with_manager():
+                    await self.websocket_loop()
             except Exception as e:
                 log.error(f"Cannot register to manager! {e}")
                 await asyncio.sleep(self.sleep_time)
-            
+
     def authenticate(self) -> bool:
         try:
             response = requests.post(
@@ -113,7 +118,7 @@ class NodeClient:
             if response.status_code in [200, 201]:
                 self.node_id = int(response.json().get("id"))
                 log.debug(f"Node registered: {self.node_id=}")
-                self.if_registred=True
+                self.if_registred = True
                 self.gpm = GPUMonitor(self.node_id, self.manager_url)
 
                 if response.status_code == 200:
@@ -122,7 +127,7 @@ class NodeClient:
                     self.gpm.api_post("assign")
                 return True
             else:
-                self.if_registred=False
+                self.if_registred = False
                 log.error(
                     f"Failed to register node. Status Code: {response.status_code}"
                 )
@@ -149,42 +154,57 @@ class NodeClient:
 
     async def websocket_loop(self) -> None:
         while True:
-            log.debug('Creating new connection...')
+            log.debug("Creating new connection...")
             try:
                 async with websockets.connect(
                     f"ws://{self.manager_url}/ws/node/?token={self.access_token}&node_id={self.node_id}"
                 ) as ws:
                     while True:
                         try:
-                            log.debug(f"Registering with the manager: {self.manager_url}")
+                            log.debug(
+                                f"Registering with the manager: {self.manager_url}"
+                            )
                             await self.register_websocket(ws)
-                            log.debug(f"Registered with the manager: {self.manager_url}")
+                            log.debug(
+                                f"Registered with the manager: {self.manager_url}"
+                            )
                             await self.handle_connection(ws)
-                        except (asyncio.TimeoutError, ConnectionClosed, ConnectionClosedError, ConnectionClosedOK):
-                            self.is_connected=False
-                            self.is_registered=False
+                        except (
+                            asyncio.TimeoutError,
+                            ConnectionClosed,
+                            ConnectionClosedError,
+                            ConnectionClosedOK,
+                        ):
+                            self.is_connected = False
+                            self.is_registered = False
                             try:
                                 pong = await ws.ping()
                                 await asyncio.wait_for(pong, timeout=self.ping_timeout)
-                                log.debug('Ping OK, keeping connection alive...')
+                                log.debug("Ping OK, keeping connection alive...")
                                 continue
                             except Exception:
                                 log.debug(
-                                    f'Ping error - retrying connection in {self.sleep_time} sec (Ctrl-C to quit)')
+                                    f"Ping error - retrying connection in {self.sleep_time} sec (Ctrl-C to quit)"
+                                )
                                 await asyncio.sleep(self.sleep_time)
                                 break
             except socket.gaierror:
-                self.is_connected=False
-                self.is_registered=False
+                self.is_connected = False
+                self.is_registered = False
                 log.debug(
-                    f'Socket error - retrying connection in {self.sleep_time} sec (Ctrl-C to quit)')
+                    f"Socket error - retrying connection in {self.sleep_time} sec (Ctrl-C to quit)"
+                )
                 await asyncio.sleep(self.sleep_time)
                 continue
             except ConnectionRefusedError:
-                self.is_connected=False
-                self.is_registered=False
-                log.debug('Nobody seems to listen to this endpoint. Please check the URL.')
-                log.debug(f'Retrying connection in {self.sleep_time} sec (Ctrl-C to quit)')
+                self.is_connected = False
+                self.is_registered = False
+                log.debug(
+                    "Nobody seems to listen to this endpoint. Please check the URL."
+                )
+                log.debug(
+                    f"Retrying connection in {self.sleep_time} sec (Ctrl-C to quit)"
+                )
                 await asyncio.sleep(self.sleep_time)
                 continue
 
@@ -198,7 +218,8 @@ class NodeClient:
                     log.error("Received bytes instead of plain text from websocket")
                 else:
                     log.debug(f"Received message: {message}")
-                    await self.process_message(message)
+                    if isinstance(message, str):
+                        await self.process_message(message)
             except websockets.ConnectionClosed:
                 log.warning("Connection to the WebSocket server closed.")
                 break
@@ -212,7 +233,7 @@ class NodeClient:
         if str(r_node_id) == str(self.node_id):
             if command == "update_gpus":
                 log.info("Updating GPUs")
-                await self.execute_update_gpus(self.node_id)
+                await self.execute_update_gpus()
             elif command == "run_job":
                 log.info("Running job")
                 self.job_manager: JobManager = JobManager(
@@ -226,14 +247,12 @@ class NodeClient:
                 f"Command not for this node: {command=}, {r_node_id=} != {self.node_id=}"
             )
 
-    async def execute_update_gpus(self, node_id: int) -> None:
+    async def execute_update_gpus(self) -> None:
         if self.gpm and len(self.gpm.gpus) > 0:
             for gpu in self.gpm.gpus:
                 log.debug(f"Updating GPU: {gpu.device_id}")
-                await gpu.update_status()
-            await self.gpm.api_post("update")
-            # await self.gpm.update_status()
-            # await self.gpm.submit_update_gpu_status(node_id)
+                gpu.update_status()
+            self.gpm.api_post("update")
 
 
 def entrypoint() -> None:
