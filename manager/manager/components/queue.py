@@ -1,98 +1,68 @@
-from django.core.cache import cache, caches
-from django.db import models
-from django.db.models import Case, IntegerField, Q, Value, When
+import logging
+import time
 
-from manager.components.run_job import RunJob
+from django.core.cache import cache
+from django.db.models import Case, IntegerField, Value, When
+
 from manager.models import Gpu, Job
-
+from .run_job import RunJob
+log = logging.getLogger("rich")
 
 class QueueManager:
     """
     This class is responsible for managing the queue of jobs and assigning GPUs to jobs.
-
-    Attributes:
-        None
-
-    Methods:
-        ordered_jobs(self)
-            Returns a list of jobs ordered by decreasing priority, decreasing GPU partition, and increasing submission time.
-
-        WAITING_gpus(self)
-            Get the first available GPU from the waiting GPUs.
-
-            The GPUs are ordered based on their speed, with fast GPUs coming first.
-
-        schedule_jobs(self)
-            For each job in the ordered jobs:
-                Check if there is an available GPU.
-                If there is, run the job on the GPU.
     """
 
     def __init__(self) -> None:
-        # Ustawienie flagi
-        cache.set("schedule_jobs", False)
+        # Initialize scheduling control flag in cache
+        cache.set("schedule_jobs", True)
 
     @property
-    def ordered_jobs(self) -> models.QuerySet:
+    def ordered_jobs(self):
         """
         Returns a list of jobs ordered by decreasing priority, decreasing GPU partition, and increasing submission time.
-
-        Returns:
-            A list of jobs ordered by decreasing priority, decreasing GPU partition, and increasing submission time.
         """
         return Job.objects.filter(
-            Q(status="Waiting") | Q(status="INTERRUPTED")
+            status__in=[Job.JobStatus.PENDING.value, Job.JobStatus.INTERRUPTED.value]
         ).order_by("-priority", "-gpu_partition", "submit_time")
 
     @property
-    def WAITING_gpus(self):
+    def pending_gpus(self):
         """
-        Get the first available GPU from the WAITING GPUs.
-
-        The GPUs are ordered based on their speed, with fast GPUs coming first.
-
-        Returns:
-            The first available GPU, or None if no GPUs are available.
+        Get the first available GPU from the waiting GPUs.
         """
         speed_order = Case(
-            When(gpu_speed="Fast", then=Value(3)),
-            When(gpu_speed="NORMAL", then=Value(2)),
-            When(gpu_speed="SLOW", then=Value(1)),
+            When(speed=Gpu.GPUSpeed.FAST.value, then=Value(3)),
+            When(speed=Gpu.GPUSpeed.NORMAL.value, then=Value(2)),
+            When(speed=Gpu.GPUSpeed.SLOW.value, then=Value(1)),
             default=Value(0),
             output_field=IntegerField(),
         )
 
-        gpus = (
-            Gpu.objects.filter(status="WAITING")
-            .annotate(speed_as_number=speed_order)
-            .order_by("-speed_as_number")
-        )
+        return Gpu.objects.filter(status=Gpu.GPUStatus.PENDING.value).annotate(speed_as_number=speed_order).order_by("-speed_as_number").first()
 
-        return gpus.first()
-
-    def pause_jobs(self):
-        import time
-
-        """
-        Pause all jobs in the queue.
-        """
-        while caches["schedule_jobs"]:
-            time.sleep(10)
 
     def schedule_jobs(self):
         """
-        Schedule jobs to run on available GPUs.
-
-        This method iterates over the ordered jobs and assigns them to available GPUs.
-        If there are no available GPUs, the jobs will remain in the queue until a GPU becomes available.
+        Schedule jobs to run on available GPUs. Wait and retry if no GPUs are available.
         """
-        for job in self.ordered_jobs:
-            if not cache.get("schedule_jobs", default=False):
-                available_gpu = self.waiting_gpus
+        print("dupa")
+        self.rt = RunJob()
+        while True:
+            for job in self.ordered_jobs:
+                available_gpu = self.pending_gpus
                 if available_gpu:
-                    print(f"Run job {job.id} on GPU {available_gpu.id}")
-                    cache.set("schedule_jobs", False, timeout=300)
-                    rt = RunJob()
-                    rt.run_job(job, available_gpu)
-            else:
-                self.pause_jobs()
+                    self.rt.run_job(job=job,gpu=available_gpu) # Wyjdź z pętli for, aby ponownie rozpocząć od nowych zadań w kolejce
+                else:
+                    # Jeśli nie ma dostępnych GPU, logujemy i czekamy
+                    log.warning("No available GPUs. Waiting 30 seconds to retry...")
+                    time.sleep(30)
+                    break  # Wyjdź z pętli for, aby ponownie sprawdzić dostępność GPU po odczekaniu
+
+            # Tutaj możemy dodać warunek wyjścia z nieskończonej pętli, na przykład:
+            # if nie_ma_więcej_zadań_do_harmonogramu:
+            #     break
+            if not self.ordered_jobs.exists():
+                # Jeśli nie ma więcej zadań oczekujących, kończymy planowanie
+                print("No pending jobs left to schedule. Exiting scheduler.")
+                break
