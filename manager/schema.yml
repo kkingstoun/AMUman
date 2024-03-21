@@ -6,6 +6,19 @@ paths:
   /api/gpus/:
     get:
       operationId: gpus_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
       tags:
       - gpus
       security:
@@ -16,9 +29,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Gpu'
+                $ref: '#/components/schemas/PaginatedGpuList'
           description: ''
     post:
       operationId: gpus_create
@@ -122,6 +133,57 @@ paths:
   /api/jobs/:
     get:
       operationId: jobs_list
+      parameters:
+      - in: query
+        name: gpu
+        schema:
+          type: integer
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: node
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: priority
+        schema:
+          type: string
+          enum:
+          - HIGH
+          - LOW
+          - NORMAL
+        description: |-
+          * `LOW` - LOW
+          * `NORMAL` - NORMAL
+          * `HIGH` - HIGH
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - FINISHED
+          - INTERRUPTED
+          - PENDING
+          - RUNNING
+        description: |-
+          * `PENDING` - PENDING
+          * `FINISHED` - FINISHED
+          * `INTERRUPTED` - INTERRUPTED
+          * `RUNNING` - RUNNING
+      - in: query
+        name: user
+        schema:
+          type: string
       tags:
       - jobs
       security:
@@ -132,9 +194,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Job'
+                $ref: '#/components/schemas/PaginatedJobList'
           description: ''
     post:
       operationId: jobs_create
@@ -326,6 +386,19 @@ paths:
   /api/nodes/:
     get:
       operationId: nodes_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
       tags:
       - nodes
       security:
@@ -336,9 +409,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Node'
+                $ref: '#/components/schemas/PaginatedNodeList'
           description: ''
     post:
       operationId: nodes_create
@@ -634,6 +705,19 @@ paths:
   /api/users/:
     get:
       operationId: users_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
       tags:
       - users
       security:
@@ -644,9 +728,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/CustomUser'
+                $ref: '#/components/schemas/PaginatedCustomUserList'
           description: ''
     post:
       operationId: users_create
@@ -1056,6 +1138,86 @@ components:
         * `PENDING` - PENDING
         * `RESERVED` - RESERVED
         * `UNAVAILABLE` - UNAVAILABLE
+    PaginatedCustomUserList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomUser'
+    PaginatedGpuList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Gpu'
+    PaginatedJobList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Job'
+    PaginatedNodeList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Node'
     PatchedCustomUser:
       type: object
       properties:
