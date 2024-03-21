@@ -18,5 +18,5 @@ WORKDIR /app
 COPY pyproject.toml .
 RUN pip install . && pip uninstall -y amuman-node
 ENV SMB_MOUNT_POINT=/mnt/smb
-COPY ./entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+COPY ./dev.entrypoint.sh /dev.entrypoint.sh
+ENTRYPOINT ["/dev.entrypoint.sh"]
