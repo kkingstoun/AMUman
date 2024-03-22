@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 if [ -z "$SECRET_KEY" ]; then
   echo "SECRET_KEY is not set"
     exit 1
@@ -23,10 +21,12 @@ if [ -z "$DOMAIN" ]; then
     exit 1
 fi
 
-./manage.py makemigrations manager 
-./manage.py makemigrations
-./manage.py migrate manager 
-./manage.py migrate
-./manage.py createsuperuser --noinput
-echo "Starting server"
+# if /manager/db.sqlite3 does not exist, init the database
+if [ ! -f /manager/db.sqlite3 ]; then
+  ./manage.py migrate
+  ./manage.py createsuperuser --noinput
+else
+  ./manage.py migrate
+fi
+
 ./manage.py runserver 0.0.0.0:8000
