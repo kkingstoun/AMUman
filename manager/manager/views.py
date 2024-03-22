@@ -7,11 +7,9 @@ from venv import logger
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import CharField
 from rest_framework.response import Response
 
 from .components.run_job import RunJob
@@ -55,9 +53,9 @@ class JobsViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["user", "priority", "node", "gpu", "status"]
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, _request, *_args, **_kwargs):
         instance = self.get_object()
-        serializer = self.get_serializer(instance, context={'include_output_error': True})
+        serializer = self.get_serializer(instance, context={"action": self.action})
         return Response(serializer.data)
 
     def create(self, request, *_args, **_kwargs):

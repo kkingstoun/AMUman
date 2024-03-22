@@ -50,20 +50,19 @@ class NodeSerializer(serializers.ModelSerializer):
 class JobSerializer(serializers.ModelSerializer):
     class Meta:
         model = Job
-        fields = "__all__"  # Zmienione, aby domyślnie uwzględniać wszystkie pola
+        fields = "__all__"
 
-    def __init__(self, *args, **kwargs):
-        kwargs.pop('fields', None)
-        kwargs.pop('exclude', None)
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
 
-        super().__init__(*args, **kwargs)
+        # Output can be large so they are excluded from the 'list' action
+        # context is given by the view
+        # If the action is not 'retrieve', remove the output
+        action = self.context.get("action")
+        if action != "retrieve":
+            data.pop("output", None)
 
-        if 'context' in kwargs and 'include_output_error' in kwargs['context']:
-            self.fields = {field: self.fields[field] for field in self.fields}
-        else:
-            self.fields.pop('output', None)
-            self.fields.pop('error', None)
-
+        return data
 
 
 class RefreshNodeSerializer(serializers.Serializer):

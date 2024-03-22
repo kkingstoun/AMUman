@@ -186,8 +186,11 @@ export interface Job {
 	 * * `PENDING` - PENDING
 	 * * `FINISHED` - FINISHED
 	 * * `INTERRUPTED` - INTERRUPTED
+	 * * `RUNNING` - RUNNING
 	 */
 	status?: JobStatusEnum;
+	output?: string | null;
+	error?: string | null;
 	/** @maxLength 150 */
 	flags?: string | null;
 	node?: number | null;
@@ -198,11 +201,13 @@ export interface Job {
  * * `PENDING` - PENDING
  * * `FINISHED` - FINISHED
  * * `INTERRUPTED` - INTERRUPTED
+ * * `RUNNING` - RUNNING
  */
 export enum JobStatusEnum {
 	PENDING = 'PENDING',
 	FINISHED = 'FINISHED',
-	INTERRUPTED = 'INTERRUPTED'
+	INTERRUPTED = 'INTERRUPTED',
+	RUNNING = 'RUNNING'
 }
 
 export interface Node {
@@ -358,8 +363,11 @@ export interface PatchedJob {
 	 * * `PENDING` - PENDING
 	 * * `FINISHED` - FINISHED
 	 * * `INTERRUPTED` - INTERRUPTED
+	 * * `RUNNING` - RUNNING
 	 */
 	status?: JobStatusEnum;
+	output?: string | null;
+	error?: string | null;
 	/** @maxLength 150 */
 	flags?: string | null;
 	node?: number | null;
@@ -402,10 +410,6 @@ export interface TokenObtainPair {
 export interface TokenRefresh {
 	readonly access: string;
 	refresh: string;
-}
-
-export interface Output {
-	output: string;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -717,6 +721,25 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		/**
 		 * No description
 		 *
+		 * @tags gpus
+		 * @name GpusRefreshCreate
+		 * @request POST:/api/gpus/{id}/refresh/
+		 * @secure
+		 */
+		gpusRefreshCreate: (id: number, data: Gpu, params: RequestParams = {}) =>
+			this.request<Gpu, any>({
+				path: `/api/gpus/${id}/refresh/`,
+				method: 'POST',
+				body: data,
+				secure: true,
+				type: ContentType.Json,
+				format: 'json',
+				...params
+			}),
+
+		/**
+		 * No description
+		 *
 		 * @tags jobs
 		 * @name JobsList
 		 * @request GET:/api/jobs/
@@ -740,8 +763,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 				 * * `PENDING` - PENDING
 				 * * `FINISHED` - FINISHED
 				 * * `INTERRUPTED` - INTERRUPTED
+				 * * `RUNNING` - RUNNING
 				 */
-				status?: 'FINISHED' | 'INTERRUPTED' | 'PENDING';
+				status?: 'FINISHED' | 'INTERRUPTED' | 'PENDING' | 'RUNNING';
 				user?: string;
 			},
 			params: RequestParams = {}
@@ -842,23 +866,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 				path: `/api/jobs/${id}/`,
 				method: 'DELETE',
 				secure: true,
-				...params
-			}),
-
-		/**
-		 * No description
-		 *
-		 * @tags jobs
-		 * @name JobsOutputRetrieve
-		 * @request GET:/api/jobs/{id}/output/
-		 * @secure
-		 */
-		jobsOutputRetrieve: (id: number, params: RequestParams = {}) =>
-			this.request<Output, any>({
-				path: `/api/jobs/${id}/output/`,
-				method: 'GET',
-				secure: true,
-				format: 'json',
 				...params
 			}),
 

@@ -13,15 +13,16 @@
 	onMount(async () => {
 		const params = getRequestParams();
 		if (params !== null) {
-			output = await api
-				.jobsOutputRetrieve(job.id, params)
-				.then((res) => {
-					return res.data.output;
-				})
-				.catch((err) => {
-					newToast(`Failed to retrieve output for job ${job.id}`, 'red');
-					return `Failed to retrieve output: ${(err as Error).message || String(err)}`;
-				});
+			output =
+				(await api
+					.jobsRetrieve(job.id, params)
+					.then((res) => {
+						return res.data.output;
+					})
+					.catch((err) => {
+						newToast(`Failed to retrieve output for job ${job.id}`, 'red');
+						return `Failed to retrieve output: ${(err as Error).message || String(err)}`;
+					})) ?? '';
 		}
 	});
 </script>
