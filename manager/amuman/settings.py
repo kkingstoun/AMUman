@@ -3,15 +3,22 @@ from datetime import timedelta
 from pathlib import Path
 
 DEBUG = os.environ.get("DEBUG", "True") != "FALSE"
+DOMAIN = os.environ.get("DOMAIN", "localhost:8000")
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY", "django-insecure-i-(^@udvkc6^^9mkwpn&8kk0!u0n-bn4$b4mfbii1(bzw_pq@"
+)
+REDIS_URL = os.environ.get("REDIS_URL", "localhost:6379")
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+# we need ALLOWED_HOSTS to be * even in prod because we are using a reverse proxy
+ALLOWED_HOSTS = ["*"]
 if DEBUG:
-    ALLOWED_HOSTS = ["*"]
-    SECRET_KEY = "django-insecure-i-(^@udvkc6^^9mkwpn&8kk0!u0n-bn4$b4mfbii1(bzw_pq@"
     LOGLEVEL = "DEBUG"
     CORS_ALLOW_ALL_ORIGINS = True
+    DB_PATH = BASE_DIR / "amuman_manager.sqlite3"
 else:
-    ALLOWED_HOSTS = [os.environ["DOMAIN_URL"], "amuman-manager-staging" "localhost" "*"]
-    SECRET_KEY = os.environ["SECRET_KEY"]
-    LOGLEVEL = "INFO"
+    LOGLEVEL = "DEBUG"
+    DB_PATH = Path("/manager/db.sqlite3")
     SESSION_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -21,10 +28,7 @@ else:
     SECURE_HSTS_PRELOAD = True
     CORS_ALLOW_ALL_ORIGINS = False
 
-DOMAIN_URL = os.environ.get("DOMAIN_URL", "http://localhost:8000")
-CSRF_TRUSTED_ORIGINS = [
-    f"https://{DOMAIN_URL}",
-]
+CSRF_TRUSTED_ORIGINS = [f"https://{DOMAIN}"]
 
 LOGGING = {
     "version": 1,
@@ -56,7 +60,6 @@ LOGGING = {
         },
     },
 }
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 INSTALLED_APPS = [
     "manager",
@@ -119,7 +122,6 @@ if DEBUG:
     )
 
 
-
 ROOT_URLCONF = "amuman.urls"
 
 TEMPLATES = [
@@ -145,14 +147,9 @@ WSGI_APPLICATION = "amuman.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": Path("/manager/db.sqlite3"),
+        "NAME": DB_PATH,
     }
 }
-if DEBUG:
-    DATABASES["default"] = {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "amuman_manager.sqlite3",
-    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -205,7 +202,6 @@ SIMPLE_JWT = {
 RUN_WEBSOCKET_CLIENT = True
 
 
-REDIS_URL = os.environ.get("REDIS_URL", "localhost:6379")
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
