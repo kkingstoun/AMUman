@@ -13,15 +13,3 @@ dev cmd="bash":
 		-e NODE_NAME=test_node  \
 		--env-file ../.env \
 		amuman-node-dev {{cmd}}
-
-staging:
-	podman network create --ignore amuman-staging
-	podman build . -t amuman-node-staging
-	podman run --rm -it --replace --tz local --pull newer \
-		--name amuman-node-staging \
-		--network amuman-dev \
-		-v ./..:/app \
-		-v ./../mock_nas:/mnt/smb \
-		-w /app/node \
-		--device=nvidia.com/gpu=all \
-		amuman-node-staging

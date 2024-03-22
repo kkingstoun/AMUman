@@ -1,7 +1,7 @@
 set dotenv-load
 
 proxy:     
-    podman run -d --replace --tz local --pull newer \
+    podman run --rm -it --replace --tz local --pull newer \
         --name amuman-proxy-staging \
         --network amuman-staging \
         -v ./proxy/nginx.conf:/etc/nginx/conf.d/default.conf:z \
@@ -10,13 +10,13 @@ proxy:
 frontend:
     podman build ./frontend -t amuman-frontend-staging
 
-    podman run -d --replace --tz local --pull newer \
+    podman run --rm -it --replace --tz local --pull newer \
         --name amuman-frontend-staging \
         --network amuman-staging \
         amuman-frontend-staging
 
 redis:
-    podman run -d --replace --tz local --pull newer \
+    podman run --rm -it --replace --tz local --pull newer \
         --name amuman-redis-staging \
         --network amuman-staging \
         docker.io/redis:7.2.4-alpine3.19
@@ -24,7 +24,7 @@ redis:
 manager:
     podman build ./manager -t amuman-manager-staging
 
-    podman run -d --replace --tz local --pull newer \
+    podman run --rm -it --replace --tz local --pull newer \
         --name amuman-manager-staging \
         --network amuman-staging \
         -v ./staging:/manager \
@@ -33,6 +33,7 @@ manager:
         -e DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME \
         -e DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD \
         -e DOMAIN=$DOMAIN \
+        -e REDIS_HOST=amuman-redis-staging \
         amuman-manager-staging
 
 node:
@@ -40,7 +41,6 @@ node:
 
     podman run --rm -it --replace --tz local --pull newer \
         --name amuman-node-staging \
-        --network amuman-staging \
         --device=nvidia.com/gpu=all \
         -v ./mock_nas:/mnt/smb \
         -e MANAGER_DOMAIN=$DOMAIN \
@@ -48,3 +48,10 @@ node:
         amuman-node-staging 
 
 staging: frontend redis manager proxy
+
+kill-staging:
+    podman rm -f amuman-proxy-staging
+    podman rm -f amuman-frontend-staging
+    podman rm -f amuman-redis-staging
+    podman rm -f amuman-manager-staging
+    podman rm -f amuman-node-staging

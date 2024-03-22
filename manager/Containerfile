@@ -7,12 +7,6 @@ COPY . .
 
 RUN mkdir -p /manager
 
-ENV SECRET_KEY=
-ENV DJANGO_SUPERUSER_EMAIL=
-ENV DJANGO_SUPERUSER_USERNAME=
-ENV DJANGO_SUPERUSER_PASSWORD=
-ENV DOMAIN_URL=
 ENV DEBUG=FALSE
-ENV REDIS_URL="amuman-redis-staging:6379"
 
-ENTRYPOINT ["/app/staging.entrypoint.sh"]
+ENTRYPOINT ["/app/entrypoint.sh"]

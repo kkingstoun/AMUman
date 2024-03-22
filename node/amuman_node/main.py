@@ -39,8 +39,10 @@ class NodeClient:
         self.manager_domain: str = os.getenv("MANAGER_DOMAIN", "localhost:8000")
         self.node_id: int = int(os.getenv("NODE_ID", 0))
         self.node_name: str = os.getenv("NODE_NAME", str(uuid.uuid1()))
+        self.node_user: str = os.getenv("NODE_USER", "admin")
+        self.node_password: str = os.getenv("NODE_PASSWORD", "admin")
         log.debug(
-            f"Manager URL: '{self.manager_domain}', Node ID: {self.node_id}, Node Name: '{self.node_name}'"
+            f"Manager domain: '{self.manager_domain}', Node ID: {self.node_id}, Node Name: '{self.node_name}'"
         )
         self.reconnect_attempts: int = 10
         self.reconnect_delay: int = 10
@@ -66,12 +68,14 @@ class NodeClient:
                 await asyncio.sleep(self.sleep_time)
 
     def authenticate(self) -> bool:
+        print(f"https://{self.manager_domain}/api/token/")
+        print(self.node_user, self.node_password)
         try:
             response = requests.post(
-                f"http://{self.manager_domain}/api/token/",
+                f"https://{self.manager_domain}/api/token/",
                 json={
-                    "username": os.getenv("NODE_USER", "admin"),
-                    "password": os.getenv("NODE_PASSWORD", "admin"),
+                    "username": self.node_user,
+                    "password": self.node_password,
                 },
             )
             log.debug(
