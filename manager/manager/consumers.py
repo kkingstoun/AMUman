@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 from urllib.parse import parse_qs
 
 from channels.db import database_sync_to_async
@@ -9,13 +10,13 @@ from django.utils import timezone
 
 from manager.models import Job, Node
 
+log = logging.getLogger("rich")
+
 
 class ManagerConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         query_string = parse_qs(self.scope["query_string"].decode("utf8"))
-        self.node_id = query_string.get("node_id", [None])[
-            0
-        ]  # Pobieranie wartości 'node_id'
+        self.node_id = query_string.get("node_id", [None])[0]
         # Authentication should be done in JWTAuthMiddleware
         if self.scope["user"] is AnonymousUser:
             await self.close()
@@ -73,19 +74,17 @@ class ManagerConsumer(AsyncWebsocketConsumer):
             )
 
     async def receive(self, text_data):
-        # Rozłóż wiadomość na dane
         data = json.loads(text_data)
-        # print(data)
         if data.get("command", None) == "register":
             try:
                 await self.update_node_status(
                     data["node_id"], "CONNECTED", data["node_name"]
                 )
                 await self.update_node_status(self.node_id, "CONNECTED")
-                print("Registering node", data.get("node_name"))
+                log.debug("Registering node", data.get("node_name"))
 
             except Exception as e:
-                print("Error", data.get("node_name"), str(e))
+                log.debug("Error", data.get("node_name"), str(e))
                 await self.update_node_status(
                     data["node_id"], "DISCONNECTED", data["node_name"]
                 )
@@ -96,9 +95,7 @@ class ManagerConsumer(AsyncWebsocketConsumer):
                     {"message": "Hello I'm WS server. Nice to meet you."}
                 )
             )
-        # Wykonaj jakąś logikę w oparciu o dane
         if data["message"] == "Hello from Node!":
-            # Wysłaj odpowiedź
             await self.send(text_data=json.dumps({"message": "Welcome, node!"}))
 
     async def send_test_message(self, message):
@@ -116,9 +113,9 @@ class ManagerConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({"message": message}))
 
     async def node_command(self, event):
-        # Logika do obsługi komunikatu typu 'node.command'
-        print(f"Otrzymano komendę: {event}")
-        # Tworzenie słownika odpowiedzi na podstawie otrzymanych danych
+        # Logic to handle the 'node.command' message
+        log.debug(f"Received command: {event}")
+        # Creating a response dictionary based on the received data
         response_message = {key: event[key] for key in event if key != "type"}
-        # Wysyłanie odpowiedzi do klienta 'node'
+        # Sending the response to the 'node' client
         await self.send(text_data=json.dumps(response_message))

@@ -7,8 +7,8 @@ DOMAIN = os.environ.get("DOMAIN", "localhost:8000")
 SECRET_KEY = os.environ.get(
     "SECRET_KEY", "django-insecure-i-(^@udvkc6^^9mkwpn&8kk0!u0n-bn4$b4mfbii1(bzw_pq@"
 )
-REDIS_URL = os.environ.get("REDIS_URL", "localhost:6379")
-
+REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
 BASE_DIR = Path(__file__).resolve().parent.parent
 # we need ALLOWED_HOSTS to be * even in prod because we are using a reverse proxy
 ALLOWED_HOSTS = ["*"]
@@ -96,7 +96,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("localhost", 6379)],
+            "hosts": [(REDIS_HOST, REDIS_PORT)],
         },
     },
 }
@@ -205,7 +205,7 @@ RUN_WEBSOCKET_CLIENT = True
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{REDIS_URL}/1",
+        "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/1",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },

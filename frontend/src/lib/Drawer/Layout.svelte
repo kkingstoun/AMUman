@@ -18,9 +18,9 @@
 	};
 </script>
 
-<Button outline color="dark" size="xs" on:click={() => (drawerHidden = false)}
-	><FileLinesOutline /></Button
->
+<Button outline color="dark" size="xs" on:click={() => (drawerHidden = false)}>
+	<FileLinesOutline />
+</Button>
 
 <Drawer
 	transitionType="fly"

@@ -55,3 +55,35 @@ kill-staging:
     podman rm -f amuman-redis-staging
     podman rm -f amuman-manager-staging
     podman rm -f amuman-node-staging
+
+prod version="0.0.7":
+    podman run -d --replace --tz local --pull newer \
+        --name amuman-frontend-prod \
+        --network amuman-prod \
+        ghcr.io/kkingstoun/amuman/frontend:{{version}}
+
+    podman run -d --replace --tz local --pull newer \
+        --name amuman-redis-prod \
+        --network amuman-prod \
+        docker.io/redis:7.2.4-alpine3.19
+
+    podman run -d --replace --tz local --pull newer \
+        --name amuman-manager-prod \
+        --network amuman-prod \
+        -v ./prod:/manager \
+        -e SECRET_KEY=$SECRET_KEY \
+        -e DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL \
+        -e DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME \
+        -e DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD \
+        -e DOMAIN=$DOMAIN \
+        -e REDIS_HOST=amuman-redis-prod \
+        ghcr.io/kkingstoun/amuman/manager:{{version}}
+
+    mkdir -p ./proxy
+    curl -Ls https://raw.githubusercontent.com/kkingstoun/AMUman/v{{version}}/proxy/nginx.conf -o ./proxy/nginx.conf
+    podman run -d --replace --tz local --pull newer \
+        --name amuman-proxy-prod \
+        --network amuman-prod \
+        -v ./proxy/nginx.conf:/etc/nginx/conf.d/default.conf:z \
+        docker.io/nginx:1.25.2-alpine3.18-slim
+

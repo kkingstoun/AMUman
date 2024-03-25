@@ -1,9 +1,11 @@
-from urllib.parse import parse_qs
+import logging
 
 from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
 from django.contrib.auth.models import AnonymousUser
 from rest_framework_simplejwt.authentication import JWTAuthentication
+
+log = logging.getLogger("rich")
 
 
 @database_sync_to_async
@@ -20,20 +22,17 @@ def get_user_from_token(token):
 
 class JwtAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
-        # Rozpakuj token z query string lub headers
-        query_string = parse_qs(scope["query_string"].decode())
-        headers = dict(scope["headers"])
-
-        token_key = None
-        if "token" in query_string:
-            token_key = query_string["token"][0]  # Pobierz pierwszy token z listy
-        elif b"authorization" in headers:
-            # Zakładamy, że nagłówek Authorization jest w formacie "Bearer token"
-            token_key = headers[b"authorization"].decode().split("Bearer ")[1]
-
-        if token_key:
+        try:
+            token_key = (
+                dict(scope["headers"])[b"authorization"].decode().split("Bearer ")[1]
+            )
+            log.debug("WEBSOCKET: Token found.")
             scope["user"] = await get_user_from_token(token_key)
-        else:
+            log.debug(f"WEBSOCKET: User: {scope['user']}")
+
+        except Exception:
+            log.debug("WEBSOCKET: Token not found.")
             scope["user"] = AnonymousUser()
+            token_key = None
 
         return await super().__call__(scope, receive, send)

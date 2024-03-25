@@ -5,8 +5,11 @@ from django.core.cache import cache
 from django.db.models import Case, IntegerField, Value, When
 
 from manager.models import Gpu, Job
-from .run_job import RunJob
+
+from .run_job import run_job
+
 log = logging.getLogger("rich")
+
 
 class QueueManager:
     """
@@ -39,30 +42,34 @@ class QueueManager:
             output_field=IntegerField(),
         )
 
-        return Gpu.objects.filter(status=Gpu.GPUStatus.PENDING.value).annotate(speed_as_number=speed_order).order_by("-speed_as_number").first()
-
+        return (
+            Gpu.objects.filter(status=Gpu.GPUStatus.PENDING.value)
+            .annotate(speed_as_number=speed_order)
+            .order_by("-speed_as_number")
+            .first()
+        )
 
     def schedule_jobs(self):
         """
         Schedule jobs to run on available GPUs. Wait and retry if no GPUs are available.
         """
-        print("dupa")
-        self.rt = RunJob()
+        print("Starting job scheduling...")
         while True:
             for job in self.ordered_jobs:
                 available_gpu = self.pending_gpus
                 if available_gpu:
-                    self.rt.run_job(job=job,gpu=available_gpu) # Wyjdź z pętli for, aby ponownie rozpocząć od nowych zadań w kolejce
+                    run_job(job=job, gpu=available_gpu)
+                    # Exit the for loop to start over with new tasks in the queue
                 else:
-                    # Jeśli nie ma dostępnych GPU, logujemy i czekamy
+                    # If no GPUs are available, log and wait
                     log.warning("No available GPUs. Waiting 30 seconds to retry...")
                     time.sleep(30)
-                    break  # Wyjdź z pętli for, aby ponownie sprawdzić dostępność GPU po odczekaniu
+                    break  # Exit the for loop to recheck GPU availability after waiting
 
-            # Tutaj możemy dodać warunek wyjścia z nieskończonej pętli, na przykład:
-            # if nie_ma_więcej_zadań_do_harmonogramu:
+            # Here we can add a condition to exit the infinite loop, for example:
+            # if no_more_tasks_to_schedule:
             #     break
             if not self.ordered_jobs.exists():
-                # Jeśli nie ma więcej zadań oczekujących, kończymy planowanie
+                # If there are no more pending jobs, we finish scheduling
                 print("No pending jobs left to schedule. Exiting scheduler.")
                 break

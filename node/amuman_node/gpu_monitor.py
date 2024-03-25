@@ -1,11 +1,12 @@
-import json
 import logging
 import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import List
 
 import requests
+
+from amuman_node.api import API
 
 log = logging.getLogger("rich")
 
@@ -139,7 +140,7 @@ class GPU:
         log.debug(f"GPU {self.device_id} UUID: {uuid}")
         return uuid
 
-    def to_json(self) -> str:
+    def to_json(self):
         data = {
             "device_id": self.device_id,
             "node": self.node_id,
@@ -151,14 +152,14 @@ class GPU:
             "speed": self.speed,
             "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
-        return json.dumps(data)  # Zwraca ciąg JSON
+        return data
+
 
 class GPUMonitor:
-    def __init__(self, node_id: int, manager_url: str, token: str) -> None:
+    def __init__(self, node_id: int, api: API) -> None:
         self.node_id: int = node_id
-        self.manager_url: str = manager_url
         self.gpus: List[GPU] = self.get_gpus()
-        self.token=token
+        self.api = api
 
     def get_gpus(self) -> List[GPU]:
         try:
@@ -174,22 +175,12 @@ class GPUMonitor:
         log.debug(f"GPU api post: {action}")
         action_word = "assigned" if action == "assign" else "updated"
         failure_action_word = "assign" if action == "assign" else "update"
-        headers = {
-                    "Authorization": f"Bearer {self.token}",
-                    "Content-Type": "application/json"
-                   }
         for gpu in self.gpus:
             if action == "update":
                 gpu.update_status()
             try:
                 data = gpu.to_json()
-                log.debug(f"Sending {data}")
-                print(data)
-                response = requests.post(
-                    f"http://{self.manager_url}/api/gpus/",
-                    data=data,
-                    headers=headers,
-                )
+                response = self.api.post_gpu(data)
                 if response.status_code in [200, 201]:
                     log.info(
                         f"Successfully {action_word} GPU:{gpu.device_id} ({gpu.model}) to node {self.node_id}."

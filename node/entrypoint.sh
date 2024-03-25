@@ -2,14 +2,17 @@
 
 set -e
 
-if [ -z "$MANAGER_DOMAIN" ]; then
-  echo "MANAGER_DOMAIN is not set"
-    exit 1
+if [ -z "$MANAGER_URL" ]; then
+  echo "MANAGER_URL is not set"
+  exit 1
 fi
 if [ -z "$NODE_NAME" ]; then
-  echo "if [ -z "$NODE_NAME" ]; then
- is not set"
-    exit 1
+  echo "NODE_NAME is not set"
+  exit 1
+fi
+if [ -z "$NODE_PASSWORD" ]; then
+  echo "NODE_PASSWORD is not set"
+  exit 1
 fi
 
 echo "Starting server"

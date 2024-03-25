@@ -49,9 +49,9 @@ class Job:
     subprocess: Optional[asyncio.subprocess.Process] = field(default=None)
 
     @property
-    def asdict(self):
+    def serialize(self) -> str:
         result = asdict(self)
         for key, value in result.items():
             if isinstance(value, Enum):
-                result[key] = value.value  # Zamień Enum na wartość tekstową
+                result[key] = value.value
         return json.dumps(result)

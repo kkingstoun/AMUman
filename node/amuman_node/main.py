@@ -15,8 +15,10 @@ from websockets.exceptions import (
     ConnectionClosedOK,
 )
 
+from amuman_node.api import API
 from amuman_node.gpu_monitor import GPUMonitor
 from amuman_node.job_manager import JobManager
+from amuman_node.websockets import Websockets
 
 LOGLEVEL = os.environ.get("LOGLEVEL", "DEBUG").upper()
 
@@ -36,20 +38,20 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 class NodeClient:
     def __init__(self) -> None:
-        self.manager_domain: str = os.getenv("MANAGER_DOMAIN", "localhost:8000")
+        self.api: API = API()
         self.node_id: int = int(os.getenv("NODE_ID", 0))
         self.node_name: str = os.getenv("NODE_NAME", str(uuid.uuid1()))
         self.node_user: str = os.getenv("NODE_USER", "admin")
         self.node_password: str = os.getenv("NODE_PASSWORD", "admin")
-        log.debug(
-            f"Manager domain: '{self.manager_domain}', Node ID: {self.node_id}, Node Name: '{self.node_name}'"
-        )
+        log.debug(f"Node ID: {self.node_id}, Node Name: '{self.node_name}'")
+        self.ws = Websockets(self.api, self.node_id, self.node_name)
+
         self.reconnect_attempts: int = 10
         self.reconnect_delay: int = 10
         self.gpm: Optional[GPUMonitor] = None
         self.access_token: str
         self.refresh_token: Optional[str] = None
-        self.if_registred = False
+        self.is_registered = False
         self.is_connected = False
 
         self.reply_timeout = 10
@@ -60,37 +62,12 @@ class NodeClient:
         while True:
             try:
                 if (
-                    not self.if_registred or self.is_connected
+                    not self.is_registered or self.is_connected
                 ) and self.register_with_manager():
                     await self.websocket_loop()
             except Exception as e:
                 log.error(f"Cannot register to manager! {e}")
                 await asyncio.sleep(self.sleep_time)
-
-    def authenticate(self) -> bool:
-        print(f"https://{self.manager_domain}/api/token/")
-        print(self.node_user, self.node_password)
-        try:
-            response = requests.post(
-                f"https://{self.manager_domain}/api/token/",
-                json={
-                    "username": self.node_user,
-                    "password": self.node_password,
-                },
-            )
-            log.debug(
-                f"Authentication response: {response.status_code=}, {response.json()=}"
-            )
-        except requests.exceptions.RequestException as e:
-            log.exception(f"Error authenticating the node: {e}")
-            return False
-        try:
-            self.access_token = response.json()["access"]
-            self.refresh_token = response.json()["refresh"]
-            return True
-        except (KeyError, TypeError):
-            log.error("Unable to authenticate with the manager")
-        return False
 
     def get_own_ip(self) -> str:
         try:
@@ -102,7 +79,7 @@ class NodeClient:
             return "error"
 
     def register_with_manager(self) -> bool:
-        if not self.authenticate():
+        if not self.api.authenticate():
             return False
         data: dict[str, Any] = {
             "name": self.node_name,
@@ -112,71 +89,40 @@ class NodeClient:
         log.debug(f"Registering data: {data=}")
 
         try:
-            log.debug(data)
-            log.debug(f"http://{self.manager_domain}/api/nodes/")
-            response = requests.post(
-                f"http://{self.manager_domain}/api/nodes/",
-                json=data,
-                headers={"Authorization": f"Bearer {self.access_token}"},
-            )
+            response = self.api.register(data)
             if response.status_code in [200, 201]:
                 self.node_id = int(response.json().get("id"))
                 log.debug(f"Node registered: {self.node_id=}")
-                self.if_registred = True
-                self.gpm = GPUMonitor(
-                    self.node_id, self.manager_domain, self.access_token
-                )
+                self.is_registered = True
+                self.gpm = GPUMonitor(self.node_id, self.api)
                 if response.status_code == 200:
                     self.gpm.api_post("update")
                 elif response.status_code == 201:
                     self.gpm.api_post("assign")
                 return True
             else:
-                self.if_registred = False
+                self.is_registered = False
                 log.error(
                     f"Failed to register node. Status Code: {response.status_code}"
                 )
                 log.debug(response.text)
 
         except requests.exceptions.ConnectionError:
-            log.error(f"Couldn't connect to the manager ({self.manager_domain})")
+            log.error(f"Couldn't connect to the manager: {self.api.url}")
         except requests.exceptions.RequestException as e:
             log.exception(f"Error registering the node: {e}")
         return False
 
-    async def register_websocket(self, ws: websockets.WebSocketClientProtocol) -> None:
-        await ws.send(
-            json.dumps(
-                {
-                    "command": "register",
-                    "message": f"Hello from Node {self.node_name}!",
-                    "node_id": self.node_id,
-                    "node_name": self.node_name,
-                }
-            )
-        )
-        log.info("Websocket connection started.")
-
     async def websocket_loop(self) -> None:
         while True:
             log.debug("Creating new connection...")
-            log.debug(
-                f"ws://{self.manager_domain}/ws/node/?token={self.access_token}&node_id={self.node_id}"
-            )
             try:
                 async with websockets.connect(
-                    f"ws://{self.manager_domain}/ws/node/?token={self.access_token}&node_id={self.node_id}"
+                    self.ws.url, extra_headers=self.api.headers
                 ) as ws:
-                    print(ws)
                     while True:
                         try:
-                            log.debug(
-                                f"Registering with the manager: {self.manager_domain}"
-                            )
-                            await self.register_websocket(ws)
-                            log.debug(
-                                f"Registered with the manager: {self.manager_domain}"
-                            )
+                            await self.ws.register(ws)
                             await self.handle_connection(ws)
                         except (
                             asyncio.TimeoutError,
@@ -245,9 +191,7 @@ class NodeClient:
                 await self.execute_update_gpus()
             elif command == "run_job":
                 log.info("Running job")
-                self.job_manager: JobManager = JobManager(
-                    self.node_id, self.manager_domain, token=self.access_token
-                )
+                self.job_manager: JobManager = JobManager(self.node_id, self.api)
                 await self.job_manager.run_job(data["job_id"])
             else:
                 log.error(f"Unknown command: {command}")

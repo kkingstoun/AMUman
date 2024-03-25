@@ -1,9 +1,9 @@
-import { sortStates, itemlist, lastFetchTime, selectedItems, type ItemTypeString, type ItemType, type ItemTypeMap } from '$stores/Tables';
-import { accessToken, api } from '$stores/Auth';
+import { sortStates, itemlist, lastFetchTime, selectedItems, type ItemTypeString } from '$stores/Tables';
+import { api } from '$stores/Auth';
 import { get } from 'svelte/store';
 import { newToast } from '$stores/Toast';
 import { getRequestParams } from './Auth';
-import type { Job, RequestParams } from '$api/OpenApi';
+import type { Node, Job } from '$api/OpenApi';
 import { DateTime } from 'luxon';
 import { jobsFilters, nodesFilters, gpusFilters } from '$stores/Sidebar';
 import { pagination } from '$stores/Tables';
@@ -114,6 +114,19 @@ export async function runJob(job: Job) {
     if (params !== null) {
         await api.jobsStartCreate(job.id, job, params).then(() => {
             newToast(`Started job ${job.id}`, "green");
+
+        }).catch((res) => {
+            for (let field in res.error) {
+                newToast(`Failed to run job: ${res.error[field]}`, 'red');
+            }
+        });
+    }
+}
+export async function refreshNode(node: Node) {
+    const params = getRequestParams();
+    if (params !== null) {
+        await api.nodesRefreshCreate({ node_id: node.id }, params).then(() => {
+            newToast(`Started job ${node.id}`, "green");
 
         }).catch((res) => {
             for (let field in res.error) {

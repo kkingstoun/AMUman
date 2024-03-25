@@ -1051,6 +1051,12 @@ components:
           format: int64
         status:
           $ref: '#/components/schemas/JobStatusEnum'
+        output:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
         flags:
           type: string
           nullable: true
@@ -1260,6 +1266,12 @@ components:
           format: int64
         status:
           $ref: '#/components/schemas/JobStatusEnum'
+        output:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
         flags:
           type: string
           nullable: true

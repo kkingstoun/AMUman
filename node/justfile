@@ -9,7 +9,7 @@ dev cmd="bash":
 		-w /app/node \
 		--device=nvidia.com/gpu=all \
 		-p 5679:5679 \
-		-e MANAGER_URL=amuman-manager-dev:8000 \
-		-e NODE_NAME=test_node  \
-		--env-file ../.env \
+		-e MANAGER_URL=http://amuman-manager-dev:8000 \
+		-e NODE_NAME=admin  \
+		-e NODE_PASSWORD=admin  \
 		amuman-node-dev {{cmd}}

@@ -12,7 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from .components.run_job import RunJob
+from .components.run_job import run_job
 from .models import CustomUser, Gpu, Job, Node
 from .serializers import (
     CustomUserSerializer,
@@ -90,8 +90,7 @@ class JobsViewSet(viewsets.ModelViewSet):
                     {"error": "Gpu unavailable."}, status=status.HTTP_400_BAD_REQUEST
                 )
 
-            self.rt = RunJob()
-            self.rt.run_job(job=job, request=_request)
+            run_job(job=job)
 
             return Response(
                 {"message": f"Job {pk} started successfully."},
@@ -147,16 +146,6 @@ class GpusViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-    @action(detail=True, methods=["post"])
-    def refresh(self, _request):
-        try:
-            return Response(
-                {"message": "Gpus updated."},
-                status=status.HTTP_200_OK,
-            )
-        except Exception:
-            return Response({"error": "{e}"}, status=status.HTTP_404_NOT_FOUND)
-
 
 class NodesViewSet(viewsets.ModelViewSet):
     queryset = Node.objects.all()
@@ -173,23 +162,26 @@ class NodesViewSet(viewsets.ModelViewSet):
     def refreshnode(self, request):
         node_id = request.data.get("node_id", None)
         channel_layer = get_channel_layer()
-        if channel_layer and node_id:
-            async_to_sync(channel_layer.group_send)(
-                "nodes_group",
-                {
-                    "type": "node.command",
-                    "command": "update_gpus",
-                    "node_id": node_id,
-                },
-            )
-            async_to_sync(channel_layer.group_send)(
-                "nodes_group",
-                {
-                    "type": "node.command",
-                    "command": "update_gpus",
-                    "node_id": None,
-                },
-            )
+        if channel_layer:
+            if node_id:
+                async_to_sync(channel_layer.group_send)(
+                    "nodes_group",
+                    {
+                        "type": "node.command",
+                        "command": "update_gpus",
+                        "node_id": node_id,
+                    },
+                )
+            else:
+                # Send command to all nodes
+                async_to_sync(channel_layer.group_send)(
+                    "nodes_group",
+                    {
+                        "type": "node.command",
+                        "command": "update_gpus",
+                        "node_id": None,
+                    },
+                )
         time.sleep(3)
         return Response({"status": "Command sent"}, status=status.HTTP_200_OK)
 

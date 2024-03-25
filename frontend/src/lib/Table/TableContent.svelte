@@ -27,10 +27,18 @@
 	import DeleteItem from './DeleteItem.svelte';
 	import DeleteSelectedItems from './DeleteSelectedItems.svelte';
 	import RunJob from './RunJob.svelte';
-	import { formatValue, formatString, formatDateTime, isJob, getPropertyValue } from '../Utils';
+	import {
+		formatValue,
+		formatString,
+		formatDateTime,
+		isJob,
+		getPropertyValue,
+		isNode
+	} from '../Utils';
 	import type { ItemTypeString } from '$stores/Tables';
 	import Badge from '$lib/Table/Badge.svelte';
 	import Pagination from './Pagination.svelte';
+	import RefreshNode from './RefreshNode.svelte';
 
 	export let item_type: ItemTypeString;
 
@@ -90,6 +98,8 @@
 		<TableHeadCell>Details</TableHeadCell>
 		{#if item_type === 'jobs'}
 			<TableHeadCell>Run</TableHeadCell>
+		{:else if item_type === 'nodes'}
+			<TableHeadCell>Refresh</TableHeadCell>
 		{/if}
 		<TableHeadCell>Delete</TableHeadCell>
 	</TableHead>
@@ -118,6 +128,10 @@
 				{#if isJob(item)}
 					<TableBodyCell>
 						<RunJob job={item} />
+					</TableBodyCell>
+				{:else if isNode(item)}
+					<TableBodyCell>
+						<RefreshNode node={item} />
 					</TableBodyCell>
 				{/if}
 				<TableBodyCell>
