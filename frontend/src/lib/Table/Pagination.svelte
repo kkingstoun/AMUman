@@ -3,6 +3,7 @@
 	import { jobsFilters } from '$stores/Sidebar';
 	import { fetchJobs } from '$api/Table';
 	import { pagination } from '$stores/Tables';
+	import { GithubSolid } from 'flowbite-svelte-icons';
 
 	interface Page {
 		name: string;
@@ -50,4 +51,9 @@
 			handleClick(event);
 		}}
 	/>
+	<a href="https://github.com/kkingstoun/AMUman" class="ml-auto">
+		<GithubSolid
+			class="w-4 h-4 text-gray-500 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white"
+		/>
+	</a>
 </div>

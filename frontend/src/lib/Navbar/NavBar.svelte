@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { Navbar, NavBrand, NavUl, NavHamburger, NavLi, Button } from 'flowbite-svelte';
-	import Logout from './Logout.svelte';
-	import Github from './Github.svelte';
-	import { username } from '$stores/Auth';
+	import { Navbar, NavBrand, NavUl, NavHamburger, NavLi } from 'flowbite-svelte';
+	import Avatar from './Avatar.svelte';
 </script>
 
 <Navbar class="!bg-gray-800">
@@ -16,10 +14,6 @@
 		<NavLi href="/jobs">Jobs</NavLi>
 		<NavLi href="/nodes">Nodes</NavLi>
 		<NavLi href="/gpus">GPUs</NavLi>
-		<Logout />
-		<NavLi class="disabled">
-			{$username}
-		</NavLi>
-		<Github />
 	</NavUl>
+	<Avatar />
 </Navbar>
