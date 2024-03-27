@@ -978,6 +978,9 @@ components:
         id:
           type: integer
           readOnly: true
+        username:
+          type: string
+          readOnly: true
         node_name:
           type: string
           readOnly: true
@@ -1040,6 +1043,7 @@ components:
       - node_name
       - path
       - user
+      - username
     JobStatusEnum:
       enum:
       - PENDING
@@ -1195,6 +1199,9 @@ components:
       properties:
         id:
           type: integer
+          readOnly: true
+        username:
+          type: string
           readOnly: true
         node_name:
           type: string

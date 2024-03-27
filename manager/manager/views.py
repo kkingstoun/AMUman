@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
+from manager.components.check_mx3_file import validate_mx3_file
 from manager.components.ws_messages import WebsocketMessage, send_message
 
 from .components.run_job import run_job
@@ -71,6 +72,13 @@ class JobsViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=modified_data)
         try:
             serializer.is_valid(raise_exception=True)
+            if not validate_mx3_file(serializer.validated_data["path"]):
+                log.error("Job not created: Invalid file path")
+                return Response(
+                    {"detail": "Invalid file path"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
             log.debug(f"Job created: {serializer.data}")
