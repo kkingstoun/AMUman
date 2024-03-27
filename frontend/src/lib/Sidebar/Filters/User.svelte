@@ -4,13 +4,13 @@
 	import { api } from '$stores/Auth';
 	import { newToast } from '$stores/Toast';
 	import { fetchJobs } from '$api/Table';
-	import { jobsFilters } from '$stores/Sidebar';
+	import { jobsFilters, selectedUserFilter } from '$stores/Sidebar';
 	import { ChevronDownSolid } from 'flowbite-svelte-icons';
+	import { type AuthUser } from '$api/OpenApi';
 
-	let users: string[] = [];
+	let users: AuthUser[] = [];
 	let loading = false; // Loading state
 	let dropdownOpen = false;
-
 	async function getUserNames() {
 		loading = true; // Set loading to true
 		const params = getRequestParams();
@@ -23,7 +23,7 @@
 					if (data) {
 						users = [];
 						data.forEach((user) => {
-							users.push(user.auth.username);
+							users.push(user.auth);
 						});
 					}
 				})
@@ -40,7 +40,7 @@
 </script>
 
 <Button outline color="dark" size="xs" on:click={getUserNames} class="w-full">
-	{$jobsFilters.user || 'All'}<ChevronDownSolid class="w-3 h-3 ms-2 text-white dark:text-white" />
+	{$selectedUserFilter}<ChevronDownSolid class="w-3 h-3 ms-2 text-white dark:text-white" />
 </Button>
 
 <Dropdown class="overflow-y-auto py-1 h-48" bind:open={dropdownOpen}>
@@ -49,6 +49,7 @@
 			class="flex items-center text-base font-semibold gap-2"
 			on:click={() => {
 				$jobsFilters.user = undefined;
+				$selectedUserFilter = 'All';
 				dropdownOpen = false;
 				fetchJobs();
 			}}
@@ -59,12 +60,13 @@
 			<DropdownItem
 				class="flex items-center text-base font-semibold gap-2"
 				on:click={() => {
-					$jobsFilters.user = user;
+					$jobsFilters.user = user.id;
+					$selectedUserFilter = user.username;
 					dropdownOpen = false;
 					fetchJobs();
 				}}
 			>
-				{user}
+				{user.username}
 			</DropdownItem>
 		{/each}
 	{/if}

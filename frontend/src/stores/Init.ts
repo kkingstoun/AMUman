@@ -1,6 +1,6 @@
 import { get, type Writable } from 'svelte/store';
 import { accessToken, refreshToken, username } from '$stores/Auth';
-import { sidebarIsOpen, jobsFilters } from '$stores/Sidebar';
+import { sidebarIsOpen, jobsFilters, selectedUserFilter } from '$stores/Sidebar';
 import { shownColumns, sortStates } from '$stores/Tables';
 
 function getLocalStorageItem<T>(store: Writable<T>, key: string): T {
@@ -32,4 +32,5 @@ export function initStores(): void {
     InitOneStore(shownColumns, 'shownColumns');
     InitOneStore(sortStates, 'sortStates');
     InitOneStore(jobsFilters, 'jobsFilters');
+    InitOneStore(selectedUserFilter, 'selectedUserFilter');
 }

@@ -145,10 +145,10 @@ export enum GpuStatusEnum {
 
 export interface Job {
 	readonly id: number;
+	readonly username: string;
+	readonly node_name: string;
 	/** @maxLength 500 */
 	path: string;
-	/** @maxLength 150 */
-	user: string;
 	/**
 	 * @format int64
 	 * @min 0
@@ -193,6 +193,7 @@ export interface Job {
 	error?: string | null;
 	/** @maxLength 150 */
 	flags?: string | null;
+	user: number;
 	node?: number | null;
 	gpu?: number | null;
 }
@@ -322,10 +323,10 @@ export interface PatchedCustomUser {
 
 export interface PatchedJob {
 	readonly id?: number;
+	readonly username?: string;
+	readonly node_name?: string;
 	/** @maxLength 500 */
 	path?: string;
-	/** @maxLength 150 */
-	user?: string;
 	/**
 	 * @format int64
 	 * @min 0
@@ -370,6 +371,7 @@ export interface PatchedJob {
 	error?: string | null;
 	/** @maxLength 150 */
 	flags?: string | null;
+	user?: number;
 	node?: number | null;
 	gpu?: number | null;
 }
@@ -721,25 +723,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 		/**
 		 * No description
 		 *
-		 * @tags gpus
-		 * @name GpusRefreshCreate
-		 * @request POST:/api/gpus/{id}/refresh/
-		 * @secure
-		 */
-		gpusRefreshCreate: (id: number, data: Gpu, params: RequestParams = {}) =>
-			this.request<Gpu, any>({
-				path: `/api/gpus/${id}/refresh/`,
-				method: 'POST',
-				body: data,
-				secure: true,
-				type: ContentType.Json,
-				format: 'json',
-				...params
-			}),
-
-		/**
-		 * No description
-		 *
 		 * @tags jobs
 		 * @name JobsList
 		 * @request GET:/api/jobs/
@@ -766,7 +749,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
 				 * * `RUNNING` - RUNNING
 				 */
 				status?: 'FINISHED' | 'INTERRUPTED' | 'PENDING' | 'RUNNING';
-				user?: string;
+				user?: number;
 			},
 			params: RequestParams = {}
 		) =>

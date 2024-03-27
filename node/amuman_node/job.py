@@ -30,7 +30,9 @@ class Job:
     id: int
     path: str
     user: str
+    username: str
     node: int
+    node_name: str
     gpu: int
     user: str
     port: Optional[int] = None

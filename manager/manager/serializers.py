@@ -48,6 +48,19 @@ class NodeSerializer(serializers.ModelSerializer):
 
 
 class JobSerializer(serializers.ModelSerializer):
+    username = serializers.SerializerMethodField()
+    node_name = serializers.SerializerMethodField()
+
+    def get_username(self, obj):
+        return obj.user.auth.username
+
+    def get_node_name(self, obj):
+        node = obj.node
+        if node is None:
+            return None
+        else:
+            return node.name
+
     class Meta:
         model = Job
         fields = "__all__"
@@ -56,8 +69,8 @@ class JobSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
 
         # Output can be large so they are excluded from the 'list' action
-        # context is given by the view
         # If the action is not 'retrieve', remove the output
+        # 'context' is given by the view
         action = self.context.get("action")
         if action != "retrieve":
             data.pop("output", None)

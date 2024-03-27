@@ -67,7 +67,7 @@ export const shownColumns = writable<KeyLists>({
     jobs: [
         'id',
         'path',
-        'user',
+        'username',
         'submit_time',
         'status'
     ],
@@ -103,6 +103,7 @@ export const headers = writable<KeyLists>({
         'node',
         'gpu',
         'user',
+        'username',
     ],
     gpus: [
         'id',

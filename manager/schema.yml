@@ -149,7 +149,7 @@ paths:
       - in: query
         name: user
         schema:
-          type: string
+          type: integer
       tags:
       - jobs
       security:
@@ -978,12 +978,12 @@ components:
         id:
           type: integer
           readOnly: true
+        node_name:
+          type: string
+          readOnly: true
         path:
           type: string
           maxLength: 500
-        user:
-          type: string
-          maxLength: 150
         port:
           type: integer
           maximum: 9223372036854775807
@@ -1027,6 +1027,8 @@ components:
           type: string
           nullable: true
           maxLength: 150
+        user:
+          type: integer
         node:
           type: integer
           nullable: true
@@ -1035,6 +1037,7 @@ components:
           nullable: true
       required:
       - id
+      - node_name
       - path
       - user
     JobStatusEnum:
@@ -1193,12 +1196,12 @@ components:
         id:
           type: integer
           readOnly: true
+        node_name:
+          type: string
+          readOnly: true
         path:
           type: string
           maxLength: 500
-        user:
-          type: string
-          maxLength: 150
         port:
           type: integer
           maximum: 9223372036854775807
@@ -1242,6 +1245,8 @@ components:
           type: string
           nullable: true
           maxLength: 150
+        user:
+          type: integer
         node:
           type: integer
           nullable: true

@@ -7,8 +7,10 @@
 	import { newToast } from '$stores/Toast';
 
 	let job: Job = {
-		id: 0,
-		user: 'username',
+		id: 0, // useless
+		user: 1, // useless
+		username: '', // useless
+		node_name: '', // useless
 		path: '',
 		priority: PriorityEnum.NORMAL,
 		gpu_partition: GpuPartitionEnum.NORMAL,

@@ -31,7 +31,7 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action == "create":
             return [permissions.AllowAny()]
-        return [permissions.IsAdminUser()]
+        return [permissions.IsAuthenticated()]
 
     def create(self, request, *_args, **_kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -52,13 +52,23 @@ class JobsViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["user", "priority", "node", "gpu", "status"]
 
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
     def retrieve(self, _request, *_args, **_kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, context={"action": self.action})
         return Response(serializer.data)
 
     def create(self, request, *_args, **_kwargs):
-        serializer = self.get_serializer(data=request.data)
+        # Modify the request data to include the user
+        custom_user = CustomUser.objects.get(auth=request.user)
+        modified_data = request.data.copy()
+        modified_data["username"] = custom_user.auth.username
+        modified_data["user"] = custom_user.pk
+        log.debug(f"Modified data: {modified_data}")
+        # Now, proceed with serialization and saving as before
+        serializer = self.get_serializer(data=modified_data)
         try:
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
@@ -69,10 +79,10 @@ class JobsViewSet(viewsets.ModelViewSet):
             )
         except ValidationError as e:
             log.error(f"Job not created: {e}")
+            # If headers is not defined before the try-except block, it should be moved inside the try block or defined before it
             return Response(
-                f"Job not created: {e}",
+                {"detail": str(e)},  # It's better to return structured error responses
                 status=status.HTTP_400_BAD_REQUEST,
-                headers=headers,
             )
 
     def update(self, request, *args, **kwargs):

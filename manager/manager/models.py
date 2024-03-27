@@ -101,7 +101,7 @@ class Job(models.Model):
         UNDEF = "UNDEF"
 
     path = models.CharField(max_length=500)
-    user = models.CharField(max_length=150)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     port = models.PositiveIntegerField(null=True, blank=True)
     submit_time = models.DateTimeField(null=True, blank=True)
     start_time = models.DateTimeField(null=True, blank=True)

@@ -1,13 +1,13 @@
 import { writable } from 'svelte/store';
 
 export const sidebarIsOpen = writable<boolean | null>(true);
-
+export const selectedUserFilter = writable<string>('All');
 export type JobQuery = {
     gpu?: number;
     node?: number;
     priority?: 'HIGH' | 'LOW' | 'NORMAL';
     status?: 'FINISHED' | 'INTERRUPTED' | 'PENDING';
-    user?: string;
+    user?: number;
     limit: number;
     offset: number;
 };
