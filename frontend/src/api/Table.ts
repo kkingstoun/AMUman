@@ -126,7 +126,7 @@ export async function refreshNode(node: Node) {
     const params = getRequestParams();
     if (params !== null) {
         await api.nodesRefreshCreate({ node_id: node.id }, params).then(() => {
-            newToast(`Started job ${node.id}`, "green");
+            newToast(`Refreshed node ${node.id}`, "green");
 
         }).catch((res) => {
             for (let field in res.error) {
