@@ -57,16 +57,7 @@ class NodeClient:
         self.ping_timeout = 5
         self.sleep_time = 5
 
-    async def start(self) -> None:
-        while True:
-            try:
-                if (
-                    not self.is_registered or self.is_connected
-                ) and self.register_with_manager():
-                    await self.websocket_loop()
-            except Exception as e:
-                log.error(f"Cannot register to manager! {e}")
-                await asyncio.sleep(self.sleep_time)
+        self.register_with_manager()
 
     def get_own_ip(self) -> str:
         try:
@@ -114,7 +105,7 @@ class NodeClient:
 
     async def websocket_loop(self) -> None:
         while True:
-            log.debug("Creating new connection...")
+            log.debug("WEBSOCKET: starting connection loop...")
             try:
                 async with websockets.connect(
                     self.ws.url, extra_headers=self.api.headers
@@ -208,7 +199,7 @@ class NodeClient:
 
 def entrypoint() -> None:
     try:
-        asyncio.run(NodeClient().start())
+        asyncio.run(NodeClient().websocket_loop())
     except KeyboardInterrupt:
         log.warning("Caught KeyboardInterrupt (Ctrl+C). Shutting down...")
 
