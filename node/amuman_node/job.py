@@ -1,9 +1,8 @@
 import asyncio
-import json
 import logging
 from dataclasses import asdict, dataclass, field
 from enum import Enum
-from typing import Optional
+from typing import Dict, Optional
 
 log = logging.getLogger("rich")
 
@@ -48,10 +47,9 @@ class Job:
     flags: Optional[str] = None
     subprocess: Optional[asyncio.subprocess.Process] = field(default=None)
 
-    @property
-    def serialize(self) -> str:
+    def asdict(self) -> Dict[str, str]:
         result = asdict(self)
         for key, value in result.items():
             if isinstance(value, Enum):
                 result[key] = value.value
-        return json.dumps(result)
+        return result

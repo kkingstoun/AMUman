@@ -53,7 +53,7 @@ class QueueManager:
         """
         Schedule jobs to run on available GPUs. Wait and retry if no GPUs are available.
         """
-        print("Starting job scheduling...")
+        log.debug("Starting job scheduling...")
         while True:
             for job in self.ordered_jobs:
                 available_gpu = self.pending_gpus
@@ -71,5 +71,5 @@ class QueueManager:
             #     break
             if not self.ordered_jobs.exists():
                 # If there are no more pending jobs, we finish scheduling
-                print("No pending jobs left to schedule. Exiting scheduler.")
+                log.debug("No pending jobs left to schedule. Exiting scheduler.")
                 break

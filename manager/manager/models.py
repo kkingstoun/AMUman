@@ -5,15 +5,16 @@ from django.db import models
 from django.utils import timezone
 
 
+class ConnectionStatus(Enum):
+    CONNECTED = "CONNECTED"
+    DISCONNECTED = "DISCONNECTED"
+
+
 class Node(models.Model):
     class NodeStatus(Enum):
         PENDING = "PENDING"
         RESERVED = "RESERVED"
         UNAVAILABLE = "UNAVAILABLE"
-
-    class ConnectionStatus(Enum):
-        CONNECTED = "CONNECTED"
-        DISCONNECTED = "DISCONNECTED"
 
     ip = models.GenericIPAddressField()
     name = models.CharField(max_length=15, unique=True)

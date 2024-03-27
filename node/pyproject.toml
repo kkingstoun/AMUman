@@ -16,6 +16,7 @@ dependencies = [
   "requests==2.31.0",
   "httpx==0.26.0",
   "rich==13.7.0",
+  "pydantic==2.6.4",
 ]
 version = "0.0.1"
 

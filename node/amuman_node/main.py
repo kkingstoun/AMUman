@@ -1,5 +1,4 @@
 import asyncio
-import json
 import logging
 import os
 import socket
@@ -17,8 +16,8 @@ from websockets.exceptions import (
 
 from amuman_node.api import API
 from amuman_node.gpu_monitor import GPUMonitor
-from amuman_node.job_manager import JobManager
-from amuman_node.websockets import Websockets
+from amuman_node.job_manager import JobRunner
+from amuman_node.websockets import Websockets, parse_message
 
 LOGLEVEL = os.environ.get("LOGLEVEL", "DEBUG").upper()
 
@@ -139,7 +138,7 @@ class NodeClient:
                                 continue
                             except Exception:
                                 log.debug(
-                                    f"Ping error - retrying connection in {self.sleep_time} sec (Ctrl-C to quit)"
+                                    f"WEBSOCKET: Lost connection, retrying in {self.sleep_time}s"
                                 )
                                 await asyncio.sleep(self.sleep_time)
                                 break
@@ -173,32 +172,31 @@ class NodeClient:
                     log.error("Received bytes instead of plain text from websocket")
                 else:
                     log.debug(f"Received message: {message}")
-                    if isinstance(message, str):
-                        await self.process_message(message)
+                    await self.process_message(message)
+
             except websockets.ConnectionClosed:
                 log.warning("Connection to the WebSocket server closed.")
                 break
 
-    async def process_message(self, message: str) -> None:
-        data: dict[str, Any] = json.loads(message)
-        command: Optional[str] = data.get("command")
-        r_node_id: Optional[int] = data.get("node_id")
-        log.debug(f"{r_node_id=}, {self.node_id=}")
-
-        if str(r_node_id) == str(self.node_id):
-            if command == "update_gpus":
+    async def process_message(self, message: str | bytearray | memoryview) -> None:
+        if isinstance(message, str):
+            msg = parse_message(message)
+            if msg is None:
+                return
+            if msg.node_id != self.node_id:
+                log.debug("Command not for this node.")
+                return
+            if msg.command == "update_gpus":
                 log.info("Updating GPUs")
                 await self.execute_update_gpus()
-            elif command == "run_job":
+            elif msg.command == "run_job":
+                if msg.job_id is None:
+                    log.error("No job_id in message")
+                    return
                 log.info("Running job")
-                self.job_manager: JobManager = JobManager(self.node_id, self.api)
-                await self.job_manager.run_job(data["job_id"])
+                JobRunner(self.node_id, self.api, msg.job_id)
             else:
-                log.error(f"Unknown command: {command}")
-        elif command is not None:
-            log.debug(
-                f"Command not for this node: {command=}, {r_node_id=} != {self.node_id=}"
-            )
+                log.error(f"Unknown command: {msg.command}")
 
     async def execute_update_gpus(self) -> None:
         if self.gpm and len(self.gpm.gpus) > 0:

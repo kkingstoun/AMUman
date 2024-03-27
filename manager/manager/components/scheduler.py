@@ -6,6 +6,7 @@ from schedule import Scheduler
 
 log = logging.getLogger("rich")
 
+
 class RepeatTimer(threading.Timer):
     running: bool = False
 
@@ -18,7 +19,7 @@ class RepeatTimer(threading.Timer):
             super().start()
             self.running = True
         else:
-            print("Timer is already running, cannot be started again.")
+            log.debug("Timer is already running, cannot be started again.")
 
     def cancel(self) -> None:
         """Protect from running stop method multiple times"""
@@ -26,7 +27,7 @@ class RepeatTimer(threading.Timer):
             super().cancel()
             self.running = False
         else:
-            print("Timer is already canceled, cannot be canceled again.")
+            log.debug("Timer is already canceled, cannot be canceled again.")
 
     def run(self):
         """Replace run method of timer to run continuously"""
@@ -51,7 +52,7 @@ class ThreadedScheduler(Scheduler):
         self.__initialized = True
         super().__init__()
         self.interval = run_pending_interval
-        self._stop_event = threading.Event() 
+        self._stop_event = threading.Event()
         self.thread = None
 
     def run_continuously(self):
@@ -73,7 +74,7 @@ class ThreadedScheduler(Scheduler):
         self._stop_event.set()
         if self.thread is not None:
             self.thread.join()
-            self.thread=None
+            self.thread = None
 
     @classmethod
     def get_instance(cls, *args, **kwargs):

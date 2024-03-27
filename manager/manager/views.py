@@ -1,16 +1,15 @@
-# Create your views here.
 import logging
 import time
 from typing import ClassVar
 from venv import logger
 
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+
+from manager.components.ws_messages import WebsocketMessage, send_message
 
 from .components.run_job import run_job
 from .models import CustomUser, Gpu, Job, Node
@@ -77,7 +76,6 @@ class JobsViewSet(viewsets.ModelViewSet):
             )
 
     def update(self, request, *args, **kwargs):
-        print(request.data)
         return super().update(request, *args, **kwargs)
 
     @action(detail=True, methods=["post"])
@@ -159,29 +157,14 @@ class NodesViewSet(viewsets.ModelViewSet):
         url_path="refresh",
         serializer_class=RefreshNodeSerializer,
     )
-    def refreshnode(self, request):
+    def refresh_node(self, request):
         node_id = request.data.get("node_id", None)
-        channel_layer = get_channel_layer()
-        if channel_layer:
-            if node_id:
-                async_to_sync(channel_layer.group_send)(
-                    "nodes_group",
-                    {
-                        "type": "node.command",
-                        "command": "update_gpus",
-                        "node_id": node_id,
-                    },
-                )
-            else:
-                # Send command to all nodes
-                async_to_sync(channel_layer.group_send)(
-                    "nodes_group",
-                    {
-                        "type": "node.command",
-                        "command": "update_gpus",
-                        "node_id": None,
-                    },
-                )
+        send_message(
+            WebsocketMessage(
+                command="update_gpus",
+                node_id=node_id,
+            )
+        )
         time.sleep(3)
         return Response({"status": "Command sent"}, status=status.HTTP_200_OK)
 

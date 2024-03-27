@@ -1,3 +1,4 @@
+import logging
 import random
 from datetime import timedelta
 
@@ -6,6 +7,8 @@ from django.core.exceptions import MiddlewareNotUsed
 from django.utils import timezone
 
 from manager.models import Job
+
+log = logging.getLogger("rich")
 
 
 class GenerateRandomJobsMiddleware:
@@ -56,7 +59,7 @@ class GenerateRandomJobsMiddleware:
                     flags="Random flags" if random.choice([True, False]) else None,
                 )
                 job.save()
-            print("Successfully generated 10 random job entries")
+            log.debug("Successfully generated 10 random job entries")
 
     def __call__(self, request):
         response = self.get_response(request)

@@ -1,6 +1,5 @@
 import logging
 import os
-from dataclasses import asdict
 from typing import Any, Dict
 
 import requests
@@ -63,11 +62,10 @@ class API:
         return res
 
     def update_job(self, job: Job) -> requests.Response:
-        data = asdict(job)
         res = requests.put(
-            self.url + f"/jobs/{id}/",
+            self.url + f"/jobs/{job.id}/",
             headers=self.headers,
-            json=data,
+            json=job.asdict(),
         )
         return res
 

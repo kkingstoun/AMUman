@@ -16,7 +16,7 @@ def get_user_from_token(token):
         user = auth.get_user(validated_token)
         return user
     except Exception as e:
-        print(f"Exception in get_user_from_token: {e}")
+        log.debug(f"Exception in get_user_from_token: {e}")
         return AnonymousUser()
 
 

@@ -63,7 +63,7 @@ class GPU:
             log.error(f"Unexpected error for GPU {self.device_id}: {e}")
         return ""
 
-    def get_gpu_load_status(self, threshold: int = 30) -> str:
+    def get_gpu_load_status(self, threshold: int = 90) -> str:
         if self.gpu_util < threshold and self.mem_util < threshold:
             status = "PENDING"
         else:
