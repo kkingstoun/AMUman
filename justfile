@@ -61,6 +61,8 @@ kill-staging:
     podman rm -f amuman-node-staging
 
 prod version="0.0.7":
+    podman network create --ignore amuman-prod
+
     podman run -d --replace --tz local --pull newer \
         --name amuman-frontend-prod \
         --network amuman-prod \
@@ -71,6 +73,7 @@ prod version="0.0.7":
         --network amuman-prod \
         docker.io/redis:7.2.4-alpine3.19
 
+    mkdir -p ./prod
     podman run -d --replace --tz local --pull newer \
         --name amuman-manager-prod \
         --network amuman-prod \
@@ -84,7 +87,7 @@ prod version="0.0.7":
         ghcr.io/kkingstoun/amuman/manager:{{version}}
 
     mkdir -p ./proxy
-    curl -Ls https://raw.githubusercontent.com/kkingstoun/AMUman/v{{version}}/proxy/nginx.conf -o ./proxy/nginx.conf
+    curl -Ls https://raw.githubusercontent.com/kkingstoun/AMUman/v{{version}}/proxy/nginx-prod.conf -o ./proxy/nginx.conf
     podman run -d --replace --tz local --pull newer \
         --name amuman-proxy-prod \
         --network amuman-prod \
