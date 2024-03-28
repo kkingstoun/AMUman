@@ -84,7 +84,7 @@ def init_config(config_path: Path) -> Config:
     )
     shared_dir_root: str = Prompt.ask(
         "[bold green]Full path to the shared storage. [/bold green]",
-        default="/mnt/smb",
+        default="/shared",
     )
     refresh_token: str
     while True:

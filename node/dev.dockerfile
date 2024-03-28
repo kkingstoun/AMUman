@@ -17,6 +17,6 @@ RUN curl -Ls https://github.com/MathieuMoalic/amumax/releases/download/${AMUMAX_
 WORKDIR /app
 COPY pyproject.toml .
 RUN pip install . && pip uninstall -y amuman-node
-ENV SMB_MOUNT_POINT=/mnt/smb
+ENV SMB_MOUNT_POINT=/shared
 COPY ./dev.entrypoint.sh /dev.entrypoint.sh
 ENTRYPOINT ["/dev.entrypoint.sh"]

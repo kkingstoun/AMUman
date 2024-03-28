@@ -11,6 +11,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app/manager
 COPY requirements.txt .
 RUN pip install -r requirements.txt
-ENV SMB_MOUNT_POINT=/mnt/smb
+ENV SMB_MOUNT_POINT=/shared
 COPY ./dev.entrypoint.sh /dev.entrypoint.sh
 ENTRYPOINT ["/dev.entrypoint.sh"]

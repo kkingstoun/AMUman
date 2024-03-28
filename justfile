@@ -28,14 +28,14 @@ manager:
         --name amuman-manager-staging \
         --network amuman-staging \
         -v ./staging:/manager \
-        -v ./mock_nas:/mnt/smb \
+        -v ./mock_nas:/shared \
         -e SECRET_KEY=$SECRET_KEY \
         -e DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL \
         -e DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME \
         -e DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD \
         -e DOMAIN=$DOMAIN \
         -e REDIS_HOST=amuman-redis-staging \
-        -e SHARED_FOLDER=/mnt/smb  \
+        -e SHARED_FOLDER=/shared  \
         amuman-manager-staging
 
 node:
@@ -60,7 +60,7 @@ kill-staging:
     podman rm -f amuman-manager-staging
     podman rm -f amuman-node-staging
 
-prod version="0.0.7":
+prod version="0.0.9":
     podman network create --ignore amuman-prod
 
     podman run -d --replace --tz local --pull newer \

@@ -4,7 +4,7 @@ from pathlib import Path
 
 log = logging.getLogger("rich")
 
-SHARED_FOLDER = Path(os.environ.get("SHARED_FOLDER", "/mnt/smb"))
+SHARED_FOLDER = Path(os.environ.get("SHARED_FOLDER", "/shared"))
 
 
 def validate_mx3_file(path_str: str) -> bool:

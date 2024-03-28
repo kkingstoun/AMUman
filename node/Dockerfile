@@ -20,6 +20,6 @@ RUN pip install .
 
 COPY . .
 RUN pip install .
-ENV SMB_MOUNT_POINT=/mnt/smb
+ENV SMB_MOUNT_POINT=/shared
 
 CMD amuman-node

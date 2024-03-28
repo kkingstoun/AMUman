@@ -5,6 +5,6 @@ dev cmd="None":
 		--name amuman-cli \
 		--network amuman-dev \
 		-v ./..:/app \
-		-v ./../mock_nas:/mnt/smb \
+		-v ./../mock_nas:/shared \
 		-w /app/cli \
 		amuman-cli {{cmd}}

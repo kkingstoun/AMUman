@@ -10,7 +10,7 @@ from .job import Job, JobStatus
 
 log = logging.getLogger("rich")
 
-SHARED_FOLDER = Path(os.environ.get("SHARED_FOLDER", "/mnt/smb"))
+SHARED_FOLDER = Path(os.environ.get("SHARED_FOLDER", "/shared"))
 
 
 class JobRunner:
