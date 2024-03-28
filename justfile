@@ -28,12 +28,14 @@ manager:
         --name amuman-manager-staging \
         --network amuman-staging \
         -v ./staging:/manager \
+        -v ./mock_nas:/mnt/smb \
         -e SECRET_KEY=$SECRET_KEY \
         -e DJANGO_SUPERUSER_EMAIL=$DJANGO_SUPERUSER_EMAIL \
         -e DJANGO_SUPERUSER_USERNAME=$DJANGO_SUPERUSER_USERNAME \
         -e DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD \
         -e DOMAIN=$DOMAIN \
         -e REDIS_HOST=amuman-redis-staging \
+        -e SHARED_FOLDER=/mnt/smb  \
         amuman-manager-staging
 
 node:
@@ -42,9 +44,11 @@ node:
     podman run --rm -it --replace --tz local --pull newer \
         --name amuman-node-staging \
         --device=nvidia.com/gpu=all \
-        -v ./mock_nas:/mnt/smb \
+        -v ./mock_nas:/shared \
+        -v ./staging/node_config:/config \
         -e MANAGER_DOMAIN=$DOMAIN \
         -e NODE_NAME=staging-node-1  \
+        -e SHARED_FOLDER=/shared  \
         amuman-node-staging 
 
 staging: frontend redis manager proxy

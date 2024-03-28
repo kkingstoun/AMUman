@@ -22,4 +22,4 @@ COPY . .
 RUN pip install .
 ENV SMB_MOUNT_POINT=/mnt/smb
 
-ENTRYPOINT ["/app/entrypoint.sh"]
+CMD amuman-node

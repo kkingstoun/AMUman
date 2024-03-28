@@ -1,6 +1,8 @@
 import asyncio
 import logging
+import os
 from datetime import datetime
+from pathlib import Path
 
 from amuman_node.api import API
 
@@ -8,13 +10,16 @@ from .job import Job, JobStatus
 
 log = logging.getLogger("rich")
 
+SHARED_FOLDER = Path(os.environ.get("SHARED_FOLDER", "/mnt/smb"))
+
 
 class JobRunner:
-    def __init__(self, node_id: int, api: API, job_id: int) -> None:
+    def __init__(self, node_id: int, api: API, job_id: int, gpu_device_id: int) -> None:
         self.node_id: int = node_id
         self.api: API = api
         self.subprocess: asyncio.subprocess.Process
         self.job: Job = self.api.get_job(job_id)
+        self.gpu_device_id = gpu_device_id
         self.async_task = asyncio.create_task(self.run_subprocess())
 
         # TODO: Check if interrupted
@@ -22,7 +27,12 @@ class JobRunner:
         # job.status = "Finished"
 
     async def run_subprocess(self) -> None:
-        cmd: list[str] = ["amumax", "-gpu=1", "-magnets=false", self.job.path]
+        cmd: list[str] = [
+            "amumax",
+            f"-gpu={self.gpu_device_id}",
+            "-magnets=false",
+            str(SHARED_FOLDER / Path(self.job.path)),
+        ]
         log.debug(f"Starting subprocess for job ID: {self.job.id} with command: {cmd}")
 
         try:
@@ -62,14 +72,16 @@ class JobRunner:
             log.debug(f"AMUmax exited with status {self.job.status.name}.")
         self.job.end_time = datetime.now().isoformat()
         try:
-            res = self.api.update_job(self.job)
+            res = self.api.put_job(self.job)
+            if res.status_code not in [200, 201]:
+                log.error(
+                    f"Failed to update job ID: {self.job.id}. Status Code: {res.status_code}. Response: {res.json()}"
+                )
+                return
         except Exception as e:
             log.error(f"Failed to update job ID: {self.job.id}. Error: {e}")
             return
-        log.debug(
-            f"Job ID: {self.job.id}(completed) updated with status: {self.job.status.name}."
-        )
-        log.debug(f"Response: {res.json()}")
+        log.debug(f"Job ID: {self.job.id} updated with status: {self.job.status.name}.")
 
     async def _handle_error(self, error: Exception) -> None:
         error_message: str = ""
@@ -87,7 +99,7 @@ class JobRunner:
             log.error(error_message)
             self.job.status = JobStatus.INTERRUPTED
             self.job.error = error_message
-            res = self.api.update_job(self.job)
+            res = self.api.put_job(self.job)
             log.debug(
                 f"Job ID: {self.job.id}(error) updated with status: {self.job.status.name}. Response: {res.json()}"
             )
@@ -97,4 +109,4 @@ class JobRunner:
             log.debug(f"Stopping amumax for job ID: {self.job.id}")
             self.subprocess.terminate()
             self.job.status = JobStatus.INTERRUPTED
-            self.api.update_job(self.job)
+            self.api.put_job(self.job)

@@ -29,7 +29,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "username": validated_data.pop("username"),
             "password": validated_data.pop("password"),
             "email": validated_data.pop("email"),
-            "is_active": False,
+            "is_active": True,
         }
         # Check if username already exists
         if User.objects.filter(username=user_data["username"]).exists():

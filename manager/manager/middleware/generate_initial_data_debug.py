@@ -11,14 +11,12 @@ from manager.models import CustomUser, Job
 log = logging.getLogger("rich")
 
 
-class GenerateRandomJobsMiddleware:
+class Generate:
     def __init__(self, get_response):
         self.get_response = get_response
         self.generate_users()
         self.generate_random_jobs()
-        raise MiddlewareNotUsed(
-            "GenerateRandomJobsMiddleware is disabled after initial use."
-        )
+        raise MiddlewareNotUsed("Generate is disabled after initial use.")
 
     def generate_users(self):
         if not CustomUser.objects.exists():

@@ -117,9 +117,9 @@ MIDDLEWARE = [
     "manager.middleware.scheduler_middleware.SchedulerMiddleware",
 ]
 if DEBUG:
-    MIDDLEWARE.append(
-        "manager.middleware.generate_initial_data.GenerateRandomJobsMiddleware"
-    )
+    MIDDLEWARE.append("manager.middleware.generate_initial_data_debug.Generate")
+else:
+    MIDDLEWARE.append("manager.middleware.generate_initial_data_prod.Generate")
 
 
 ROOT_URLCONF = "amuman.urls"
