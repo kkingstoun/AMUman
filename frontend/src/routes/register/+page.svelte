@@ -5,9 +5,9 @@
 
 	import { goto } from '$app/navigation';
 
-	let username = 'admin';
-	let password = 'admin';
-	let password_confirm = 'admin';
+	let username = '';
+	let password = '';
+	let password_confirm = '';
 	let email = 'example@amu.edu.pl';
 
 	function handleRegister() {
@@ -44,7 +44,7 @@
 		api
 			.usersCreate(user)
 			.then(() => {
-				goto('/postregister');
+				goto('/login');
 			})
 			.catch((res) => {
 				// make a toast for all fields in res.error

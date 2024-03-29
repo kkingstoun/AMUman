@@ -2,7 +2,7 @@
 	import { Button } from 'flowbite-svelte';
 	import { handleLogin } from '$api/Auth';
 	import { username } from '$stores/Auth';
-	let password = 'admin';
+	let password = '';
 </script>
 
 <main
