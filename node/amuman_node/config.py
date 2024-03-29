@@ -10,7 +10,7 @@ log = logging.getLogger("rich")
 class Config:
     def __init__(self):
         self.name: str
-        self.password: str
+        self.password: str | None = None
         self.manager_domain: str
         self.read_config()
 
@@ -29,7 +29,12 @@ class Config:
         self.name = os.getenv("NODE_NAME", os.getenv("HOST", str(int(1e12))))
         if self.password is None:
             self.password = str(random.randint(0, int(1e12)))
-        self.manager_domain: str = os.getenv("MANAGER_DOMAIN", "localhost")
+        if "MANAGER_DOMAIN" in os.environ:
+            self.manager_domain: str = os.environ["MANAGER_DOMAIN"]
+        else:
+            log.error("MANAGER_DOMAIN not set")
+            raise Exception("MANAGER_DOMAIN not set")
+
         self.write_config()
         log.debug(f"Config: {self.name=}, {self.password=}, {self.manager_domain=}")
 
