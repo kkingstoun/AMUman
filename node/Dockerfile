@@ -4,7 +4,8 @@ ARG DEBIAN_FRONTEND="noninteractive"
 ARG AMUMAX_VER=2024.02.21
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    git && \
+    git \
+    cifs-utils && \
     pip install --upgrade pip && \
     pip install debugpy
 
@@ -22,4 +23,4 @@ COPY . .
 RUN pip install .
 ENV SMB_MOUNT_POINT=/shared
 
-CMD amuman-node
+CMD mount --mkdir -t cifs -o username="$SMB_USER",password="$SMB_PASSWORD",uid=1000,gid=1000 "$SMB_URL" "$SMB_MOUNT_POINT" && amuman-node
