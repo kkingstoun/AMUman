@@ -21,12 +21,13 @@ if [ -z "$DOMAIN" ]; then
     exit 1
 fi
 
-# if /manager/db.sqlite3 does not exist, init the database
-if [ ! -f /manager/db.sqlite3 ]; then
+# if /config/db.sqlite3 does not exist, init the database
+if [ ! -f /config/db.sqlite3 ]; then
   ./manage.py migrate
   ./manage.py createsuperuser --noinput
 else
   ./manage.py migrate
 fi
+./manage.py collectstatic --noinput
 
 ./manage.py runserver 0.0.0.0:8000

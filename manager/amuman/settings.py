@@ -9,7 +9,7 @@ SECRET_KEY = os.environ.get(
 )
 REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
 REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent  # /app in prod
 # we need ALLOWED_HOSTS to be * even in prod because we are using a reverse proxy
 ALLOWED_HOSTS = ["*"]
 if DEBUG:
@@ -18,17 +18,17 @@ if DEBUG:
     DB_PATH = BASE_DIR / "amuman_manager.sqlite3"
 else:
     LOGLEVEL = "DEBUG"
-    DB_PATH = Path("/manager/db.sqlite3")
-    SESSION_COOKIE_SECURE = True
-    SECURE_SSL_REDIRECT = True
+    DB_PATH = Path("/config/db.sqlite3")
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SECURE_HSTS_SECONDS = 3600
-    CSRF_COOKIE_SECURE = True
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
     CORS_ALLOW_ALL_ORIGINS = False
+    CSRF_COOKIE_SECURE = True
+    CSRF_TRUSTED_ORIGINS = [f"https://{DOMAIN}"]
+    SECURE_SSL_REDIRECT = False  # setting this to true breaks the admin panel
 
-CSRF_TRUSTED_ORIGINS = [f"https://{DOMAIN}"]
 
 LOGGING = {
     "version": 1,
@@ -86,10 +86,7 @@ CONSTANCE_CONFIG = {
 
 # Needed for the admin panel
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "manager/static"),
-]
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_ROOT = "/static"
 
 
 CHANNEL_LAYERS = {
