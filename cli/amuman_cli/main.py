@@ -147,6 +147,8 @@ def sanitize_path(path: Path, shared_dir_root: Path) -> Optional[Path]:
     shared_dir_root = shared_dir_root.resolve()
     if shared_dir_root in path.parents:
         if path.suffix == ".mx3":
+            # remove the shared directory root from the path
+            path = path.relative_to(shared_dir_root)
             return path
         else:
             print(f"[bold red] \u274C {path}: the path does not end in `.mx3`.")
