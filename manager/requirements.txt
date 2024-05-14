@@ -8,7 +8,7 @@ django-rest-swagger==2.2.0
 drf-yasg==1.21.7
 redis==5.0.3
 django-redis==5.4.0
-channels==4.0.0
+channels==4.1.0
 schedule==1.2.1
 tzdata==2024.1
 channels-redis==4.2.0
