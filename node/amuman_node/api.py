@@ -14,7 +14,7 @@ Data = Dict[str, Any]
 class API:
     def __init__(self, config: Config):
         self.config = config
-        self.url = f"https://{config.manager_domain}/api"
+        self.url = f"http://{config.manager_domain}/api"
         log.debug(f"API URL: {self.url}")
         self.access_token = None
         self.refresh_token = None

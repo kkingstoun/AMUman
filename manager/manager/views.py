@@ -16,6 +16,7 @@ from .components.run_job import run_job
 from .models import CustomUser, Gpu, Job, Node
 from .serializers import (
     CustomUserSerializer,
+    BenchNodeSerializer,
     GpuSerializer,
     JobSerializer,
     NodeSerializer,
@@ -180,6 +181,23 @@ class NodesViewSet(viewsets.ModelViewSet):
         send_message(
             WebsocketMessage(
                 command="update_gpus",
+                node_id=node_id,
+            )
+        )
+        time.sleep(3)
+        return Response({"status": "Command sent"}, status=status.HTTP_200_OK)
+    
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="bench",
+        serializer_class=BenchNodeSerializer,
+    )
+    def bench_node(self, request):
+        node_id = request.data.get("node_id", None)
+        send_message(
+            WebsocketMessage(
+                command="bench_gpus",
                 node_id=node_id,
             )
         )

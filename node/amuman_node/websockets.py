@@ -105,6 +105,12 @@ class Websockets:
             if msg.command == "update_gpus":
                 log.info("Updating GPUs")
                 await self.execute_update_gpus()
+            
+            #!    
+            elif msg.command == "bench_gpus": #
+                await self.execute_bench_gpus()
+            #!  
+            
             elif msg.command == "run_job":
                 if msg.job_id is None:
                     log.error("No job_id in message")
@@ -118,6 +124,17 @@ class Websockets:
                 log.error(f"Unknown command: {msg.command}")
         else:
             log.error("Received message is not a string")
+
+    #!
+    async def execute_bench_gpus(self) -> None:
+        if self.gpm:
+            for gpu in self.gpm.gpus:
+                  log.info(f"Running bench gpu for: {gpu.device_id}")
+                  benchmark_res = gpu.amumax_run()
+                  log.info(f"Result: {benchmark_res}. Time: {gpu.speed}")
+                  
+
+    #!
 
     async def execute_update_gpus(self) -> None:
         if self.gpm and len(self.gpm.gpus) > 0:

@@ -1,4 +1,7 @@
+import json
 import logging
+import os
+import string
 import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -91,6 +94,7 @@ class GPU:
         model = self.query_nvidia_smi("--query-gpu=gpu_name")
         log.debug(f"GPU {self.device_id} model: {model}")
         return model
+    
 
     def get_gpu_performance_category(self) -> str:
         gpu_performance = {
@@ -110,7 +114,7 @@ class GPU:
             "NVIDIA GeForce GTX 1660": "NORMAL",
             "NVIDIA GeForce GTX 1660 SUPER": "NORMAL",
             "NVIDIA GeForce GTX 1660 Ti": "NORMAL",
-            "NVIDIA GeForce RTX 2060": "NORMAL",
+            "NVIDIA GeForce RTX 2060": "FAST",
             "NVIDIA GeForce RTX 2060 SUPER": "NORMAL",
             "NVIDIA GeForce RTX 2070": "NORMAL",
             "NVIDIA GeForce RTX 2070 SUPER": "FAST",
@@ -128,6 +132,7 @@ class GPU:
             "NVIDIA GeForce RTX 4070": "FAST",
             "NVIDIA GeForce RTX 4070 Ti": "FAST",
             "NVIDIA GeForce RTX 4080": "FAST",
+            "NVIDIA GeForce RTX 4080 SUPER": "FAST",
             "NVIDIA GeForce RTX 4090": "FAST",
             # Dodaj tutaj dodatkowe modele zgodnie z potrzebą.
         }
@@ -139,7 +144,42 @@ class GPU:
         uuid = raw_uuid.replace("GPU-", "").strip()
         log.debug(f"GPU {self.device_id} UUID: {uuid}")
         return uuid
-
+    
+    #!
+    def amumax_run(self) -> float:
+        self.command = ["amumax", "-magnets=0", "/app/node/amuman_node/bench.mx3"];
+        try:
+            result = subprocess.run(self.command, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, text=False)  
+            #output = result.stdout
+            log.debug(f"Amumax benchmark: {result} ")
+            return self.read_zattrs('/app/node/amuman_node/bench.zarr')
+           
+        except subprocess.CalledProcessError as e:
+            log.error(f"Failed to run amumax benchmark: {e}")
+            raise e
+            
+    def read_zattrs(self, path_zarr) -> string:
+        path_zattrs = os.path.join(path_zarr, '.zattrs')
+        if os.path.exists(path_zattrs):
+            try:
+                with open(self.path_zattrs, 'r') as file:
+                    data_zattrs = json.load(file)
+                    total_time = float((data_zattrs['total_time'])[:-1])
+                    self.speed = self.switch(total_time)
+                    return(self.speed)
+                    #print(result)
+            except ValueError:
+                log.error("Decoding JSON file has failed")    
+                
+    def switch(self, time):
+        if time < 30:
+            return "FAST"
+        elif 30 <= time < 60:
+            return "STANDARD"        
+        elif time >= 60:
+            return "SLOW"               
+    
+    #!
     def to_json(self):
         data = {
             "device_id": self.device_id,

@@ -1,15 +1,16 @@
 dev cmd="bash":
-	podman network create --ignore amuman-dev
-	podman build . -f dev.dockerfile -t amuman-node-dev
-	podman run --rm -it --replace --tz local --pull newer \
-		--name amuman-node-dev \
-		--network amuman-dev \
-		-v ./..:/app \
-		-v ./../mock_nas:/shared \
-		-w /app/node \
-		--device=nvidia.com/gpu=all \
-		-p 5679:5679 \
-		-e MANAGER_URL=http://amuman-manager-dev:8000 \
-		-e NODE_NAME=admin  \
-		-e NODE_PASSWORD=admin  \
-		amuman-node-dev {{cmd}}
+    podman network create --ignore amuman-dev
+    podman build . -f dev.dockerfile -t amuman-node-dev
+    podman run --rm -it --replace --tz local --pull newer \
+        --name amuman-node-dev \
+        --network amuman-dev \
+        -v $(pwd)/..:/app \
+        -v $(pwd)/../mock_nas:/shared \
+        -v ./config.json:/config/config.json \
+        -w /app/node \
+        --device=nvidia.com/gpu=all \
+        -p 5679:5679 \
+        -e MANAGER_URL=http://amuman-manager-dev:8000 \
+        -e NODE_NAME=admin  \
+        -e NODE_PASSWORD=admin  \
+        amuman-node-dev {{cmd}}

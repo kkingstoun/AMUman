@@ -1,0 +1,5 @@
+{
+    "name":"admin",
+    "password":"admin",
+    "manager_domain":"amuman-manager-dev:8000"
+}
