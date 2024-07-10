@@ -79,6 +79,7 @@ class NodeClient:
                 log.debug(f"Node registered: {self.node_id=}")
                 self.gpm = GPUMonitor(self.node_id, self.api)
                 if response.status_code == 200:
+                    self.gpm.api_post("bench")
                     self.gpm.api_post("update")
                 elif response.status_code == 201:
                     self.gpm.api_post("assign")

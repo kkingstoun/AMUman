@@ -56,6 +56,7 @@ class Gpu(models.Model):
         choices=[(choice.name, choice.value) for choice in GPUSpeed],
         default=GPUSpeed.NORMAL.name,
     )
+    speed_score = models.FloatField()
     util = models.PositiveSmallIntegerField()
     is_running_amumax = models.BooleanField(default=False)
     status = models.CharField(

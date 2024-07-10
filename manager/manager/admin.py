@@ -23,6 +23,7 @@ class GpusAdmin(admin.ModelAdmin):
         "uuid",
         "get_node_display",
         "model",
+        "speed_score",
         "get_speed_display",
         "util",
         "is_running_amumax",

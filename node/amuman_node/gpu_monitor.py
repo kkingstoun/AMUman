@@ -28,6 +28,7 @@ class GPU:
         default_factory=lambda: datetime.now()
     )  # Use default_factory
     speed: str = field(default="NORMAL")  # Add speed field
+    speed_score: str = field(default=0.0)  
 
     # Do we want it to run when the GPU class is created?
     def __post_init__(self) -> None:
@@ -40,9 +41,14 @@ class GPU:
         self.gpu_util = self.get_gpu_util()
         self.mem_util = self.get_mem_util()
         self.status = self.get_gpu_load_status()
-        self.speed = self.get_gpu_performance_category()
+        # self.speed = self.get_gpu_performance_category()
         self.is_running_amumax = self.check_is_amumax_running()
         self.refresh_time = datetime.now()
+        
+    def bench_speed(self) -> None:
+        log.info(f"Benching GPUs")
+        self.amumax_run()
+  
 
     def query_nvidia_smi(self, query: str) -> str:
         try:
@@ -145,12 +151,10 @@ class GPU:
         log.debug(f"GPU {self.device_id} UUID: {uuid}")
         return uuid
     
-    #!
     def amumax_run(self) -> float:
         self.command = ["amumax", "-magnets=0", "/app/node/amuman_node/bench.mx3"];
         try:
             result = subprocess.run(self.command, check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, text=False)  
-            #output = result.stdout
             log.debug(f"Amumax benchmark: {result} ")
             return self.read_zattrs('/app/node/amuman_node/bench.zarr')
            
@@ -162,12 +166,12 @@ class GPU:
         path_zattrs = os.path.join(path_zarr, '.zattrs')
         if os.path.exists(path_zattrs):
             try:
-                with open(self.path_zattrs, 'r') as file:
+                with open(path_zattrs, 'r') as file:
                     data_zattrs = json.load(file)
                     total_time = float((data_zattrs['total_time'])[:-1])
+                    self.speed_score = total_time
                     self.speed = self.switch(total_time)
                     return(self.speed)
-                    #print(result)
             except ValueError:
                 log.error("Decoding JSON file has failed")    
                 
@@ -179,7 +183,6 @@ class GPU:
         elif time >= 60:
             return "SLOW"               
     
-    #!
     def to_json(self):
         data = {
             "device_id": self.device_id,
@@ -190,6 +193,7 @@ class GPU:
             "is_running_amumax": self.is_running_amumax,
             "status": self.status,
             "speed": self.speed,
+            "speed_score": self.speed_score,
             "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         }
         return data
@@ -218,8 +222,11 @@ class GPUMonitor:
         for gpu in self.gpus:
             if action == "update":
                 gpu.update_status()
+            elif action == "bench":
+                gpu.bench_speed()
             try:
                 data = gpu.to_json()
+                print(data)
                 response = self.api.post_gpu(data)
                 if response.status_code in [200, 201]:
                     log.info(
