@@ -6,12 +6,9 @@ from typing import Dict, Optional
 
 log = logging.getLogger("rich")
 
-
 class JobPriority(Enum):
-    LOW = "LOW"
+    URGENT = "URGENT"
     NORMAL = "NORMAL"
-    HIGH = "HIGH"
-
 
 class JobStatus(Enum):
     PENDING = "PENDING"

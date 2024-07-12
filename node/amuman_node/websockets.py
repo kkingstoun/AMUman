@@ -31,7 +31,7 @@ def parse_message(message: str) -> Union[WebsocketMessage, None]:
 
 
 class Websockets:
-    def __init__(self, api: API, node_id: int, node_name: str, gpm) -> None:
+    def __init__(self, api: API, node_id: int, node_name: str, gpm: GPUMonitor) -> None:
         self.api: API = api
         self.node_name: str = node_name
         self.node_id: int = node_id
@@ -117,7 +117,7 @@ class Websockets:
                     log.error("No gpu_device_id in message")
                     return
                 log.info("Running job")
-                JobRunner(self.node_id, self.api, msg.job_id, msg.gpu_device_id)
+                JobRunner(self.node_id, self.api, msg.job_id, msg.gpu_device_id, self.gpm)
             else:
                 log.error(f"Unknown command: {msg.command}")
         else:

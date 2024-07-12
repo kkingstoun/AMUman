@@ -73,12 +73,15 @@ class GPU:
         return ""
 
     def get_gpu_load_status(self, threshold: int = 90) -> str:
-        if self.gpu_util < threshold and self.mem_util < threshold:
-            status = "PENDING"
-        else:
-            status = "UNAVAILABLE"
-        log.debug(f"GPU {self.device_id} status: {status}")
-        return status
+        if self.check_is_amumax_running() == True:
+            return "RUNNING"
+        else:    
+            if self.gpu_util < threshold and self.mem_util < threshold:
+                status = "PENDING"
+            else:
+                status = "UNAVAILABLE"
+            log.debug(f"GPU {self.device_id} status: {status}")
+            return status
 
     def get_gpu_util(self) -> int:
         gpu_util = int(self.query_nvidia_smi("--query-gpu=utilization.gpu"))

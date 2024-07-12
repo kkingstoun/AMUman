@@ -7,6 +7,7 @@ from pathlib import Path
 from amuman_node.api import API
 
 from .job import Job, JobStatus
+from amuman_node.gpu_monitor import GPUMonitor
 
 log = logging.getLogger("rich")
 
@@ -14,13 +15,14 @@ SHARED_FOLDER = Path(os.environ.get("SHARED_FOLDER", "/shared"))
 
 
 class JobRunner:
-    def __init__(self, node_id: int, api: API, job_id: int, gpu_device_id: int) -> None:
+    def __init__(self, node_id: int, api: API, job_id: int, gpu_device_id: int, gpm: GPUMonitor) -> None:
         self.node_id: int = node_id
         self.api: API = api
         self.subprocess: asyncio.subprocess.Process
         self.job: Job = self.api.get_job(job_id)
         self.gpu_device_id = gpu_device_id
         self.async_task = asyncio.create_task(self.run_subprocess())
+        self.gpm: GPUMonitor = gpm
 
         # TODO: Check if interrupted
         # job.end_time = datetime.now().isoformat()
@@ -66,6 +68,7 @@ class JobRunner:
     async def _handle_completion(self) -> None:
         if self.subprocess.returncode == 0:
             self.job.status = JobStatus.FINISHED
+            self.gpm.api_post("update")
         else:
             self.job.status = JobStatus.INTERRUPTED
             self.job.error_time = datetime.now().isoformat()

@@ -84,9 +84,9 @@ class CustomUser(models.Model):
 
 class Job(models.Model):
     class JobPriority(Enum):
-        LOW = "LOW"
+        URGENT = "URGENT"
         NORMAL = "NORMAL"
-        HIGH = "HIGH"
+ 
 
     class JobStatus(Enum):
         PENDING = "PENDING"
