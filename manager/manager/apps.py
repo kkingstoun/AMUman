@@ -1,4 +1,6 @@
+
 from django.apps import AppConfig
+
 
 
 class ManagerConfig(AppConfig):
@@ -6,4 +8,5 @@ class ManagerConfig(AppConfig):
     name = "manager"
 
     def ready(self):
-        import manager.signals
+
+        pass

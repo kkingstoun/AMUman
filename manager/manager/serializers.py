@@ -81,6 +81,8 @@ class JobSerializer(serializers.ModelSerializer):
 class RefreshNodeSerializer(serializers.Serializer):
     node_id = serializers.IntegerField(required=False)
 
+class BenchNodeSerializer(serializers.Serializer):
+    node_id = serializers.IntegerField(required=False)
 
 class GpuSerializer(serializers.ModelSerializer):
     node = serializers.PrimaryKeyRelatedField(

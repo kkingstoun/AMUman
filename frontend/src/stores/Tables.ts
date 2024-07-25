@@ -104,6 +104,7 @@ export const headers = writable<KeyLists>({
         'gpu',
         'user',
         'username',
+        'run_attempts',
     ],
     gpus: [
         'id',

@@ -4,7 +4,8 @@ from typing import Tuple
 from rest_framework.response import Response
 
 from manager.components.ws_messages import WebsocketMessage, send_message
-from manager.models import Gpu, Job
+from manager.models import Gpu, Job, Node
+from django.utils import timezone
 
 log = logging.getLogger("rich")
 
@@ -23,8 +24,23 @@ def run_job(job: Job, gpu: Gpu | None = None) -> Response:
     if gpu.node.connection_status == "CONNECTED":
         job.node = gpu.node
         job.gpu = gpu
+
+        job.status = Job.JobStatus.RUNNING.value
+        job.start_time = timezone.now()
         job.save()
+
         if send_run_command(job):
+            gpu.status = Gpu.GPUStatus.RUNNING.value
+            gpu.node.status = Node.NodeStatus.RESERVED.value
+            node = Node.objects.filter(
+                ip = gpu.node.ip
+            ).first()
+            node.status = Node.NodeStatus.RESERVED.value
+            #log.debug("!!!!! status node: ", gpu.node.status, "job:",job.node.id )
+            gpu.last_update = job.start_time
+
+            gpu.save()
+            node.save()
             return Response(
                 {
                     "message": f"Job {job.pk} has been scheduled to run on GPU {gpu.device_id}."

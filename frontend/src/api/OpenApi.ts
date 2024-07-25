@@ -382,9 +382,8 @@ export interface PatchedJob {
  * * `HIGH` - HIGH
  */
 export enum PriorityEnum {
-	LOW = 'LOW',
 	NORMAL = 'NORMAL',
-	HIGH = 'HIGH'
+	URGENT = 'URGENT'
 }
 
 export interface RefreshNode {

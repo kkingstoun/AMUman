@@ -46,7 +46,7 @@ class ThreadedScheduler(Scheduler):
                 cls._instance.__initialized = False
         return cls._instance
 
-    def __init__(self, run_pending_interval=1.0):
+    def __init__(self, run_pending_interval=9.5):
         if self.__initialized:
             return
         self.__initialized = True
@@ -58,6 +58,7 @@ class ThreadedScheduler(Scheduler):
     def run_continuously(self):
         while not self._stop_event.is_set():
             self.run_pending()
+            #log.debug(f"Scheduler is running, {self.get_jobs()}")
             log.debug("Scheduler is running")
             time.sleep(self.interval)
 

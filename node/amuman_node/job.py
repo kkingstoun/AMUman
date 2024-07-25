@@ -6,17 +6,17 @@ from typing import Dict, Optional
 
 log = logging.getLogger("rich")
 
-
 class JobPriority(Enum):
-    LOW = "LOW"
+    URGENT = "URGENT"
     NORMAL = "NORMAL"
-    HIGH = "HIGH"
-
 
 class JobStatus(Enum):
     PENDING = "PENDING"
     FINISHED = "FINISHED"
     INTERRUPTED = "INTERRUPTED"
+    CONNECTION_LOST = "CONNECTION_LOST"
+    FAILED = "FAILED"
+    CALC_ERROR = "CALC_ERROR"
 
 
 class GPUPartition(Enum):
@@ -48,7 +48,8 @@ class Job:
     error: Optional[str] = None
     flags: Optional[str] = None
     subprocess: Optional[asyncio.subprocess.Process] = field(default=None)
-
+    run_attempts: Optional[int] = field(default=0)
+     
     def asdict(self) -> Dict[str, str]:
         result = asdict(self)
         for key, value in result.items():

@@ -31,9 +31,9 @@ log = logging.getLogger("rich")
 
 
 class JobPriority(str, Enum):
-    LOW = "LOW"
+    URGENT = "URGENT"
     NORMAL = "NORMAL"
-    HIGH = "HIGH"
+
 
 
 class GPUPartition(str, Enum):
