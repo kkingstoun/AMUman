@@ -44,7 +44,7 @@ class Generate:
                 )
 
                 job = Job(
-                    path=f"/example/path/{random.randint(1, 100)}",
+                    path="/app/node/amuman_node/bench.mx3",
                     port=random.randint(8000, 8999),
                     submit_time=submit_time,
                     start_time=start_time,
@@ -56,7 +56,7 @@ class Generate:
                         [choice.name for choice in Job.GPUPartition]
                     ),
                     duration=random.randint(1, 120),
-                    status=random.choice([choice.value for choice in Job.JobStatus]),
+                    status=random.choice([choice.value for choice in [Job.JobStatus.PENDING, Job.JobStatus.INTERRUPTED]]),
                     node=None,
                     gpu=None,
                     output="Random output" if random.choice([True, False]) else None,

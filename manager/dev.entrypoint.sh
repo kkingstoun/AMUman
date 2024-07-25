@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Running the manager"
-rm -rfd *.sqlite3
+#rm -rfd *.sqlite3
 find . -type d -name "__pycache__" -exec rm -rdf {} +
 find . -type d -name "migrations" -exec rm -rdf {} +
 redis-server /etc/redis/redis.conf

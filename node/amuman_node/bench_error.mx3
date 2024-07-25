@@ -1,0 +1,13 @@
+Nx = 64
+Ny = 64
+Nz = 1
+dx = 4e-9
+dy = 4e-9
+dz = 4e-9
+Msat = 1e6
+Aex = 10e-12
+alpha = 1
+m = RandomMag()
+run(-1)
+setgeom( a.sub(b) )
+

@@ -3,6 +3,7 @@ import time
 from typing import ClassVar
 from venv import logger
 
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
@@ -15,8 +16,8 @@ from manager.components.ws_messages import WebsocketMessage, send_message
 from .components.run_job import run_job
 from .models import CustomUser, Gpu, Job, Node
 from .serializers import (
-    CustomUserSerializer,
     BenchNodeSerializer,
+    CustomUserSerializer,
     GpuSerializer,
     JobSerializer,
     NodeSerializer,
@@ -68,6 +69,7 @@ class JobsViewSet(viewsets.ModelViewSet):
         modified_data = request.data.copy()
         modified_data["username"] = custom_user.auth.username
         modified_data["user"] = custom_user.pk
+        modified_data["submit_time"] = timezone.now()
         log.debug(f"Modified data: {modified_data}")
         # Now, proceed with serialization and saving as before
         serializer = self.get_serializer(data=modified_data)
@@ -120,7 +122,7 @@ class JobsViewSet(viewsets.ModelViewSet):
 
 
 class GpusViewSet(viewsets.ModelViewSet):
-    http_method_names = ["get", "post", "delete"]
+    http_method_names = ["get", "post", "delete", "put"]
     queryset = Gpu.objects.all()
     serializer_class = GpuSerializer
     permission_classes: ClassVar = [permissions.IsAuthenticated]
@@ -165,10 +167,11 @@ class GpusViewSet(viewsets.ModelViewSet):
 
 
 class NodesViewSet(viewsets.ModelViewSet):
+    http_method_names = ["get", "post", "delete", "put"]
     queryset = Node.objects.all()
     serializer_class = NodeSerializer
     permission_classes: ClassVar = [permissions.IsAuthenticated]
-    http_method_names = ["get", "post", "delete"]
+
 
     @action(
         detail=False,
@@ -186,7 +189,7 @@ class NodesViewSet(viewsets.ModelViewSet):
         )
         time.sleep(3)
         return Response({"status": "Command sent"}, status=status.HTTP_200_OK)
-    
+
     @action(
         detail=False,
         methods=["post"],

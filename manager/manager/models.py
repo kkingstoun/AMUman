@@ -5,12 +5,12 @@ from django.db import models
 from django.utils import timezone
 
 
-class ConnectionStatus(Enum):
-    CONNECTED = "CONNECTED"
-    DISCONNECTED = "DISCONNECTED"
-
-
 class Node(models.Model):
+
+    class ConnectionStatus(Enum):
+        CONNECTED = "CONNECTED"
+        DISCONNECTED = "DISCONNECTED"
+
     class NodeStatus(Enum):
         PENDING = "PENDING"
         RESERVED = "RESERVED"
@@ -86,13 +86,16 @@ class Job(models.Model):
     class JobPriority(Enum):
         URGENT = "URGENT"
         NORMAL = "NORMAL"
- 
+
 
     class JobStatus(Enum):
         PENDING = "PENDING"
         FINISHED = "FINISHED"
         INTERRUPTED = "INTERRUPTED"
         RUNNING = "RUNNING"
+        CONNECTION_LOST = "CONNECTION_LOST"
+        FAILED = "FAILED"
+        CALC_ERROR = "CALC_ERROR"
 
     class GPUPartition(Enum):
         SLOW = "SLOW"
@@ -133,6 +136,7 @@ class Job(models.Model):
     output = models.TextField(null=True, blank=True)
     error = models.TextField(null=True, blank=True)
     flags = models.CharField(max_length=150, null=True, blank=True)
-
+    run_attempts = models.PositiveSmallIntegerField(default=0)
+    
     def __str__(self):
         return f"{self.pk}"
