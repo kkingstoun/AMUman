@@ -16,4 +16,4 @@ drf-spectacular==0.27.2
 django-constance==3.1.0
 django-rich-logging==0.3.0
 django-filter==24.2
-pydantic==2.7.4
+pydantic==2.8.2
