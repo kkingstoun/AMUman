@@ -4,25 +4,16 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-    commit-message:
-      prefix: "deps"
-    pull-request-branch-name:
-      prefix: "deps"
-    open-pull-requests-limit: 1
     groups:
-      all-updates:
+      dev-dependencies:
         patterns:
-          - ".*"
+          - "*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
-    commit-message:
-      prefix: "deps"
-    pull-request-branch-name:
-      prefix: "deps"
-    open-pull-requests-limit: 1
     groups:
-      all-updates:
+      dev-dependencies:
         patterns:
-          - ".*"
+          - "*"
+          
